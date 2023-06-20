@@ -20,7 +20,7 @@ if __name__ == '__main__' :
         print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps))
  
     # Number of frames to capture
-    num_frames = 120;
+    num_frames = 120
  
     print("Capturing {0} frames".format(num_frames))
  
