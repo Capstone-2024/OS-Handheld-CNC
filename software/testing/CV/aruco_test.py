@@ -4,7 +4,7 @@
 import numpy as np
 import cv2
 import sys
-from utils import ARUCO_DICT
+from utils import ARUCO_DICT, aruco_display
 import argparse
 import time
 
@@ -51,10 +51,14 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             ret, rvec, tvec = cv2.solvePnP(objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
 
             # Draw a square around the markers
-            cv2.aruco.drawDetectedMarkers(frame, corners) 
+            #cv2.aruco.drawDetectedMarkers(frame, corners) 
 
             # Draw Axis
-            #cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)  
+            #cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
+            cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01, 1)
+
+    # put tag
+    aruco_display(corners, ids, rejected_img_points, frame)
 
     return frame
 
@@ -79,6 +83,12 @@ if __name__ == '__main__':
     d = np.load(distortion_coefficients_path)
 
     video = cv2.VideoCapture(0)
+    # used to record the time when we processed last frame
+    prev_frame_time = 0
+    
+    # used to record the time at which we processed current frame
+    new_frame_time = 0
+
     time.sleep(2.0)
 
     while True:
@@ -89,7 +99,16 @@ if __name__ == '__main__':
         
         output = pose_esitmation(frame, aruco_dict_type, k, d)
 
-        cv2.imshow('Estimated Pose', output)
+        new_frame_time = time.time()
+        # FPS
+        fps = 1/(new_frame_time-prev_frame_time)
+        prev_frame_time = new_frame_time
+        fps = int(fps)
+        fps = str(fps)
+        font = cv2.FONT_HERSHEY_PLAIN
+        cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+
+        cv2.imshow('Output Result', output)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
