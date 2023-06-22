@@ -9,7 +9,7 @@ import argparse
 import time
 
 
-def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients):
+def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
 
     '''
     frame - Frame from the video stream
@@ -33,6 +33,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
     # If markers are detected
     # most computing heavy
     if len(corners) > 0:
+
         for i in range(0, len(ids)):
             # Estimate pose of each marker and return the values rvec and tvec---(different from those of camera coefficients)
             # rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.02, matrix_coefficients, distortion_coefficients)
@@ -47,6 +48,17 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
                                     [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
 
             ret, rvec, tvec = cv2.solvePnP(objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+            
+            # XY rotation might not be useful since it will be fixed 
+            # rotation around Z might be useful, since it can show us where the camera is pointing
+        
+            if str(ids[i]) in current_pose: 
+                prev_pose[str(ids[i])] = current_pose[str(ids[i])]
+                print("Marker {} moved by: X: {}, Y: {}, Z: {}".format(ids[i], [tvec - prev_pose[str(ids[i])]['translation']]))
+        
+            current_pose[str(ids[i])] = {'rotation': rvec,'translation': tvec}
+            print(current_pose)
+
 
             # Draw a square around the markers
             # cv2.aruco.drawDetectedMarkers(frame, corners) 
@@ -54,9 +66,8 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # Draw Axis
             #cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
             cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
-            
-            print("rvec: {}".format(rvec))
-            print("tvec: {}".format(tvec))
+            # print(rvec)
+            # print(tvec)
 
     # put tag
     aruco_display(corners, ids, rejected_img_points, frame)
@@ -99,10 +110,14 @@ if __name__ == '__main__':
         if not ret:
             break
         
-        output = pose_estimation(frame, aruco_dict_type, k, d)
+        # Record camera pose relative to each marker according to their unique id, using a dictionary
+        current_pose = {}
+        prev_pose = {}
 
-        new_frame_time = time.time()
+        output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
+        
         # FPS
+        new_frame_time = time.time()
         fps = 1/(new_frame_time-prev_frame_time)
         prev_frame_time = new_frame_time
         fps = int(fps)
