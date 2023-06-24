@@ -1,6 +1,3 @@
-# Source: https://github.com/GSNCodes/ArUCo-Markers-Pose-Estimation-Generation-Python/tree/main
-# Command: py aruco_test.py --K_Matrix calibration_matrix.npy --D_Coeff distortion_coefficients.npy --type DICT_6X6_100
-
 import numpy as np
 import cv2
 import sys
@@ -11,34 +8,22 @@ import time
 
 def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
 
-    '''
-    frame - Frame from the video stream
-    matrix_coefficients - Intrinsic matrix of the calibrated camera
-    distortion_coefficients - Distortion coefficients associated with your camera
-    '''
-
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # more processing can be done 
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # more processing can be done to the images
     dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
-    # cv2.aruco_dict = cv2.aruco.Dictionary_get(aruco_dict_type)
     parameters = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
-    # OLD NON-WORKING CODE
-    # corners, ids, rejected_img_points = detector.detectMarkers(gray, dictionary,parameters=parameters,
-    #     cameraMatrix=matrix_coefficients,
-    #     distCoeff=distortion_coefficients)
-    
     corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
-    # If markers are detected
-    # most computing heavy
+    # Marker Detection and Pose Estimation
+    # Most computing heavy
     if len(corners) > 0:
 
         for i in range(0, len(ids)):
-            # Estimate pose of each marker and return the values rvec and tvec---(different from those of camera coefficients)
-            # rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.02, matrix_coefficients, distortion_coefficients)
-            # cv2.aruco.estimatePoseSingleMarkers deprecated, use solvePnP
-
+            # Estimate pose of each marker and return the camera's rotational and translational vectors
+            
+            # Still need a way to do this marker size, need to standardize the size 
+            # Does not seem to actually affect the output values tho
             marker_size = 7
             
             # Object points
@@ -60,17 +45,10 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             current_pose[str(ids[i][0])] = {'rotation': rvec,'translation': tvec}
             # print(current_pose)
 
-
-            # Draw a square around the markers
-            # cv2.aruco.drawDetectedMarkers(frame, corners) 
-
             # Draw Axis
-            #cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
             cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
-            # print(rvec)
-            # print(tvec)
 
-    # put tag
+    # Put tag
     aruco_display(corners, ids, rejected_img_points, frame)
 
     return frame
@@ -88,15 +66,17 @@ if __name__ == '__main__':
         print(f"ArUCo tag type '{args['type']}' is not supported")
         sys.exit(0)
 
-    aruco_dict_type = ARUCO_DICT[args["type"]]
-    calibration_matrix_path = args["K_Matrix"]
+    # Command: py aruco_test.py --K_Matrix calibration_matrix.npy --D_Coeff distortion_coefficients.npy --type DICT_6X6_100
+
+    aruco_dict_type = ARUCO_DICT[""]
+    calibration_matrix_path = 
     distortion_coefficients_path = args["D_Coeff"]
 
     # Record camera pose relative to each marker according to their unique id, using a dictionary
     current_pose = {}
     prev_pose = {}
     
-    k = np.load(calibration_matrix_path)
+    k = np.load("calibration_matrix.npy")
     d = np.load(distortion_coefficients_path)
 
     video = cv2.VideoCapture(0)
