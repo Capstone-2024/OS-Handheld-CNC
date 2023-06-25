@@ -31,16 +31,17 @@ def readConfig(sender, app_data, user_data):
 
 def updateConfig(sender, app_data, user_data): 
     config = configparser.ConfigParser()
-    
-    print(user_data)
 
     file = user_data[0]
     section = user_data[1]
     key = user_data[2]
-    update = user_data[3]
+
+    # File needs to exist first!
+    config.read(file)
+    print(config)
 
     # Update
-    config[section][key] = update
+    config[section][key] = app_data
     
     # Write to file
     with open(file, 'w') as configfile:

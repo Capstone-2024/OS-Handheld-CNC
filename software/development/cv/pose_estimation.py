@@ -53,31 +53,15 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
     return frame
 
-if __name__ == '__main__':
-
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-k", "--K_Matrix", required=True, help="Path to calibration matrix (numpy file)")
-    ap.add_argument("-d", "--D_Coeff", required=True, help="Path to distortion coefficients (numpy file)")
-    ap.add_argument("-t", "--type", type=str, default="DICT_ARUCO_ORIGINAL", help="Type of ArUCo tag to detect")
-    args = vars(ap.parse_args())
-
-    
-    if ARUCO_DICT.get(args["type"], None) is None:
-        print(f"ArUCo tag type '{args['type']}' is not supported")
-        sys.exit(0)
-
-    # Command: py aruco_test.py --K_Matrix calibration_matrix.npy --D_Coeff distortion_coefficients.npy --type DICT_6X6_100
-
-    aruco_dict_type = ARUCO_DICT[""]
-    calibration_matrix_path = 
-    distortion_coefficients_path = args["D_Coeff"]
+def stream(): 
+    aruco_dict_type = ARUCO_DICT["DICT_6X6_100"]
 
     # Record camera pose relative to each marker according to their unique id, using a dictionary
     current_pose = {}
     prev_pose = {}
     
     k = np.load("calibration_matrix.npy")
-    d = np.load(distortion_coefficients_path)
+    d = np.load("distortion_coefficients.npy")
 
     video = cv2.VideoCapture(0)
 
@@ -94,7 +78,6 @@ if __name__ == '__main__':
 
         if not ret:
             break
-        
         
 
         output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)

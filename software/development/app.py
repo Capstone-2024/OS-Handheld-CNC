@@ -1,20 +1,10 @@
-# Not sure what UI we want to do just yet
-import dearpygui.dearpygui as dpg
+from ui import main_page
+from cv.pose_estimation import stream
 
 # Render start page
-# https://www.youtube.com/watch?v=-JZK8h-3bNk
-def save_callback():
-    print("Save Clicked")
+# https://www.youtube.com/watch?v=-JZK8h-3bNk - stream camera video in UI
 
-dpg.create_context()
-dpg.create_viewport()
-dpg.setup_dearpygui()
 
-with dpg.window(label="Example Window"):
-    dpg.add_text("Click Start to Begin")
-    dpg.add_button(label="Start", callback=save_callback)
-    dpg.add_slider_float(label="float")
 
-dpg.show_viewport()
-dpg.start_dearpygui()
-dpg.destroy_context()
+# test AruCo detection
+stream()

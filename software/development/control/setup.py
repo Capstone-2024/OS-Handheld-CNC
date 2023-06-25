@@ -1,9 +1,9 @@
-# import Serial as serial
-
 # Communicate with Arduino to send move commands 
+from control.control_utils import ardu_write, ardu_read
 
 def start_cut(file): 
     print("Cutting..." + file)
 
-# ser = serial.Serial('/dev/ttyACM0', 9600) # Initialize communication
-# etc etc
+    # Show Stitched image/SVG?
+
+    # 
