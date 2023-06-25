@@ -1,4 +1,4 @@
-// For RAMPS 1.4
+// For RAMPS 1.4 https://reprap.org/wiki/RAMPS_1.4#Pins
 #define X_STEP_PIN         54
 #define X_DIR_PIN          55
 #define X_ENABLE_PIN       38
