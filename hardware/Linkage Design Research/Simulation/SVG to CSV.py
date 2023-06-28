@@ -1,34 +1,35 @@
-import xml.etree.ElementTree as ET
+import csv
+from svgpathtools import svg2paths, Line, Arc
 
-def get_path_coordinates(svg_file_path):
-    tree = ET.parse(svg_file_path)
-    root = tree.getroot()
+def svg_to_csv(svg_file, csv_file, num_samples=100):
+    # Convert SVG file to paths
+    paths, attributes = svg2paths(svg_file)
 
-    # Find all path elements in the SVG file
-    path_elements = root.findall(".//{http://www.w3.org/2000/svg}path")
+    # Extract data points from paths
+    data_points = []
+    for path in paths:
+        for segment in path:
+            if isinstance(segment, Line):
+                points = segment.sample(num_samples)
+                for point in points:
+                    data_points.append([point.real, point.imag])
+            elif isinstance(segment, Arc):
+                length = segment.length()
+                num_segments = int(length)  # Number of line segments to approximate the arc
+                t_values = [i / num_segments for i in range(num_segments + 1)]
+                for t in t_values:
+                    point = segment.point(t)
+                    data_points.append([point.real, point.imag])
 
-    # Extract the coordinates from each path element
-    for path in path_elements:
-        if 'd' in path.attrib:
-            path_data = path.attrib['d']
-            path_coordinates = parse_path_coordinates(path_data)
-            print(path_coordinates)
+    # Write data points to CSV file
+    with open(csv_file, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['x', 'y'])  # Write header
+        writer.writerows(data_points)
 
-def parse_path_coordinates(path_data):
-    # Remove unnecessary characters and split the path data
-    path_data = path_data.replace('M', '').replace('L', ',').replace('Z', '')
-    coordinates = path_data.split(',')
+    print(f"Conversion completed. Data points saved in '{csv_file}'.")
 
-    # Convert coordinates to float values
-    coordinates = [float(coord) for coord in coordinates]
-
-    # Group coordinates into pairs
-    pairs = [(coordinates[i], coordinates[i + 1]) for i in range(0, len(coordinates), 2)]
-
-    return pairs
-
-# Provide the path to your SVG file
-svg_file_path = "Circle-01.svg"
-
-# Call the function with the SVG file path
-get_path_coordinates(svg_file_path)
+# Usage example
+svg_file = 'Circle-01.svg'
+csv_file = 'output.csv'
+svg_to_csv(svg_file, csv_file)
