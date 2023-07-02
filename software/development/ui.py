@@ -76,6 +76,18 @@ def main_page():
                 dpg.add_button(label=str(file), callback=file_selected_callback, user_data=str(file), tag="__button_" + str(file))
                 pass
 
+        # Workpiece Scan
+        
+        
+        # File Preview
+        with dpg.plot(label="Cut Preview", show=False, height=window_height, width=window_width, tag="__cut_preview"):
+            # REQUIRED: create x and y axes
+            dpg.add_plot_axis(dpg.mvXAxis, label="x")
+            dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="yaxis")
+
+            dpg.add_scatter_series(0,0, label="Preview", parent="yaxis", tag="__cut_scatter")
+
+
         # Cut Settings
 
         # Read list of supported bits
@@ -101,4 +113,3 @@ def main_page():
 
 if __name__ == "__main__": 
     main_page()
-

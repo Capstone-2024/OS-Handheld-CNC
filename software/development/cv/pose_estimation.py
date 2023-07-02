@@ -61,6 +61,7 @@ def stream():
     current_pose = {}
     prev_pose = {}
     
+    # load numpy data files
     k = np.load("calibration_matrix.npy")
     d = np.load("distortion_coefficients.npy")
 
@@ -80,7 +81,6 @@ def stream():
         if not ret:
             break
         
-
         output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
         
         # FPS
