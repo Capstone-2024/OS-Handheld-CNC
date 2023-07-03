@@ -26,7 +26,7 @@ ARUCO_DICT = {
 	"DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
 }
 
-def aruco_display(corners, ids, rejected, image):
+def aruco_display(corners, ids, rejected, image, terminal_print=False):
 	if len(corners) > 0:
 		# flatten the ArUco IDs list
 		ids = ids.flatten()
@@ -54,6 +54,7 @@ def aruco_display(corners, ids, rejected, image):
 			# draw the ArUco marker ID on the image
 			cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
 				0.5, (0, 255, 0), 2)
-			print("[Inference] ArUco marker ID: {}".format(markerID))
+			if terminal_print: 
+				print("[Inference] ArUco marker ID: {}".format(markerID))
 			# show the output image
 	return image

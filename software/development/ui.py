@@ -85,7 +85,7 @@ def main_page():
             dpg.add_plot_axis(dpg.mvXAxis, label="x")
             dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="yaxis")
 
-            dpg.add_scatter_series(0,0, label="Preview", parent="yaxis", tag="__cut_scatter")
+            # dpg.add_scatter_series(0,0, label="Preview", parent="yaxis", tag="__cut_scatter")
 
 
         # Cut Settings

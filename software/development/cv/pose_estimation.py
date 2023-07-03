@@ -1,8 +1,6 @@
 import numpy as np
 import cv2
-import sys
-from utils import ARUCO_DICT, aruco_display
-import argparse
+from cv.utils import ARUCO_DICT, aruco_display
 import time
 
 
@@ -19,8 +17,13 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
     # Marker Detection and Pose Estimation
     # Most computing heavy
     if len(corners) > 0:
+        
+        # Store Sum of Differences
+        cam_change = [0, 0, 0]
 
-        for i in range(0, len(ids)):
+        # For each detected ID
+        for i in range(0, len(ids)-1):
+
             # Estimate pose of each marker and return the camera's rotational and translational vectors
             
             # Still need a way to do this marker size, need to standardize the size 
@@ -37,19 +40,44 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             
             # XY rotation might not be useful since it will be fixed 
             # rotation around Z might be useful, since it can show us where the camera is pointing
-        
+            
+            # If marker has been stored
             if str(ids[i][0]) in current_pose: 
+                # Store Current Pos
                 prev_pose[str(ids[i][0])] = current_pose[str(ids[i][0])]
+
+                # Calculate the Change in Translation
                 difference = tvec - prev_pose[str(ids[i][0])]['translation']
-                print("Marker {} moved by: X: {}, Y: {}, Z: {}".format(ids[i][0], difference[0], difference[1], difference[2]))
-        
+                # print("Marker {} moved by: X: {}, Y: {}, Z: {}".format(ids[i][0], difference[0], difference[1], difference[2]))
+
+                # Add marker's change into average sum
+                for j in range(0, len(tvec)-1): 
+                    cam_change[j] += abs(difference[j]) # Positive
+            
+            # Overwrite/add pose
             current_pose[str(ids[i][0])] = {'rotation': rvec,'translation': tvec}
             # print(current_pose)
 
             # Draw Axis
             cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
+        
+        # Determine Direction of Movement using first available marker
+        if str(ids[0][0]) in prev_pose: 
+            marker_change = current_pose[str(ids[0][0])]['translation'][0] - prev_pose[str(ids[0][0])]['translation'][0]
+            
+            if current_pose[str(ids[0][0])]['translation'][0] <= 0: # if on left
+                if marker_change < 0: 
+                    cam_change[0] = -1*cam_change[0]
 
-    # Put tag
+        # Dont need to do it for y
+        # if current_pose[str(ids[0])]['translation'][0] <= 0: # if on top
+        #     cam_change[1] = -1*cam_change[1]
+        if cam_change: 
+            print(f'X Movement: {cam_change[0]/(len(ids))}')
+            # print(f'Y Movement: {cam_change[1]/(len(ids))}')
+
+
+    # Add Data Tag
     aruco_display(corners, ids, rejected_img_points, frame)
 
     return frame
@@ -62,8 +90,8 @@ def stream():
     prev_pose = {}
     
     # load numpy data files
-    k = np.load("calibration_matrix.npy")
-    d = np.load("distortion_coefficients.npy")
+    k = np.load("./cv/calibration_matrix.npy")
+    d = np.load("./cv/distortion_coefficients.npy")
 
     video = cv2.VideoCapture(0)
 
@@ -90,7 +118,8 @@ def stream():
         fps = int(fps)
         fps = str(fps)
         font = cv2.FONT_HERSHEY_PLAIN
-        cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+        # print(fps)
+        # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
 
         cv2.imshow('Output Result', output)
 
