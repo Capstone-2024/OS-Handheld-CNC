@@ -4,7 +4,7 @@ from cv.utils import ARUCO_DICT, aruco_display
 import time
 
 
-def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
+def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose, total_change):
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # more processing can be done to the images
     
@@ -52,7 +52,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
                 # Add marker's change into average sum
                 for j in range(0, len(tvec)-1): 
-                    cam_change[j] += abs(difference[j]) # Positive
+                    cam_change[j] += difference[j] # Positive
             
             # Overwrite/add pose
             current_pose[str(ids[i][0])] = {'rotation': rvec,'translation': tvec}
@@ -64,18 +64,15 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
         # Determine Direction of Movement using first available marker
         if str(ids[0][0]) in prev_pose: 
             marker_change = current_pose[str(ids[0][0])]['translation'][0] - prev_pose[str(ids[0][0])]['translation'][0]
-            
-            if current_pose[str(ids[0][0])]['translation'][0] <= 0: # if on left
-                if marker_change < 0: 
-                    cam_change[0] = -1*cam_change[0]
 
         # Dont need to do it for y
         # if current_pose[str(ids[0])]['translation'][0] <= 0: # if on top
         #     cam_change[1] = -1*cam_change[1]
         if cam_change: 
-            print(f'X Movement: {cam_change[0]/(len(ids))}')
+            total_change[0] += cam_change[0]/(len(ids))
+            total_change[1] += cam_change[1]/(len(ids))
+            # print(f'X Movement: {cam_change[0]/(len(ids))}')
             # print(f'Y Movement: {cam_change[1]/(len(ids))}')
-
 
     # Add Data Tag
     aruco_display(corners, ids, rejected_img_points, frame)
@@ -88,6 +85,8 @@ def stream():
     # Record camera pose relative to each marker according to their unique id, using a dictionary
     current_pose = {}
     prev_pose = {}
+
+    total_change = [0, 0]
     
     # load numpy data files
     k = np.load("./cv/calibration_matrix.npy")
@@ -109,8 +108,10 @@ def stream():
         if not ret:
             break
         
-        output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
+        output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose, total_change)
         
+        print(total_change)
+
         # FPS
         new_frame_time = time.time()
         fps = 1/(new_frame_time-prev_frame_time)
