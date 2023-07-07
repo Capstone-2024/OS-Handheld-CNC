@@ -12,22 +12,24 @@ array = [0, 50, 100, 255] # test different focus
 # Test if focus can be changed using the v4l1 utils lib
 i = 0 
 for focus in array:
-    cam_props = {'focus_auto': 0, 'focus_absolute': focus}
+    cam_props = {'focus_absolute': focus}
 
     for key in cam_props:
         subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
                         shell=True)
         
-    test = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    test = cv2.VideoCapture(0)
 
     # Camera startup before taking a photo
     time.sleep(2.0)
 
     ret, frame = test.read()
 
-    print(variance_of_laplacian(frame))
+    filename = "./focus-test/focus" + i + ".png"
 
-    # cv2.imwrite(frame, "./focus-test/focus" + i + ".png")
+    cv2.imwrite(frame, filename)
+
+    print(variance_of_laplacian(frame))
 
     # Increment
     i += 1
