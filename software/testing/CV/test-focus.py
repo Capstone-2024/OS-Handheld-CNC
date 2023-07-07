@@ -21,15 +21,17 @@ for focus in array:
     test = cv2.VideoCapture(0)
 
     # Camera startup before taking a photo
-    time.sleep(2.0)
+    # time.sleep(2.0)
 
     ret, frame = test.read()
 
     filename = "./focus-test/focus" + str(i) + ".png"
 
-    cv2.imwrite(filename,frame)
+    # cv2.imwrite(filename, frame)
 
-    print(variance_of_laplacian(filename))
+    print(variance_of_laplacian(frame))
+
+    test.release()
 
     # Increment
     i += 1
