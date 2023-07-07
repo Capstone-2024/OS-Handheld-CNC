@@ -21,6 +21,8 @@ for focus in array:
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
+    time.sleep(1.0)
+
     # Camera startup before taking a photo
     while not cap.isOpened(): # wait for camera
         pass
@@ -29,12 +31,14 @@ for focus in array:
 
         filename = "./focus-test/focus" + str(i) + ".png"
         
-
         # cv2.imwrite(filename, frame)
 
-        print(variance_of_laplacian(frame))
+        blur = variance_of_laplacian(frame) # higher is less blurry
+        print(f'Focus: {focus}: {round(blur, 2)}')
 
         cap.release()
+
+        time.sleep(1.0)
 
         # Increment
         i += 1
