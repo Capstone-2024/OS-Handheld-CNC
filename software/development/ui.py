@@ -80,13 +80,13 @@ def main_page():
         
         
         # File Preview
-        with dpg.plot(label="Cut Preview", show=False, height=window_height, width=window_width, tag="__cut_preview"):
+        # probably better to use matplotlib to plot and generate png to display here
+        # with dpg.plot(label="Cut Preview", show=False, height=window_height, width=window_width, tag="__cut_preview"):
             # REQUIRED: create x and y axes
-            dpg.add_plot_axis(dpg.mvXAxis, label="x")
-            dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="yaxis")
+            # dpg.add_plot_axis(dpg.mvXAxis, label="x")
+            # dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="yaxis")
 
             # dpg.add_scatter_series(0,0, label="Preview", parent="yaxis", tag="__cut_scatter")
-
 
         # Cut Settings
 

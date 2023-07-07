@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from cv.utils import ARUCO_DICT, aruco_display
 import time
+import subprocess
 
 
 def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose, total_change):
@@ -21,8 +22,9 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
         # Store Sum of Differences
         cam_change = [0, 0, 0]
 
+        i = 0
         # For each detected ID
-        for i in range(0, len(ids)-1):
+        for i in range(0, len(ids)):
 
             # Estimate pose of each marker and return the camera's rotational and translational vectors
             
@@ -51,7 +53,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
                 # print("Marker {} moved by: X: {}, Y: {}, Z: {}".format(ids[i][0], difference[0], difference[1], difference[2]))
 
                 # Add marker's change into average sum
-                for j in range(0, len(tvec)-1): 
+                for j in range(0, len(tvec)): 
                     cam_change[j] += difference[j] # Positive
             
             # Overwrite/add pose
@@ -60,10 +62,13 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
             # Draw Axis
             cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
+
+            # increment counter
+            i += 1
         
         # Determine Direction of Movement using first available marker
-        if str(ids[0][0]) in prev_pose: 
-            marker_change = current_pose[str(ids[0][0])]['translation'][0] - prev_pose[str(ids[0][0])]['translation'][0]
+        # if str(ids[0][0]) in prev_pose: 
+        #     marker_change = current_pose[str(ids[0][0])]['translation'][0] - prev_pose[str(ids[0][0])]['translation'][0]
 
         # Dont need to do it for y
         # if current_pose[str(ids[0])]['translation'][0] <= 0: # if on top
@@ -92,7 +97,20 @@ def stream():
     k = np.load("./cv/calibration_matrix.npy")
     d = np.load("./cv/distortion_coefficients.npy")
 
-    video = cv2.VideoCapture(0)
+    # LINUX 
+    cam_props = {'focus_auto': 0, 'focus_absolute': 30}
+    
+    for key in cam_props:
+        subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
+                     shell=True)
+        
+    video = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+    # WINDOWS
+    # video.set(cv2.CAP_PROP_FOCUS, 200)
+    # video.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn off auto focus
+    #focus = 255 # min: 0, max: 255, increment:5
+    #video.set(cv2.CAP_PROP_FOCUS, focus) 
 
     # used to record the time when we processed last frame
     prev_frame_time = 0
