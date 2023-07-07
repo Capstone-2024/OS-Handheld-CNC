@@ -7,7 +7,7 @@ def variance_of_laplacian(image):
 	# measure, which is simply the variance of the Laplacian
 	return cv2.Laplacian(image, cv2.CV_64F).var()
 
-array = [50, 100, 200, 300, 400, 500, 600, 800] # test different focus
+array = [400, 450, 500, 550, 600] # test different focus
 
 # Test if focus can be changed using the v4l1 utils lib
 i = 0 
