@@ -25,7 +25,7 @@ for focus in array:
 
     ret, frame = test.read()
 
-    filename = "./focus-test/focus" + i + ".png"
+    filename = "./focus-test/focus" + str(i) + ".png"
 
     cv2.imwrite(frame, filename)
 
