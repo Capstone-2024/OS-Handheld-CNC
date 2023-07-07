@@ -22,18 +22,19 @@ for focus in array:
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
     # Camera startup before taking a photo
-    time.sleep(1.0)
+    while not cap.isOpened(): # wait for camera
+        pass
+    else: 
+        ret, frame = cap.read()
 
-    ret, frame = cap.read()
+        filename = "./focus-test/focus" + str(i) + ".png"
+        
 
-    filename = "./focus-test/focus" + str(i) + ".png"
-    
+        # cv2.imwrite(filename, frame)
 
-    # cv2.imwrite(filename, frame)
+        print(variance_of_laplacian(frame))
 
-    print(variance_of_laplacian(frame))
+        cap.release()
 
-    cap.release()
-
-    # Increment
-    i += 1
+        # Increment
+        i += 1
