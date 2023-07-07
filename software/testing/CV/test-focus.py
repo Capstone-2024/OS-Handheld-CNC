@@ -14,11 +14,12 @@ i = 0
 for focus in array:
     cam_props = {'focus_absolute': focus}
 
-    # for key in cam_props:
-    #     subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
-    #                     shell=True)
+    for key in cam_props:
+        subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
+                        shell=True)
         
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
     # Camera startup before taking a photo
     time.sleep(1.0)
@@ -26,6 +27,7 @@ for focus in array:
     ret, frame = cap.read()
 
     filename = "./focus-test/focus" + str(i) + ".png"
+    
 
     # cv2.imwrite(filename, frame)
 
