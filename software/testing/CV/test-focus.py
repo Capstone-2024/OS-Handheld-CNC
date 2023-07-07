@@ -27,7 +27,7 @@ for focus in array:
 
     filename = "./focus-test/focus" + str(i) + ".png"
 
-    cv2.imwrite(frame, filename)
+    # cv2.imwrite(filename,frame)
 
     print(variance_of_laplacian(frame))
 
