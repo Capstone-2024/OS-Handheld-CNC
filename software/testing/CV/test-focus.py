@@ -12,12 +12,12 @@ array = [0, 5, 15, 20, 25, 30] # test different focus
 # Test if focus can be changed using the v4l1 utils lib
 i = 0 
 for focus in array:
-    cam_props = {'focus_absolute': focus}
+    cam_props = {'focus_absolute': focus, 'focus_auto': 0}
 
     for key in cam_props:
         subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
                         shell=True)
-        
+
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
