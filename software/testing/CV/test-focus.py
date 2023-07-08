@@ -31,7 +31,7 @@ for focus in array:
 
         filename = "./focus-test/focus" + str(i) + ".png"
         
-        # cv2.imwrite(filename, frame)
+        cv2.imwrite(filename, frame)
 
         blur = variance_of_laplacian(frame) # higher is less blurry
         print(f'Focus: {focus}: {round(blur, 2)}')
