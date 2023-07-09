@@ -115,9 +115,9 @@ def main():
 
         gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY) # more processing can be done to the images
 
-        # ret, image = cv2.threshold(gray, 150, 100, cv2.THRESH_BINARY)
+        ret, image = cv2.threshold(gray, 170, 100, cv2.THRESH_OTSU)
 
-        image = cv2.adaptiveThreshold(gray, 130, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+        # image = cv2.adaptiveThreshold(gray, 130, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
 
         cv2.imwrite("./captured/" + str(i) + ".jpg", image)
 
