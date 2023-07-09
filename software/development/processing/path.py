@@ -1,6 +1,6 @@
 # Develop tool path based on input shape
 # 1. Look at min and max xy and set start location
-# 1.1 (0, 0) should be default
+# 1.1 (x_array[0], y_array[0]) should be default
 # 1.2 If starting is not (0, 0) for some reason, make svg 
 
 # 2. Scale svg points input to available size on stitched image
@@ -21,5 +21,6 @@
 
 # Develop path 
 # - separating features (find closed paths)
-
-
+# - shift points inward by radius of tool
+#   - find tangent based on path 
+#   - m[i] = (y[i+1] - y[i-1]) / (x[i+1] - x[i-1])     (https://stackoverflow.com/questions/2553015/tangent-of-a-parametric-discrete-curve)

@@ -19,3 +19,6 @@ def start_cut(file):
     # Show Stitched image/SVG?
 
     # 
+
+def main(): 
+    
