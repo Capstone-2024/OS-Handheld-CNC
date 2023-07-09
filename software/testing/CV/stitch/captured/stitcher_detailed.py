@@ -2,7 +2,7 @@
 # Command py .\stitcher_detailed.py "1.jpg" "2.jpg" "3.jpg" "4.jpg" "5.jpg" "6.jpg" –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 1 –ba no –ba_refine_mask xxxxx –wave_correct horiz –warp plane –blend multiband –expos_comp channels_blocks –seam gc_colorgrad
 # AFFINE Command py .\stitcher_detailed.py "1.jpg" "2.jpg" "3.jpg" "4.jpg" "5.jpg" "6.jpg" –work_megapix 0.6 –features surf –matcher affine –estimator affine –match_conf 0.3 –conf_thresh 0.3 –ba affine –ba_refine_mask xxxxx –wave_correct no –warp affine
 
-# AFFINE Command py .\stitcher_detailed.py "1.jpg" "2.jpg" "3.jpg" "4.jpg" "5.jpg" "6.jpg" –work_megapix 0.6 –features surf –matcher affine –estimator affine –match_conf 0.3 –conf_thresh 0.3 –ba affine –ba_refine_mask xxxxx –wave_correct no –warp plane
+# AFFINE Command py .\stitcher_detailed.py "1.jpg" "2.jpg" "3.jpg" "4.jpg" "5.jpg" –work_megapix 0.6 –features surf –matcher affine –estimator affine –match_conf 0.2 –conf_thresh 0.3 –ba affine –ba_refine_mask xxxxx –wave_correct no –warp plane
 """
 Stitching sample (advanced)
 ===========================

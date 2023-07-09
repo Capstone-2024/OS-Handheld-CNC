@@ -30,7 +30,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             
             # Still need a way to do this marker size, need to standardize the size 
             # Does not seem to actually affect the output values tho
-            marker_size = 7
+            marker_size = 15
             
             # Object points
             objp = np.array([[-marker_size / 2, marker_size / 2, 0],
@@ -48,7 +48,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
                 # Store Current Pos
                 prev_pose[str(ids[i][0])] = current_pose[str(ids[i][0])]
 
-                # Calculate the Change in Translation
+                # Calculate the Change in Translation for each marker
                 difference = tvec - prev_pose[str(ids[i][0])]['translation']
                 # print("Marker {} moved by: X: {}, Y: {}, Z: {}".format(ids[i][0], difference[0], difference[1], difference[2]))
 
@@ -100,17 +100,17 @@ def stream():
     # LINUX 
     cam_props = {'focus_auto': 0, 'focus_absolute': 30}
     
-    for key in cam_props:
-        subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
-                     shell=True)
+    # for key in cam_props:
+    #     subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
+    #                  shell=True)
         
-    video = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    video = cv2.VideoCapture(0)
 
-    # WINDOWS
-    # video.set(cv2.CAP_PROP_FOCUS, 200)
+    # WINDOWS - does not work for the older version camera
+    video.set(cv2.CAP_PROP_FOCUS, 200)
     # video.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn off auto focus
-    #focus = 255 # min: 0, max: 255, increment:5
-    #video.set(cv2.CAP_PROP_FOCUS, focus) 
+    # focus = 255 # min: 0, max: 255, increment:5
+    # video.set(cv2.CAP_PROP_FOCUS, focus) 
 
     # used to record the time when we processed last frame
     prev_frame_time = 0
