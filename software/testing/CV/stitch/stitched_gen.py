@@ -48,20 +48,29 @@ def four_point_transform(image, corners):
     heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
     maxHeight = max(int(heightA), int(heightB))
 
-    marker_px = max(maxWidth, maxHeight)
+    marker_px = min(maxWidth, maxHeight)
     
     dst = np.array([
         [tl[0], tl[1]],
         [tl[0] + marker_px, tl[1]],
-        [tl[0] +  marker_px, tl[1] + marker_px],
+        [tl[0] + marker_px, tl[1] + marker_px],
         [tl[0], tl[1] + marker_px]], dtype = "float32")
 
     # compute the perspective transform matrix and then apply it
     M = cv2.getPerspectiveTransform(corners[0], dst) # use first marker to obtain transform
-    warped = cv2.warpPerspective(image, M, (image.shape[0], image.shape[1]))
+    warped = cv2.warpPerspective(image, M, (image.shape[0]*2, image.shape[1]*2))
 
+   #  frame = cv2.rectangle(warped, (tl[0], tl[1]), ((tl[0] +  marker_px), (tl[1] + marker_px)), (255, 0, 0), 1)
+
+    frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] +  marker_px), int(tl[1] + marker_px)), (125, 125, 125), 5)
+    
+    th = 1 # threshold for black edges
+    y_nonzero, x_nonzero, _ = np.nonzero(frame>th)
+    cropped = frame[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+
+    # frame = cv2.polylines(warped, [dst], True, (0,255,255))
     # return the warped image
-    return warped
+    return cropped
 
 def marker_transform(frame, aruco_dict_type):
 
@@ -84,7 +93,7 @@ def main():
 
     # cap = cv2.VideoCapture(0)
     # time.sleep(1.0)
-    
+    # Capture 6 images, an image per 2 seconds
     # for i in range(1, 7): 
     #     time.sleep(0.5)
     #     ret, frame = cap.read()
@@ -104,7 +113,7 @@ def main():
     #     cv2.destroyAllWindows()
     
     files = os.listdir("./raw/")
-    print(files)
+    # print(files)
 
     i = 0 
     for file in files: 
@@ -114,10 +123,10 @@ def main():
         output = marker_transform(frame_cropped, aruco_dict_type)
 
         gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY) # more processing can be done to the images
+        denoise = cv2.fastNlMeansDenoising(gray)
+        ret, image = cv2.threshold(denoise, 10, maxval=200, type=cv2.THRESH_OTSU)
 
-        ret, image = cv2.threshold(gray, 170, 100, cv2.THRESH_OTSU)
-
-        # image = cv2.adaptiveThreshold(gray, 130, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+        # image = cv2.adaptiveThreshold(gray, 130, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_OTSU, 11, 2)
 
         cv2.imwrite("./captured/" + str(i) + ".jpg", image)
 

@@ -24,3 +24,5 @@
 # - shift points inward by radius of tool
 #   - find tangent based on path 
 #   - m[i] = (y[i+1] - y[i-1]) / (x[i+1] - x[i-1])     (https://stackoverflow.com/questions/2553015/tangent-of-a-parametric-discrete-curve)
+
+# https://en.wikipedia.org/wiki/Convex_hull_algorithms
