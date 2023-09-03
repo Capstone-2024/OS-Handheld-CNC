@@ -65,4 +65,4 @@ plt.show()
 # if __name__ == "__main__": 
 #     svg_file = 'test2.svg'
 #     csv_file = 'output.csv'
-#     svg_to_points(svg_file) # , csv_file)
+#     svg_to_points(svg_file) # , csv_file

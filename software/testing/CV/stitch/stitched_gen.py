@@ -122,13 +122,13 @@ def main():
 
         output = marker_transform(frame_cropped, aruco_dict_type)
 
-        gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY) # more processing can be done to the images
-        denoise = cv2.fastNlMeansDenoising(gray)
-        ret, image = cv2.threshold(denoise, 10, maxval=200, type=cv2.THRESH_OTSU)
+        # gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY) # more processing can be done to the images
+        # denoise = cv2.fastNlMeansDenoising(gray)
+        # ret, image = cv2.threshold(denoise, 10, maxval=200, type=cv2.THRESH_OTSU)
 
         # image = cv2.adaptiveThreshold(gray, 130, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_OTSU, 11, 2)
 
-        cv2.imwrite("./captured/" + str(i) + ".jpg", image)
+        cv2.imwrite("./captured/" + str(i) + ".jpg", output)
 
         i += 1
 
