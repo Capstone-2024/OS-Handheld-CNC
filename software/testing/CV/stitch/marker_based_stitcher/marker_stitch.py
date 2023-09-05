@@ -37,49 +37,49 @@ ARUCO_DICT = {
 	"DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
 }
 
-# def four_point_transform(image, corners):      
-#     # Get coordinate of each corner
-#     (tl, tr, br, bl) = corners[0]
+def four_point_transform(image, corners):      
+    # Get coordinate of each corner
+    (tl, tr, br, bl) = corners[0]
 
-#     # compute the width of the new image, which will be the
-#     # maximum distance between bottom-right and bottom-left
-#     # x-coordiates or the top-right and top-left x-coordinates
-#     widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-#     widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-#     maxWidth = max(int(widthA), int(widthB))
+    # compute the width of the new image, which will be the
+    # maximum distance between bottom-right and bottom-left
+    # x-coordiates or the top-right and top-left x-coordinates
+    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    maxWidth = max(int(widthA), int(widthB))
 
-#     # compute the height of the new image, which will be the
-#     # maximum distance between the top-right and bottom-right
-#     # y-coordinates or the top-left and bottom-left y-coordinates
-#     heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-#     heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-#     maxHeight = max(int(heightA), int(heightB))
+    # compute the height of the new image, which will be the
+    # maximum distance between the top-right and bottom-right
+    # y-coordinates or the top-left and bottom-left y-coordinates
+    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    maxHeight = max(int(heightA), int(heightB))
 
-#     marker_px = min(maxWidth, maxHeight)
+    marker_px = min(maxWidth, maxHeight)
     
-#     dst = np.array([
-#         [tl[0], tl[1]],
-#         [tl[0] + marker_px, tl[1]],
-#         [tl[0] + marker_px, tl[1] + marker_px],
-#         [tl[0], tl[1] + marker_px]], dtype = "float32")
+    dst = np.array([
+        [tl[0], tl[1]],
+        [tl[0] + marker_px, tl[1]],
+        [tl[0] + marker_px, tl[1] + marker_px],
+        [tl[0], tl[1] + marker_px]], dtype = "float32")
 
-#     # compute the perspective transform matrix and then apply it
-#     M = cv2.getPerspectiveTransform(corners[0], dst) # use first marker to obtain transform
-#     warped = cv2.warpPerspective(image, M, (image.shape[0]*2, image.shape[1]*2))
+    # compute the perspective transform matrix and then apply it
+    M = cv2.getPerspectiveTransform(corners[0], dst) # use first marker to obtain transform
+    warped = cv2.warpPerspective(image, M, (image.shape[0]*2, image.shape[1]*2))
 
-#    #  frame = cv2.rectangle(warped, (tl[0], tl[1]), ((tl[0] +  marker_px), (tl[1] + marker_px)), (255, 0, 0), 1)
+    #  frame = cv2.rectangle(warped, (tl[0], tl[1]), ((tl[0] +  marker_px), (tl[1] + marker_px)), (255, 0, 0), 1)
 
-#     frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] +  marker_px), int(tl[1] + marker_px)), (125, 125, 125), 5)
+    frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] +  marker_px), int(tl[1] + marker_px)), (125, 125, 125), 5)
     
-#     th = 1 # threshold for black edges
-#     y_nonzero, x_nonzero, _ = np.nonzero(frame>th)
-#     cropped = frame[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+    th = 1 # threshold for black edges
+    y_nonzero, x_nonzero, _ = np.nonzero(frame>th)
+    cropped = frame[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
 
-#     # frame = cv2.polylines(warped, [dst], True, (0,255,255))
-#     # return the warped image
-#     return cropped
+    # frame = cv2.polylines(warped, [dst], True, (0,255,255))
+    # return the warped and cropped image
+    return cropped
 
-def marker_ids(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients):
+def marker_ids(frame, aruco_dict_type):
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -91,33 +91,22 @@ def marker_ids(frame, aruco_dict_type, matrix_coefficients, distortion_coefficie
 
     return corners, ids
     
-
-    # if len(corners) > 0:
-    #     return four_point_transform(frame, corners[0])
-    # else: 
-    #     return frame
+def find_pose(corners, matrix_coefficients, distortion_coefficients):
+    # Estimate pose of each marker and return the camera's rotational and translational vectors
     
-    # Marker Detection and Pose Estimation
-    # Most computing heavy
-    # if len(corners) > 0:
+    # Still need a way to do this marker size, need to standardize the size 
+    # Does not seem to actually affect the output values tho
+    marker_size = 15
     
-    #     i = 0
-    #     # For each detected ID
-    #     for i in range(0, len(ids)):
+    # Object points
+    objp = np.array([[-marker_size / 2, marker_size / 2, 0],
+                            [marker_size / 2, marker_size / 2, 0],
+                            [marker_size / 2, -marker_size / 2, 0],
+                            [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
 
-    #         # Estimate pose of each marker and return the camera's rotational and translational vectors
-            
-    #         # Still need a way to do this marker size, need to standardize the size 
-    #         # Does not seem to actually affect the output values tho
-    #         marker_size = 15
-            
-    #         # Object points
-    #         objp = np.array([[-marker_size / 2, marker_size / 2, 0],
-    #                                 [marker_size / 2, marker_size / 2, 0],
-    #                                 [marker_size / 2, -marker_size / 2, 0],
-    #                                 [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
-
-    #         ret, rvec, tvec = cv2.solvePnP(objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+    ret, rvec, tvec = cv2.solvePnP(objp, corners, matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+    
+    return rvec, tvec
 
 def main(): 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_100"]
@@ -170,7 +159,7 @@ def main():
 
         print(ids_array)
 
-    unique_ids = np.unique(unique_ids) #filter for unique items
+    unique_ids = np.unique(unique_ids) # filter for unique items
 
     print(unique_ids)
     
@@ -178,7 +167,7 @@ def main():
     # markerid1: [list of images], markerid2: [list of images], ...
 
     # Go from image 0 and then try to combine with image 1
-    
+    # rewrite transform function and
 
 
 
