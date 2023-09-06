@@ -167,7 +167,7 @@ def main():
     # markerid1: [list of images], markerid2: [list of images], ...
 
     # Go from image 0 and then try to combine with image 1
-    # rewrite transform function and
+    # rewrite transform function to tru
 
 
 
