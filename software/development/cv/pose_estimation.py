@@ -28,9 +28,8 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
             # Estimate pose of each marker and return the camera's rotational and translational vectors
             
-            # Still need a way to do this marker size, need to standardize the size 
-            # Does not seem to actually affect the output values tho
-            marker_size = 15
+            # Size of the marker in real life in mmm
+            marker_size = 15 # mm
             
             # Object points
             objp = np.array([[-marker_size / 2, marker_size / 2, 0],
