@@ -89,7 +89,7 @@ def marker_ids(frame, aruco_dict_type):
 
     corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
-    aruco_display(corners, ids, rejected_img_points, frame)
+    # aruco_display(corners, ids, rejected_img_points, frame)
 
     # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
     #     cv2.imshow("Frame", frame)
@@ -115,53 +115,101 @@ def find_pose(corners, matrix_coefficients, distortion_coefficients):
     return rvec, tvec
 
 ''' Offset marker corners and compare black spots to white (or other colors) '''
-def calc_accuracy(frame, corners, range=10): 
-    (tl, tr, br, bl) = corners[0]
-    tl[0] -= range # x to the left
-    tr[1] -= range # y up
+def calc_accuracy(img, corners, range=20):
+    image = img.copy()
 
-    tr[0] += range # x to the right
-    tr[1] -= range # y up
+    (tl, tr, br, bl) = corners[0].copy()
 
-    bl[0] -= range # x to the left
-    br[1] += range # y down
+    # if offset range is larger than the corner pixel location then it cannot be subtracted, then just use the minimum value which is 0
+    # or if addition results in image larger than the captured image, then use the max dimension value
+    
+    # Top Left
+    if tl[0]+range <= image.shape[1]: 
+        tl[0] += range # x to the left
+    else: 
+        tl[0] = image.shape[0]
+    if tl[1]+range <= image.shape[0]: 
+        tl[1] += range # y up
+    else: 
+        tl[1] = image.shape[1]
 
-    br[0] += range # x to the right
-    br[1] += range # y down
+    # Top Right
+    if tr[0] >= range: 
+        tr[0] -= range # x to the right
+    else:
+        tr[0] = 0
+    if tr[1]+range <= image.shape[0]: 
+        tr[1] += range # y up
+    else: 
+        tr[1] = image.shape[0]
+
+    # Bottom Left
+    if bl[0]+range <= image.shape[1]: 
+        bl[0] += range # x to the left
+    else:
+        bl[0] = image.shape[1]
+    if bl[1] >= range: 
+        bl[1] -= range # y down
+    else: 
+        bl[1] = 0
+
+    # Bottom Right
+    if br[0] >= range: 
+        br[0] -= range # x to the right
+    else: 
+        br[0] = 0
+    if br[1] >= range: 
+        br[1] -= range # y down
+    else: 
+        br[1] = 0
 
     offset_contour = np.stack([tl, tr, br, bl])
-    print(offset_contour)
+
     # fill anything outside of this box with white pixels 
     fill_color = [255, 255, 255] # any BGR color value to fill with
-    mask_value = 255            # 1 channel white (can be any non-zero uint8 value)
+    mask_value = 255 # 1 channel white (can be any non-zero uint8 value)
 
-    stencil  = np.zeros(frame.shape[:-1]).astype(np.uint8)
-    cv2.fillPoly(stencil, offset_contour, mask_value)
+    stencil = np.zeros(image.shape[:-1]).astype(np.uint8)
+    cv2.fillPoly(stencil, np.int32([offset_contour]), mask_value)
+
+    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    #     cv2.imshow("Mask", stencil)
 
     sel = stencil != mask_value # select everything that is not mask_value
-    frame[sel] = fill_color # and fill it with fill_color
+    image[sel] = fill_color # and fill it with fill_color
 
     # Replace pixels inside the marker with white as well
-    cv2.fillPoly(frame, corners, mask_value)
+    cv2.fillPoly(image, np.int32([corners]), [255, 255, 255])
 
     # Show Image
-    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-        cv2.imshow("Frame", frame)
+    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    #     cv2.imshow("Frame", image)
 
     # Find max and mins of the offset box and crop
-    x_max = max(tl[0], tr[0], bl[0], br[0])
-    y_max = max(tl[1], tr[1], bl[1], br[1])
+    y_max = int(max(tl[0], tr[0], bl[0], br[0]))
+    x_max = int(max(tl[1], tr[1], bl[1], br[1]))
 
-    x_min = min(tl[0], tr[0], bl[0], br[0])
-    y_min = min(tl[1], tr[1], bl[1], br[1])
+    y_min = int(min(tl[0], tr[0], bl[0], br[0]))
+    x_min = int(min(tl[1], tr[1], bl[1], br[1]))
 
-    frame_cropped = frame[x_min: x_max, y_min: y_max]
+    # print(x_max, x_min, y_max, y_min)
+
+    cropped = image[x_min: x_max, y_min: y_max]
+    gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (11,11), 0)
+    threshold = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 3, 2)
 
     # Show Image
-    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-        cv2.imshow("Frame", frame_cropped)
+    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    #     cv2.imshow("Frame", threshold)
 
+    # print("Number of Pixels > Threshold: {}".format((threshold < 10).sum()))
+    percent = (threshold <= 10).sum()/(threshold > 10).sum()*100
 
+    # How much of the marker is showing as a percentage of the total space
+    # print("Error Percentage: {}%".format(percent))
+
+    return percent
 
 def aruco_display(corners, ids, rejected, image, terminal_print=False):
 	if len(corners) > 0:
@@ -245,32 +293,46 @@ def main():
         # Collect IDs of all markers for each image
         corners, ids = marker_ids(frame_cropped, aruco_dict_type)
 
-        print("Number of Markers: {}".format(len(ids)))
-        
-        # print(corners)
-
-        j = 0
+        # print("Number of Markers: {}".format(len(ids)))
 
         rvecs = [] # all rotational vectors
         tvecs = [] # all translational vectors
+
+        j = 0
+        accuracy_test = True # Enable accuracy test or not
+
         for corner in corners: # For each marker detected
-            print(corner)
-            calc_accuracy(frame_cropped, corner)
 
-            rvec, tvec = find_pose(corner, k, d)
+            # Only add the data if they pass the accuracy test
+            if accuracy_test: 
 
-            rvecs.append(rvec)
-            tvecs.append(tvec)
+                # Change offset range depending on marker size
+                if calc_accuracy(frame_cropped, corner, 25) < 0.7: 
 
-            # print("{}: {}, {}".format(ids[j], rvec, tvec))
+                    rvec, tvec = find_pose(corner, k, d)
+                    print("{}: {}".format(ids[j], rvec))
 
+                    rvecs.append(rvec)
+                    tvecs.append(tvec)
+            
+            # Run anyways if not using accuracy test
+            else: 
+                rvec, tvec = find_pose(corner, k, d)
+                print("{}: {}".format(ids[j], rvec))
+
+                rvecs.append(rvec)
+                tvecs.append(tvec)
+  
             j += 1 
         
         # Find Average
         r = np.array(rvecs)
         # t = np.array(tvecs)
 
-        print("Rotation Avg: {}".format(r.mean(axis=0)))
+        print("Rotation Avg: {}".format(r.mean(axis=0))) # MEAN DES NOT WORK :(, we need to do something else about this. 
+        # Currently considering finding the perspective matrix or something. 
+        # Or maybe just choose a marker that isn't warped and then combine idk
+
         # print("Translational Avg: {}".format(t.mean(axis=0)))
         
         # corners_array.append(corners)
