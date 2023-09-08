@@ -12,6 +12,7 @@ import time
 import numpy as np
 import subprocess
 import os
+import imutils
 
 ARUCO_DICT = {
 	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -64,20 +65,61 @@ def four_point_transform(image, corners):
         [tl[0], tl[1] + marker_px]], dtype = "float32")
 
     # compute the perspective transform matrix and then apply it
-    M = cv2.getPerspectiveTransform(corners[0], dst) # use first marker to obtain transform
-    warped = cv2.warpPerspective(image, M, (image.shape[0]*2, image.shape[1]*2))
+    M = cv2.getPerspectiveTransform(corners[0], dst)
+    warped = cv2.warpPerspective(image, M, (image.shape[0]*3, image.shape[1]*3))
 
-    #  frame = cv2.rectangle(warped, (tl[0], tl[1]), ((tl[0] +  marker_px), (tl[1] + marker_px)), (255, 0, 0), 1)
-
+    # Locate the marker being used to warp perspective
     frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] +  marker_px), int(tl[1] + marker_px)), (125, 125, 125), 5)
     
+    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+        cv2.imshow("Frame", frame)
+
     th = 1 # threshold for black edges
     y_nonzero, x_nonzero, _ = np.nonzero(frame>th)
+    
     cropped = frame[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+    
+    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+        cv2.imshow("Frame", cropped)
+
+
+    ''' Attempt to have fully filled images '''
+
+    # find all external contours in the threshold image then find
+    # the *largest* contour which will be the contour/outline of
+    # the stitched image
+    gray = cv2.cvtColor(cropped.copy(), cv2.COLOR_BGR2GRAY)
+    thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)[1]
+
+    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+        cv2.imshow("Frame", thresh)
+
+    cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+    c = max(cnts, key=cv2.contourArea)
+
+    # allocate memory for the mask which will contain the
+    # rectangular bounding box of the stitched image region
+    mask = np.zeros(thresh.shape, dtype="uint8")
+    (x, y, w, h) = cv2.boundingRect(c)
+    cv2.rectangle(thresh, (x, y), (x + w, y + h), 255, -1)
+
+    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+        cv2.imshow("Frame", thresh)
 
     # frame = cv2.polylines(warped, [dst], True, (0,255,255))
     # return the warped and cropped image
     return cropped
+
+def affine_transform(frame, src, dst): 
+    # src is the image we want to transform, dst is the larger/full image
+    M = cv2.getAffineTransform(src, dst)
+    output = cv2.warpAffine(frame.copy(), M, frame.shape)
+
+    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+        cv2.imshow("Frame", output)
+    
+    return output
 
 def marker_ids(frame, aruco_dict_type):
 
@@ -279,6 +321,7 @@ def main():
 
     files = os.listdir("./raw/2/")
 
+    i = 0
     for file in files: 
         print(file + ":")
 
@@ -295,41 +338,90 @@ def main():
 
         # print("Number of Markers: {}".format(len(ids)))
 
-        rvecs = [] # all rotational vectors
-        tvecs = [] # all translational vectors
+        # rvecs = [] # all rotational vectors
+        # tvecs = [] # all translational vectors
 
         j = 0
+        most_accurate = 0 # start at 100% error
+        last_error_rate = 1
         accuracy_test = True # Enable accuracy test or not
 
         for corner in corners: # For each marker detected
 
-            # Only add the data if they pass the accuracy test
+            # If accuracy test is enabled
             if accuracy_test: 
 
                 # Change offset range depending on marker size
-                if calc_accuracy(frame_cropped, corner, 25) < 0.7: 
+                error_rate = calc_accuracy(frame_cropped, corner, 25) 
+                
+                # Only consider the marker if it has less than 0.7% of black pixels (indication of accuracy)
+                if error_rate < 0.7: 
+                    if error_rate < last_error_rate: 
+                        most_accurate = ids[j]
 
-                    rvec, tvec = find_pose(corner, k, d)
-                    print("{}: {}".format(ids[j], rvec))
+            j += 1
+        
+        print(most_accurate)
 
-                    rvecs.append(rvec)
-                    tvecs.append(tvec)
+        # Now transform the image using the corners of the most accurate marker
+        corner_index = np.where(ids == most_accurate)[0]
+        print(corner_index)
+
+        output = four_point_transform(frame, corners[corner_index[0]])
+
+        cv2.imwrite("./processed/" + str(i) + ".jpg", output)
+
+
+        i += 1
+    
+
+
+    ''' Now look at the processed files '''
+    files_new = os.listdir("./raw/2/")
+    for file in files_new: 
+        # Process image
+        frame = cv2.imread("./raw/2/" + file)
+
+        # source comes from image 2, destination comes from image 1 
+        # affine_transform()
+        
+        # Collect IDs of all markers for each image
+        corners, ids = marker_ids(frame, aruco_dict_type)
+        
+
+        # for corner in corners: # For each marker detected
+
+        #     # Only add the data if they pass the accuracy test
+        #     if accuracy_test: 
+
+        #         # Change offset range depending on marker size
+        #         error_rate = calc_accuracy(frame_cropped, corner, 25) 
+                
+        #         if error_rate < 0.7: 
+        #             if error_rate < last_error_rate: 
+        #                 most_accurate = ids[j]
+
+                    # rvec, tvec = find_pose(corner, k, d)
+                    # print("{}: {}".format(ids[j], rvec))
+
+                    # rvecs.append(rvec)
+                    # tvecs.append(tvec)
             
             # Run anyways if not using accuracy test
-            else: 
-                rvec, tvec = find_pose(corner, k, d)
-                print("{}: {}".format(ids[j], rvec))
+            # else: 
+                # rvec, tvec = find_pose(corner, k, d)
+                # print("{}: {}".format(ids[j], rvec))
 
-                rvecs.append(rvec)
-                tvecs.append(tvec)
+                # rvecs.append(rvec)
+                # tvecs.append(tvec)
   
-            j += 1 
+            # j += 1 
         
         # Find Average
-        r = np.array(rvecs)
+        # r = np.array(rvecs)
         # t = np.array(tvecs)
 
-        print("Rotation Avg: {}".format(r.mean(axis=0))) # MEAN DES NOT WORK :(, we need to do something else about this. 
+        # print("Rotation Avg: {}".format(r.mean(axis=0))) # MEAN DES NOT WORK :(, we need to do something else about this. 
         # Currently considering finding the perspective matrix or something. 
         # Or maybe just choose a marker that isn't warped and then combine idk
 
@@ -346,7 +438,7 @@ def main():
 
     # print(unique_ids)
     
-    id_pairs = {} # holds image index value of what images contain which marker
+    # id_pairs = {} # holds image index value of what images contain which marker
     # markerid1: [list of images], markerid2: [list of images], ...
 
     # Go from image 0 and then try to combine with image 1
