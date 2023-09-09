@@ -320,66 +320,49 @@ def main():
     # unique_ids = [] # List of unique IDs
     # corners_array = []
 
-    files = os.listdir("./raw/3/")
+    # files = os.listdir("./raw/3/")
 
-    i = 0
+    # i = 0
 
-    acceptable_markers = []
+    # for file in files: 
+    #     print(file + ":")
 
-    for file in files: 
-        print(file + ":")
+    #     # Process image
+    #     frame = cv2.imread("./raw/3/" + file)
+    #     # frame_cropped = frame[0:frame.shape[0], 0:frame.shape[1]-80] # Crop y by 100px - so that the image does not see the camera holder - change this for development
 
-        # Process image
-        frame = cv2.imread("./raw/3/" + file)
-        # frame_cropped = frame[0:frame.shape[0], 0:frame.shape[1]-80] # Crop y by 100px - so that the image does not see the camera holder - change this for development
+    #     # Load numpy data files
+    #     # k = np.load("./calibration_matrix.npy")
+    #     # d = np.load("./distortion_coefficients.npy")
 
-        # Load numpy data files
-        # k = np.load("./calibration_matrix.npy")
-        # d = np.load("./distortion_coefficients.npy")
+    #     # Collect IDs of all markers for each image
+    #     corners, ids = marker_ids(frame, aruco_dict_type)
 
-        # Collect IDs of all markers for each image
-        corners, ids = marker_ids(frame, aruco_dict_type)
+    #     # print("Number of Markers: {}".format(len(ids)))
 
-        # print("Number of Markers: {}".format(len(ids)))
+    #     # rvecs = [] # all rotational vectors
+    #     # tvecs = [] # all translational vectors
 
-        # rvecs = [] # all rotational vectors
-        # tvecs = [] # all translational vectors
+    #     j = 0
+    #     most_accurate = 0 # start at 100% error
+    #     last_error_rate = 0.7
+    #     accuracy_test = True # Enable accuracy test or not
 
-        j = 0
-        most_accurate = 0 # start at 100% error
-        last_error_rate = 0.7
-        accuracy_test = True # Enable accuracy test or not
+    #     for corner in corners: # For each marker detected
 
-        for corner in corners: # For each marker detected
-
-            # Change offset range depending on marker size
-            error_rate = calc_accuracy(frame, corner, 15) 
+    #         # Change offset range depending on marker size
+    #         error_rate = calc_accuracy(frame, corner, 15) 
             
-            # Only consider the marker if it has less than 0.7% of black pixels (indication of accuracy)
-            if error_rate < 0.7: 
-                if error_rate < last_error_rate: 
-                    most_accurate = ids[j]
+    #         # Only consider the marker if it has less than 0.7% of black pixels (indication of accuracy)
+    #         if error_rate < 0.7: 
+    #             if error_rate < last_error_rate: 
+    #                 most_accurate = ids[j]
 
-            j += 1
-        
-        # print(most_accurate)
+    #         j += 1
 
-        # Now transform the image using the corner positions of the most accurate marker
-        corner_index = np.where(ids == most_accurate)[0]
-        # print(corner_index)
-
-        output = four_point_transform(frame, corners[corner_index[0]])
-
-        cv2.imwrite("./processed/" + str(i) + ".jpg", output)
-
-        i += 1
-    
     ''' Now look at the processed files '''
-    base = cv2.imread("./processed/1.jpg") # first frame to continually add to
-    new = cv2.imread("./processed/2.jpg") # image to be transformed and added to base
-
-    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-        cv2.imshow("Frame", new)
+    base = cv2.imread("./raw/3/0.jpg") # first frame to continually add to
+    new = cv2.imread("./raw/3/1.jpg") # image to be transformed and added to base
 
     # Collect IDs of all markers for each image
     corners_1, ids_1 = marker_ids(base, aruco_dict_type)
@@ -387,24 +370,29 @@ def main():
     # print(ids_1, ids_2)
 
     markers_matrix = []
-    
 
     common = np.intersect1d(ids_1, ids_2)
-    print(common)
 
     for item in common: 
         index_1 = np.where(ids_1 == item)[0][0]
-        (br, bl, tl, tr) = corners_1[index_1][0]
-        print(corners_1[index_1])
+        index_2 = np.where(ids_2 == item)[0][0]
+        h, status = cv2.findHomography(corners_2[index_2], corners_1[index_1])
+        markers_matrix.append(h)
 
+    avg_h = np.mean(markers_matrix, axis=0)
 
-        
+    tx = -500
+    ty = 500 # Y offset
 
-    # grab the furthest corner, this is the bottom right corner
+    translate = np.array([[1, 0, tx], 
+              [0, 1, ty], 
+              [0, 0, 1]])
 
+    M = np.matmul(avg_h, translate)
+    print(M)
+
+    result = cv2.warpPerspective(new, M, (base.shape[0]+1000, base.shape[1]+1000))
     
-        
-
     # first_common = np.intersect1d(ids_1, ids_2)[0]
     # print(first_common)
 
@@ -413,10 +401,19 @@ def main():
     # print(index_1, index_2)
 
     # h, status = cv2.findHomography(corners_2[index_2], corners_1[index_1])
-    # result = cv2.warpPerspective(new, h, (new.shape[0]*4, new.shape[1]*4))
+    # result = cv2.warpPerspective(new, h, (base.shape[0]+1000, base.shape[1]+1000))
 
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", result)
+    th = 1 # threshold for black edges
+    y_nonzero, x_nonzero, _ = np.nonzero(result>th)
+
+    cropped = result[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+
+    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+        cv2.imshow("Frame", cropped)
+
+    cv2.imwrite("./processed_alt/test.jpg", cropped)
+
+    
     
 
 
