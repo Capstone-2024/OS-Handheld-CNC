@@ -60,28 +60,28 @@ def four_point_transform(image, corners):
     
     dst = np.array([
         [tl[0], tl[1]],
-        [tl[0] + marker_px, tl[1]],
-        [tl[0] + marker_px, tl[1] + marker_px],
-        [tl[0], tl[1] + marker_px]], dtype = "float32")
+        [tl[0] - marker_px, tl[1]],
+        [tl[0] - marker_px, tl[1] - marker_px],
+        [tl[0], tl[1] - marker_px]], dtype = "float32")
 
     # compute the perspective transform matrix and then apply it
     M = cv2.getPerspectiveTransform(corners[0], dst)
-    warped = cv2.warpPerspective(image, M, (image.shape[0]*3, image.shape[1]*3))
+    warped = cv2.warpPerspective(image, M, (image.shape[0]*4, image.shape[1]*4))
 
     # Locate the marker being used to warp perspective
-    frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] +  marker_px), int(tl[1] + marker_px)), (125, 125, 125), 5)
+    frame = cv2.rectangle(warped.copy(), (int(tl[0]), int(tl[1])), (int(tl[0] -  marker_px), int(tl[1] - marker_px)), (125, 125, 125), 5)
     
     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
         cv2.imshow("Frame", frame)
 
+    # Cut out black edges 
     th = 1 # threshold for black edges
-    y_nonzero, x_nonzero, _ = np.nonzero(frame>th)
+    y_nonzero, x_nonzero, _ = np.nonzero(warped>th)
     
-    cropped = frame[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+    cropped = warped[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
     
     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
         cv2.imshow("Frame", cropped)
-
 
     ''' Attempt to have fully filled images '''
 
@@ -315,26 +315,29 @@ def main():
 
 
     '''Iterate Through Images and Find Identical IDs'''
-    ids_array = []
-    unique_ids = [] # List of unique IDs
-    corners_array = []
+    # ids_array = []
+    # unique_ids = [] # List of unique IDs
+    # corners_array = []
 
-    files = os.listdir("./raw/2/")
+    files = os.listdir("./raw/3/")
 
     i = 0
+
+    acceptable_markers = []
+
     for file in files: 
         print(file + ":")
 
         # Process image
-        frame = cv2.imread("./raw/2/" + file)
-        frame_cropped = frame[0:frame.shape[0], 0:frame.shape[1]-80] # Crop y by 100px - so that the image does not see the camera holder - change this for development
+        frame = cv2.imread("./raw/3/" + file)
+        # frame_cropped = frame[0:frame.shape[0], 0:frame.shape[1]-80] # Crop y by 100px - so that the image does not see the camera holder - change this for development
 
         # Load numpy data files
-        k = np.load("./calibration_matrix.npy")
-        d = np.load("./distortion_coefficients.npy")
+        # k = np.load("./calibration_matrix.npy")
+        # d = np.load("./distortion_coefficients.npy")
 
         # Collect IDs of all markers for each image
-        corners, ids = marker_ids(frame_cropped, aruco_dict_type)
+        corners, ids = marker_ids(frame, aruco_dict_type)
 
         # print("Number of Markers: {}".format(len(ids)))
 
@@ -343,52 +346,49 @@ def main():
 
         j = 0
         most_accurate = 0 # start at 100% error
-        last_error_rate = 1
+        last_error_rate = 0.7
         accuracy_test = True # Enable accuracy test or not
 
         for corner in corners: # For each marker detected
 
-            # If accuracy test is enabled
-            if accuracy_test: 
-
-                # Change offset range depending on marker size
-                error_rate = calc_accuracy(frame_cropped, corner, 25) 
-                
-                # Only consider the marker if it has less than 0.7% of black pixels (indication of accuracy)
-                if error_rate < 0.7: 
-                    if error_rate < last_error_rate: 
-                        most_accurate = ids[j]
+            # Change offset range depending on marker size
+            error_rate = calc_accuracy(frame, corner, 15) 
+            
+            # Only consider the marker if it has less than 0.7% of black pixels (indication of accuracy)
+            if error_rate < 0.7: 
+                if error_rate < last_error_rate: 
+                    most_accurate = ids[j]
 
             j += 1
         
-        print(most_accurate)
+        # print(most_accurate)
 
-        # Now transform the image using the corners of the most accurate marker
+        # Now transform the image using the corner positions of the most accurate marker
         corner_index = np.where(ids == most_accurate)[0]
-        print(corner_index)
+        # print(corner_index)
 
         output = four_point_transform(frame, corners[corner_index[0]])
 
         cv2.imwrite("./processed/" + str(i) + ".jpg", output)
 
-
         i += 1
     
-
-
     ''' Now look at the processed files '''
-    files_new = os.listdir("./raw/2/")
-    for file in files_new: 
-        # Process image
-        frame = cv2.imread("./raw/2/" + file)
+    # files_new = os.listdir("./raw/2/")
+    # for file in files_new: 
+    #     # Process image
+    #     processed = cv2.imread("./raw/2/" + file)
 
-        # source comes from image 2, destination comes from image 1 
-        # affine_transform()
-        
-        # Collect IDs of all markers for each image
-        corners, ids = marker_ids(frame, aruco_dict_type)
-        
+    #     # Collect IDs of all markers for each image
+    #     corners, ids = marker_ids(processed, aruco_dict_type)
 
+    #     # source comes from image 2, destination comes from image 1 
+    #     # affine_transform(processed, corners[np.where(ids)[0]], )
+
+    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    #         cv2.imshow("Frame", processed)
+
+    
         # for corner in corners: # For each marker detected
 
         #     # Only add the data if they pass the accuracy test
