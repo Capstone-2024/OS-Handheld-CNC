@@ -158,7 +158,7 @@ def find_pose(corners, matrix_coefficients, distortion_coefficients):
     return rvec, tvec
 
 ''' Offset marker corners and compare black spots to white (or other colors) '''
-def calc_accuracy(img, corners, range=20):
+def calc_accuracy(img, corners, range=20, debug=False):
     image = img.copy()
 
     (tl, tr, br, bl) = corners[0].copy()
@@ -215,8 +215,10 @@ def calc_accuracy(img, corners, range=20):
     stencil = np.zeros(image.shape[:-1]).astype(np.uint8)
     cv2.fillPoly(stencil, np.int32([offset_contour]), mask_value)
 
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Mask", stencil)
+    # Show Image
+    if debug: 
+        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            cv2.imshow("Mask: press 'q' to quit", stencil)
 
     sel = stencil != mask_value # select everything that is not mask_value
     image[sel] = fill_color # and fill it with fill_color
@@ -225,8 +227,9 @@ def calc_accuracy(img, corners, range=20):
     cv2.fillPoly(image, np.int32([corners]), [255, 255, 255])
 
     # Show Image
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", image)
+    if debug: 
+        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            cv2.imshow("Frame: press 'q' to quit", image)
 
     # Find max and mins of the offset box and crop
     y_max = int(max(tl[0], tr[0], bl[0], br[0]))
@@ -243,13 +246,12 @@ def calc_accuracy(img, corners, range=20):
     threshold = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 3, 2)
 
     # Show Image
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", threshold)
-
-    # print("Number of Pixels > Threshold: {}".format((threshold < 10).sum()))
-    percent = (threshold <= 10).sum()/(threshold > 10).sum()*100
+    if debug: 
+        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            cv2.imshow("Frame: press 'q' to quit", threshold)
 
     # How much of the marker is showing as a percentage of the total space
+    percent = (threshold <= 10).sum()/(threshold > 10).sum()*100
     # print("Error Percentage: {}%".format(percent))
 
     return percent
@@ -312,57 +314,16 @@ def main():
     #     cv2.destroyAllWindows()
     
     
-    # UI to capture images per instructions
+    ''' UI to capture images per instructions '''
 
 
-    '''Iterate Through Images and Find Identical IDs'''
-    # ids_array = []
-    # unique_ids = [] # List of unique IDs
-    # corners_array = []
-
-    # files = os.listdir("./raw/3/")
-
-    # i = 0
-
-    # for file in files: 
-    #     print(file + ":")
-
-    #     # Process image
-    #     frame = cv2.imread("./raw/3/" + file)
-    #     # frame_cropped = frame[0:frame.shape[0], 0:frame.shape[1]-80] # Crop y by 100px - so that the image does not see the camera holder - change this for development
-
-    #     # Load numpy data files
-    #     # k = np.load("./calibration_matrix.npy")
-    #     # d = np.load("./distortion_coefficients.npy")
-
-    #     # Collect IDs of all markers for each image
-    #     corners, ids = marker_ids(frame, aruco_dict_type)
-
-    #     # print("Number of Markers: {}".format(len(ids)))
-
-    #     # rvecs = [] # all rotational vectors
-    #     # tvecs = [] # all translational vectors
-
-    #     j = 0
-    #     most_accurate = 0 # start at 100% error
-    #     last_error_rate = 0.7
-    #     accuracy_test = True # Enable accuracy test or not
-
-    #     for corner in corners: # For each marker detected
-
-    #         # Change offset range depending on marker size
-    #         error_rate = calc_accuracy(frame, corner, 15) 
-            
-    #         # Only consider the marker if it has less than 0.7% of black pixels (indication of accuracy)
-    #         if error_rate < 0.7: 
-    #             if error_rate < last_error_rate: 
-    #                 most_accurate = ids[j]
-
-    #         j += 1
 
     ''' Now look at the processed files '''
     base = cv2.imread("./raw/3/0.jpg") # first frame to continually add to
     new = cv2.imread("./raw/3/1.jpg") # image to be transformed and added to base
+
+    # base = cv2.imread("./processed_alt/base.jpg") # first frame to continually add to
+    # new = cv2.imread("./raw/3/2.jpg") # image to be transformed and added to base
 
     # Collect IDs of all markers for each image
     corners_1, ids_1 = marker_ids(base, aruco_dict_type)
@@ -370,51 +331,61 @@ def main():
     # print(ids_1, ids_2)
 
     markers_matrix = []
+    tx_list = []
+    ty_list = []
 
     common = np.intersect1d(ids_1, ids_2)
 
     for item in common: 
         index_1 = np.where(ids_1 == item)[0][0]
         index_2 = np.where(ids_2 == item)[0][0]
-        h, status = cv2.findHomography(corners_2[index_2], corners_1[index_1])
-        markers_matrix.append(h)
+        
+        accuracy_1 = calc_accuracy(base, corners_1[index_1], 10)
+        accuracy_2 = calc_accuracy(new, corners_2[index_2], 10)
 
+        if accuracy_1 < 0.7 and accuracy_2 < 0.7: 
+            h, status = cv2.findHomography(corners_2[index_2], corners_1[index_1])
+            # print(h)
+            markers_matrix.append(h)
+
+            if corners_2[index_2][0][0][0] > new.shape[0]/2: 
+                x_offset = corners_2[index_2][0][0][0] - corners_1[index_1][0][0][0]
+            else: 
+                x_offset = corners_1[index_1][0][0][0] - corners_2[index_2][0][0][0]
+            
+            if corners_2[index_2][0][0][1] > new.shape[1]/2: 
+                y_offset = corners_2[index_2][0][0][1] - corners_1[index_1][0][0][1]
+            else: 
+                y_offset = corners_1[index_1][0][0][1] - corners_2[index_2][0][0][1]
+
+            tx_list.append(x_offset)
+            ty_list.append(y_offset)
+
+    # Find the average of all the homography matrices
     avg_h = np.mean(markers_matrix, axis=0)
 
-    tx = -500
-    ty = 500 # Y offset
+    # Find the average of translation for all markers
+    tx = np.mean(tx_list, axis=0)
+    ty = np.mean(ty_list, axis=0)
 
-    translate = np.array([[1, 0, tx], 
-              [0, 1, ty], 
+    # Apply translation correction
+    translate = np.array([[1, 0, -tx],
+              [0, 1, -ty], 
               [0, 0, 1]])
 
     M = np.matmul(avg_h, translate)
-    print(M)
 
-    result = cv2.warpPerspective(new, M, (base.shape[0]+1000, base.shape[1]+1000))
+    result = cv2.warpPerspective(new, M, (base.shape[0]*3, base.shape[1]*3))
     
-    # first_common = np.intersect1d(ids_1, ids_2)[0]
-    # print(first_common)
-
-    # index_1 = np.where(ids_1 == first_common)[0][0]
-    # index_2 = np.where(ids_2 == first_common)[0][0]
-    # print(index_1, index_2)
-
-    # h, status = cv2.findHomography(corners_2[index_2], corners_1[index_1])
-    # result = cv2.warpPerspective(new, h, (base.shape[0]+1000, base.shape[1]+1000))
-
+    # Crop out black edge
     th = 1 # threshold for black edges
     y_nonzero, x_nonzero, _ = np.nonzero(result>th)
-
     cropped = result[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
 
     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
         cv2.imshow("Frame", cropped)
 
     cv2.imwrite("./processed_alt/test.jpg", cropped)
-
-    
-    
 
 
     # for corner in corners: 
