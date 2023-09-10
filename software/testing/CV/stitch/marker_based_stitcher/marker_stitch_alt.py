@@ -289,8 +289,90 @@ def aruco_display(corners, ids, rejected, image, terminal_print=False):
 			# show the output image
 	return image
 
-def main(): 
+def stitch_prepare(base, new, debug=False): 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_100"]
+
+    ''' Now look at the processed files '''
+    # base = cv2.imread("./processed_alt/base.jpg") # first frame to continually add to
+    # new = cv2.imread("./raw/3/2.jpg") # image to be transformed and added to base
+
+    # Collect IDs of all markers for each image
+    corners_1, ids_1 = marker_ids(base, aruco_dict_type)
+    corners_2, ids_2 = marker_ids(new, aruco_dict_type)
+
+    markers_matrix = []
+    tx_list = []
+    ty_list = []
+
+    common = np.intersect1d(ids_1, ids_2)
+
+    for item in common: 
+        index_1 = np.where(ids_1 == item)[0][0]
+        index_2 = np.where(ids_2 == item)[0][0]
+        
+        accuracy_1 = calc_accuracy(base, corners_1[index_1], 10)
+        accuracy_2 = calc_accuracy(new, corners_2[index_2], 10)
+
+        if accuracy_1 < 0.7 and accuracy_2 < 0.7: 
+            h, _ = cv2.findHomography(corners_2[index_2], corners_1[index_1])
+            # print(h)
+            markers_matrix.append(h)
+
+            if corners_2[index_2][0][0][0] > new.shape[0]/2: 
+                x_offset = corners_2[index_2][0][0][0] - corners_1[index_1][0][0][0]
+            else: 
+                x_offset = corners_1[index_1][0][0][0] - corners_2[index_2][0][0][0]
+            
+            if corners_2[index_2][0][0][1] > new.shape[1]/2: 
+                y_offset = corners_2[index_2][0][0][1] - corners_1[index_1][0][0][1]
+            else: 
+                y_offset = corners_1[index_1][0][0][1] - corners_2[index_2][0][0][1]
+
+            tx_list.append(x_offset)
+            ty_list.append(y_offset)
+
+    # # Find the average of all the homography matrices
+    avg_h = np.mean(markers_matrix, axis=0)
+
+    # # Find the average of translation for all markers
+    tx = np.mean(tx_list, axis=0)
+    ty = np.mean(ty_list, axis=0)
+
+    # Apply translation correction
+    translate = np.array([[1, 0, -tx],
+              [0, 1, -ty], 
+              [0, 0, 1]])
+
+    M = np.matmul(avg_h, translate)
+
+    result = cv2.warpPerspective(new, M, (base.shape[0]*3, base.shape[1]*3))
+    
+    # Crop out black edge
+    th = 1 # threshold for black edges
+    y_nonzero, x_nonzero, _ = np.nonzero(result>th)
+    cropped = result[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+
+    if debug:
+        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            cv2.imshow("Frame", cropped)
+
+    return cropped
+
+    # cv2.imwrite("./processed_alt/test.jpg", cropped)
+
+def main(): 
+    ''' UI to capture images per instructions '''
+    files = os.listdir("./raw/3/")
+
+    for i in range(0, len(files)-1): 
+        # Prepare Images
+        base = cv2.imread(file[i])
+        new = cv2.imread(file[i+1])
+
+        stitch_prepare(base, new, True)
+
+        # Stitch them
+
 
     # cap = cv2.VideoCapture(0)
     # time.sleep(1.0)
@@ -312,194 +394,6 @@ def main():
         
     #     time.sleep(2)
     #     cv2.destroyAllWindows()
-    
-    
-    ''' UI to capture images per instructions '''
-
-
-
-    ''' Now look at the processed files '''
-    base = cv2.imread("./raw/3/0.jpg") # first frame to continually add to
-    new = cv2.imread("./raw/3/1.jpg") # image to be transformed and added to base
-
-    # base = cv2.imread("./processed_alt/base.jpg") # first frame to continually add to
-    # new = cv2.imread("./raw/3/2.jpg") # image to be transformed and added to base
-
-    # Collect IDs of all markers for each image
-    corners_1, ids_1 = marker_ids(base, aruco_dict_type)
-    corners_2, ids_2 = marker_ids(new, aruco_dict_type)
-    # print(ids_1, ids_2)
-
-    markers_matrix = []
-    tx_list = []
-    ty_list = []
-
-    common = np.intersect1d(ids_1, ids_2)
-
-    for item in common: 
-        index_1 = np.where(ids_1 == item)[0][0]
-        index_2 = np.where(ids_2 == item)[0][0]
-        
-        accuracy_1 = calc_accuracy(base, corners_1[index_1], 10)
-        accuracy_2 = calc_accuracy(new, corners_2[index_2], 10)
-
-        if accuracy_1 < 0.7 and accuracy_2 < 0.7: 
-            h, status = cv2.findHomography(corners_2[index_2], corners_1[index_1])
-            # print(h)
-            markers_matrix.append(h)
-
-            if corners_2[index_2][0][0][0] > new.shape[0]/2: 
-                x_offset = corners_2[index_2][0][0][0] - corners_1[index_1][0][0][0]
-            else: 
-                x_offset = corners_1[index_1][0][0][0] - corners_2[index_2][0][0][0]
-            
-            if corners_2[index_2][0][0][1] > new.shape[1]/2: 
-                y_offset = corners_2[index_2][0][0][1] - corners_1[index_1][0][0][1]
-            else: 
-                y_offset = corners_1[index_1][0][0][1] - corners_2[index_2][0][0][1]
-
-            tx_list.append(x_offset)
-            ty_list.append(y_offset)
-
-    # Find the average of all the homography matrices
-    avg_h = np.mean(markers_matrix, axis=0)
-
-    # Find the average of translation for all markers
-    tx = np.mean(tx_list, axis=0)
-    ty = np.mean(ty_list, axis=0)
-
-    # Apply translation correction
-    translate = np.array([[1, 0, -tx],
-              [0, 1, -ty], 
-              [0, 0, 1]])
-
-    M = np.matmul(avg_h, translate)
-
-    result = cv2.warpPerspective(new, M, (base.shape[0]*3, base.shape[1]*3))
-    
-    # Crop out black edge
-    th = 1 # threshold for black edges
-    y_nonzero, x_nonzero, _ = np.nonzero(result>th)
-    cropped = result[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
-
-    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-        cv2.imshow("Frame", cropped)
-
-    cv2.imwrite("./processed_alt/test.jpg", cropped)
-
-
-    # for corner in corners: 
-    #     # Change offset range depending on marker size
-    #     error_rate = calc_accuracy(base, corner, 15) 
-        
-    #     # Only consider the marker if it has less than 0.7% of black pixels (indication of accuracy)
-    #     if error_rate < 0.7: 
-    #         if error_rate < last_error_rate: 
-    #             most_accurate = ids[j]
-
-    #     j += 1
-    
-    # affine_transform(processed, corners[np.where(ids)[0]], )
-
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #         cv2.imshow("Frame", processed)
-
-
-
-
-    # files_new = os.listdir("./processed/")
-    # for file in files_new: 
-    #     # Process image
-    #     processed = cv2.imread("./processed/" + file)
-
-    #     # Collect IDs of all markers for each image
-    #     corners, ids = marker_ids(processed, aruco_dict_type)
-
-    #     for corner in corners: 
-
-
-    #     # source comes from image 2, destination comes from image 1 
-    #     # affine_transform(processed, corners[np.where(ids)[0]], )
-
-    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #         cv2.imshow("Frame", processed)
-
-    
-        # for corner in corners: # For each marker detected
-
-        #     # Only add the data if they pass the accuracy test
-        #     if accuracy_test: 
-
-        #         # Change offset range depending on marker size
-        #         error_rate = calc_accuracy(frame_cropped, corner, 25) 
-                
-        #         if error_rate < 0.7: 
-        #             if error_rate < last_error_rate: 
-        #                 most_accurate = ids[j]
-
-                    # rvec, tvec = find_pose(corner, k, d)
-                    # print("{}: {}".format(ids[j], rvec))
-
-                    # rvecs.append(rvec)
-                    # tvecs.append(tvec)
-            
-            # Run anyways if not using accuracy test
-            # else: 
-                # rvec, tvec = find_pose(corner, k, d)
-                # print("{}: {}".format(ids[j], rvec))
-
-                # rvecs.append(rvec)
-                # tvecs.append(tvec)
-  
-            # j += 1 
-        
-        # Find Average
-        # r = np.array(rvecs)
-        # t = np.array(tvecs)
-
-        # print("Rotation Avg: {}".format(r.mean(axis=0))) # MEAN DES NOT WORK :(, we need to do something else about this. 
-        # Currently considering finding the perspective matrix or something. 
-        # Or maybe just choose a marker that isn't warped and then combine idk
-
-        # print("Translational Avg: {}".format(t.mean(axis=0)))
-        
-        # corners_array.append(corners)
-        # ids_array.append(ids)
-        # unique_ids.extend(ids)
-
-        # print(ids_array)
-
-    
-    # unique_ids = np.unique(unique_ids) # filter for unique items
-
-    # print(unique_ids)
-    
-    # id_pairs = {} # holds image index value of what images contain which marker
-    # markerid1: [list of images], markerid2: [list of images], ...
-
-    # Go from image 0 and then try to combine with image 1
-    # rewrite transform function to tru
-
-
-    # for id in unique_ids: 
-    #     in_list = [] # temp list of images index 
-
-    #     i = 0
-    #     for ids in ids_array: 
-    #         if id in ids: 
-    #             in_list.append(i)
-
-    #         i += 1
-        
-    #     if in_list: 
-    #         id_pairs[id] = in_list
-
-    # print(id_pairs)
-
-    # Go through images and find 
-
-
-
 
 if __name__ == "__main__": 
     main()
