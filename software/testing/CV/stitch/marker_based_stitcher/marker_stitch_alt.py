@@ -289,7 +289,7 @@ def aruco_display(corners, ids, rejected, image, terminal_print=False):
 			# show the output image
 	return image
 
-def stitch_prepare(base, new, debug=False): 
+def stitch_prepare(base, new, single_marker=False, debug=False): 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_100"]
 
     ''' Now look at the processed files '''
@@ -303,48 +303,90 @@ def stitch_prepare(base, new, debug=False):
     markers_matrix = []
     tx_list = []
     ty_list = []
+    tx = 0
+    ty = 0 
 
     common = np.intersect1d(ids_1, ids_2)
 
-    for item in common: 
-        index_1 = np.where(ids_1 == item)[0][0]
-        index_2 = np.where(ids_2 == item)[0][0]
-        
-        accuracy_1 = calc_accuracy(base, corners_1[index_1], 10)
-        accuracy_2 = calc_accuracy(new, corners_2[index_2], 10)
-
-        if accuracy_1 < 0.7 and accuracy_2 < 0.7: 
-            h, _ = cv2.findHomography(corners_2[index_2], corners_1[index_1])
-            # print(h)
-            markers_matrix.append(h)
-
-            if corners_2[index_2][0][0][0] > new.shape[0]/2: 
-                x_offset = corners_2[index_2][0][0][0] - corners_1[index_1][0][0][0]
-            else: 
-                x_offset = corners_1[index_1][0][0][0] - corners_2[index_2][0][0][0]
+    # Using the average of multiple markers to warp
+    if not single_marker: 
+        for item in common: 
+            index_1 = np.where(ids_1 == item)[0][0]
+            index_2 = np.where(ids_2 == item)[0][0]
             
-            if corners_2[index_2][0][0][1] > new.shape[1]/2: 
-                y_offset = corners_2[index_2][0][0][1] - corners_1[index_1][0][0][1]
-            else: 
-                y_offset = corners_1[index_1][0][0][1] - corners_2[index_2][0][0][1]
+            accuracy_1 = calc_accuracy(base, corners_1[index_1], 10)
+            accuracy_2 = calc_accuracy(new, corners_2[index_2], 10)
 
-            tx_list.append(x_offset)
-            ty_list.append(y_offset)
+            if accuracy_1 < 0.7 and accuracy_2 < 0.7: 
+                h_matrix, _ = cv2.findHomography(corners_2[index_2], corners_1[index_1])
+                
+                markers_matrix.append(h_matrix)
 
-    # # Find the average of all the homography matrices
-    avg_h = np.mean(markers_matrix, axis=0)
+                if corners_2[index_2][0][0][0] > new.shape[0]/2: 
+                    x_offset = corners_2[index_2][0][0][0] - corners_1[index_1][0][0][0]
+                else: 
+                    x_offset = corners_1[index_1][0][0][0] - corners_2[index_2][0][0][0]
+                
+                if corners_2[index_2][0][0][1] > new.shape[1]/2: 
+                    y_offset = corners_2[index_2][0][0][1] - corners_1[index_1][0][0][1]
+                    
+                else: 
+                    y_offset = corners_1[index_1][0][0][1] - corners_2[index_2][0][0][1]
 
-    # # Find the average of translation for all markers
-    tx = np.mean(tx_list, axis=0)
-    ty = np.mean(ty_list, axis=0)
+                tx_list.append(x_offset)
+                ty_list.append(y_offset)
 
-    # Apply translation correction
+        # Find the average of all the homography matrices
+        h = np.mean(markers_matrix, axis=0)
+
+        # Find the average of translation for all markers
+        tx = np.mean(tx_list, axis=0)
+        ty = np.mean(ty_list, axis=0)
+
+
+    # Using only a single marker to find warp and offset
+    else: 
+        # Find Marker with max accuracy
+        i_max_accuracy_1 = 0
+        i_max_accuracy_2 = 0
+        last_accuracy_1 = 1
+
+        for item in common:
+            index_1 = np.where(ids_1 == item)[0][0]
+            index_2 = np.where(ids_2 == item)[0][0]
+            
+            accuracy_1 = calc_accuracy(base, corners_1[index_1], 10)
+            # accuracy_2 = calc_accuracy(new, corners_2[index_2], 10)
+
+            if accuracy_1 < last_accuracy_1: 
+                last_accuracy_1 = accuracy_1
+                
+                i_max_accuracy_1 = index_1
+                i_max_accuracy_2 = index_2
+
+        #     index_2 = np.where(ids_2 == item)[0][0]
+        h, _ = cv2.findHomography(corners_2[i_max_accuracy_2], corners_1[i_max_accuracy_1])
+
+        if corners_2[i_max_accuracy_2][0][0][0] > new.shape[0]/2: 
+            tx = corners_2[i_max_accuracy_2][0][0][0] - corners_1[i_max_accuracy_1][0][0][0]
+        else: 
+            tx = corners_1[i_max_accuracy_1][0][0][0] - corners_2[i_max_accuracy_2][0][0][0]
+        
+        if corners_2[i_max_accuracy_2][0][0][1] > new.shape[1]/2: 
+            ty = corners_2[i_max_accuracy_2][0][0][1] - corners_1[i_max_accuracy_1][0][0][1]
+        else: 
+            ty = corners_1[i_max_accuracy_1][0][0][1] - corners_2[i_max_accuracy_2][0][0][1]
+
+
+    # Translation correction matrix
     translate = np.array([[1, 0, -tx],
               [0, 1, -ty], 
               [0, 0, 1]])
+    
+    # Apply translation
+    M = np.matmul(h, translate)
 
-    M = np.matmul(avg_h, translate)
-
+    # Warp image
     result = cv2.warpPerspective(new, M, (base.shape[0]*3, base.shape[1]*3))
     
     # Crop out black edge
@@ -362,21 +404,35 @@ def stitch_prepare(base, new, debug=False):
 
 def main(): 
     ''' UI to capture images per instructions '''
-    files = os.listdir("./raw/3/")
+
+    # Directory of captured images
+    dir = "./raw/3/"
+    files = os.listdir(dir)
 
     for i in range(0, len(files)-1): 
-        # Prepare Images
-        if i < 1: 
-            base = cv2.imread(files[i])
-        else: 
-            base = cv2.imread("./processed/base.jpg")
-        new = cv2.imread(files[i+1])
+        if files[i].endswith(".jpg"):
+            if i < 1: 
+                # use the first captured image as the base only if we are stitching the first two images
+                base = cv2.imread(dir + files[0])
+            else: 
+                # use the combined image
+                base = cv2.imread(dir + "result.jpg") 
 
-        stitch_prepare(base, new, debug=True)
-        
-        # Stitch them
-        # call stitch
-        subprocess.Popen(['py', '.stitcher_detailed.py', '0.jpg', '1.jpg', '–work_megapix', '0.6', '–features', 'surf', '–matcher', 'affine', '–estimator', 'affine', '–match_conf', '0.3', '–conf_thresh', '0.3', '–ba', 'affine', '–ba_refine_mask', 'xxxxx', '–wave_correct', 'no', '–warp', 'plane'], cwd="/processed_alt")
+            
+            # image to be added is the next image in the list
+            new = cv2.imread(dir + files[i+1])
+
+            warped = stitch_prepare(base, new, single_marker=False, debug=True)
+            
+            # save images
+            cv2.imwrite(dir + "base.jpg", base)
+            cv2.imwrite(dir + "new.jpg", warped)
+            
+            # root_dir = os.path.dirname(os.path.abspath("."))
+            # print(root_dir + '\marker_based_stitcher\raw\3\custom_stitcher.py')
+
+            # Stitch them
+            subprocess.Popen(['py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.2', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'affine'])
 
 
     # cap = cv2.VideoCapture(0)
