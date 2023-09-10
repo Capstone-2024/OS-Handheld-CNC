@@ -366,12 +366,17 @@ def main():
 
     for i in range(0, len(files)-1): 
         # Prepare Images
-        base = cv2.imread(file[i])
-        new = cv2.imread(file[i+1])
+        if i < 1: 
+            base = cv2.imread(files[i])
+        else: 
+            base = cv2.imread("./processed/base.jpg")
+        new = cv2.imread(files[i+1])
 
-        stitch_prepare(base, new, True)
-
+        stitch_prepare(base, new, debug=True)
+        
         # Stitch them
+        # call stitch
+        subprocess.Popen(['py', '.stitcher_detailed.py', '0.jpg', '1.jpg', '–work_megapix', '0.6', '–features', 'surf', '–matcher', 'affine', '–estimator', 'affine', '–match_conf', '0.3', '–conf_thresh', '0.3', '–ba', 'affine', '–ba_refine_mask', 'xxxxx', '–wave_correct', 'no', '–warp', 'plane'], cwd="/processed_alt")
 
 
     # cap = cv2.VideoCapture(0)
