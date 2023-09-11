@@ -289,6 +289,84 @@ def aruco_display(corners, ids, rejected, image, terminal_print=False):
 			# show the output image
 	return image
 
+def maxHist(row):
+    # Create an empty stack. The stack holds
+    # indexes of hist array / The bars stored
+    # in stack are always in increasing order
+    # of their heights.
+    result = []
+
+    # Top of stack
+    top_val = 0
+
+    # Initialize max area in current
+    max_area = 0
+    # row (or histogram)
+
+    area = 0  # Initialize area with current top
+
+    # Run through all bars of given
+    # histogram (or row)
+    i = 0
+    while (i < len(row)):
+
+        # If this bar is higher than the
+        # bar on top stack, push it to stack
+        if (len(result) == 0) or (row[result[-1]] <= row[i]):
+            result.append(i)
+            i += 1
+        else:
+
+            # If this bar is lower than top of stack,
+            # then calculate area of rectangle with
+            # stack top as the smallest (or minimum
+            # height) bar. 'i' is 'right index' for
+            # the top and element before top in stack
+            # is 'left index'
+            top_val = row[result.pop()]
+            area = top_val * i
+
+            if (len(result)):
+                area = top_val * (i - result[-1] - 1)
+            max_area = max(area, max_area)
+
+    # Now pop the remaining bars from stack
+    # and calculate area with every popped
+    # bar as the smallest bar
+    while (len(result)):
+        top_val = row[result.pop()]
+        area = top_val * i
+        if (len(result)):
+            area = top_val * (i - result[-1] - 1)
+
+        max_area = max(area, max_area)
+
+    return max_area
+
+# Returns area of the largest rectangle
+# with all 1s in A
+def maxRectangle(A):
+
+    # Calculate area for first row and
+    # initialize it as result
+    result = maxHist(A[0])
+
+    # iterate over row to find maximum rectangular
+    # area considering each row as histogram
+    for i in range(1, len(A)):
+
+        for j in range(len(A[i])):
+
+            # if A[i][j] is 1 then add A[i -1][j]
+            if (A[i][j] > 1):
+                A[i][j] += A[i - 1][j]
+
+        # Update result if area with current
+        # row (as last row) of rectangle) is more
+        result = max(result, maxHist(A[i]))
+
+    return result
+
 def stitch_prepare(base, new, single_marker=False, debug=False): 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_100"]
 
@@ -336,6 +414,7 @@ def stitch_prepare(base, new, single_marker=False, debug=False):
                 tx_list.append(x_offset)
                 ty_list.append(y_offset)
 
+        print(markers_matrix)
         # Find the average of all the homography matrices
         h = np.mean(markers_matrix, axis=0)
 
@@ -377,11 +456,10 @@ def stitch_prepare(base, new, single_marker=False, debug=False):
         else: 
             ty = corners_1[i_max_accuracy_1][0][0][1] - corners_2[i_max_accuracy_2][0][0][1]
 
-
     # Translation correction matrix
-    translate = np.array([[1, 0, -tx],
-              [0, 1, -ty], 
-              [0, 0, 1]], dtype="float64")
+    translate = np.array([  [1,  0, -tx],
+                            [0,  1, -ty], 
+                            [0,  0,   1]], dtype="float64")
     
     # Apply translation
     M = np.matmul(h, translate)
@@ -390,15 +468,44 @@ def stitch_prepare(base, new, single_marker=False, debug=False):
     result = cv2.warpPerspective(new, M, (base.shape[0]*3, base.shape[1]*3))
     
     # Crop out black edge
+    # th = 1 # threshold for black edges
+    # y_nonzero, x_nonzero, _ = np.nonzero(result>th)
+    # cropped = result[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+
     th = 1 # threshold for black edges
     y_nonzero, x_nonzero, _ = np.nonzero(result>th)
     cropped = result[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
 
+    gray = cv2.cvtColor(cropped ,cv2.COLOR_BGR2GRAY)
+
+    rectangle = maxRectangle(gray)
+
     if debug:
         while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-            cv2.imshow("Frame", cropped)
+            cv2.imshow("Frame", rectangle)
 
-    return cropped
+
+    # # Remove all black edges
+    # gray = cv2.cvtColor(cropped ,cv2.COLOR_BGR2GRAY)
+    # blur = cv2.GaussianBlur(gray,(11,11),0)
+    # _, thresh = cv2.threshold(blur, 1, 255, cv2.THRESH_OTSU)
+
+    # if debug:
+    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    #         cv2.imshow("Frame", thresh)
+
+    # contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # cnt = contours[0]
+    # x, y, w, h = cv2.boundingRect(cnt)
+
+    # crop = cropped[y:y+h,x:x+w]
+
+    # if debug:
+    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    #         cv2.imshow("Frame", crop)
+
+    return rectangle
+
 
     # cv2.imwrite("./processed_alt/test.jpg", cropped)
 
@@ -418,7 +525,6 @@ def main():
                 # use the combined image
                 base = cv2.imread("./result.jpg") 
 
-
             # image to be added is the next image in the list
             new = cv2.imread(dir + files[i+1])
 
@@ -432,8 +538,9 @@ def main():
             # print(root_dir + '\marker_based_stitcher\raw\3\custom_stitcher.py')
 
             # Stitch them
-            subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.2', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'affine'])
-
+            # p = subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'affine'])
+            p = subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'homography', '--estimator', 'homography', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'plane'])
+            p.communicate()
 
     # cap = cv2.VideoCapture(0)
     # time.sleep(1.0)

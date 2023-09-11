@@ -78,5 +78,5 @@ if __name__ == '__main__':
     print(mtx)
     print(dist)
 
-    np.save("calibration_matrix", mtx)
-    np.save("distortion_coefficients", dist)
+    np.save("calibration_matrix_new", mtx)
+    np.save("distortion_coefficients_new", dist)
