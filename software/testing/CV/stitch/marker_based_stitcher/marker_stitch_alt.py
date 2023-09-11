@@ -381,7 +381,7 @@ def stitch_prepare(base, new, single_marker=False, debug=False):
     # Translation correction matrix
     translate = np.array([[1, 0, -tx],
               [0, 1, -ty], 
-              [0, 0, 1]])
+              [0, 0, 1]], dtype="float64")
     
     # Apply translation
     M = np.matmul(h, translate)
@@ -416,9 +416,9 @@ def main():
                 base = cv2.imread(dir + files[0])
             else: 
                 # use the combined image
-                base = cv2.imread(dir + "result.jpg") 
+                base = cv2.imread("./result.jpg") 
 
-            
+
             # image to be added is the next image in the list
             new = cv2.imread(dir + files[i+1])
 
@@ -432,7 +432,7 @@ def main():
             # print(root_dir + '\marker_based_stitcher\raw\3\custom_stitcher.py')
 
             # Stitch them
-            subprocess.Popen(['py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.2', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'affine'])
+            subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.2', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'affine'])
 
 
     # cap = cv2.VideoCapture(0)
