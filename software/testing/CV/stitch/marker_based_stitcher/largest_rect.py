@@ -1,81 +1,45 @@
-'''https://www.geeksforgeeks.org/maximum-size-rectangle-binary-sub-matrix-1s/'''
+import cv2
+import numpy as np
 
-def maxHist(self, row):
-    # Create an empty stack. The stack holds
-    # indexes of hist array / The bars stored
-    # in stack are always in increasing order
-    # of their heights.
-    result = []
+def offset(img): 
+    last_color = 0
+    left_change_index = []
+    right_change_index = []
 
-    # Top of stack
-    top_val = 0
+    for row in thresh: 
+        i = 0 
 
-    # Initialize max area in current
-    max_area = 0
-    # row (or histogram)
-
-    area = 0  # Initialize area with current top
-
-    # Run through all bars of given
-    # histogram (or row)
-    i = 0
-    while (i < len(row)):
-
-        # If this bar is higher than the
-        # bar on top stack, push it to stack
-        if (len(result) == 0) or (row[result[-1]] <= row[i]):
-            result.append(i)
+        for item in row: 
+            if i > 0:
+                if item != last_color: 
+                    if i >= img.shape[0]/2: 
+                        right_change_index.append(i)
+                    else:
+                        left_change_index.append(i)
+                            
+                last_color = item
+            
             i += 1
-        else:
+    return min(left_change_index)
+    print(max(right_change_index))
 
-            # If this bar is lower than top of stack,
-            # then calculate area of rectangle with
-            # stack top as the smallest (or minimum
-            # height) bar. 'i' is 'right index' for
-            # the top and element before top in stack
-            # is 'left index'
-            top_val = row[result.pop()]
-            area = top_val * i
+img = cv2.imread("./raw/3/new.jpg")
 
-            if (len(result)):
-                area = top_val * (i - result[-1] - 1)
-            max_area = max(area, max_area)
+gray = cv2.cvtColor(img ,cv2.COLOR_BGR2GRAY)
+blur = cv2.GaussianBlur(gray, (11,11), 3)
+_, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY)
 
-    # Now pop the remaining bars from stack
-    # and calculate area with every popped
-    # bar as the smallest bar
-    while (len(result)):
-        top_val = row[result.pop()]
-        area = top_val * i
-        if (len(result)):
-            area = top_val * (i - result[-1] - 1)
-        else: 
-            area = 0 
+top_left = thresh.copy()[0:int(img.shape[0]/2), 0:int(img.shape[1]/2)]
+bottom_left = thresh.copy()[0:int(img.shape[0]/2), int(img.shape[1]/2):img.shape[1]]
+top_right = thresh.copy()[int(img.shape[0]/2):img.shape[0], 0:int(img.shape[1]/2)]
+bottom_right = thresh.copy()[int(img.shape[0]/2):img.shape[0], int(img.shape[1]/2):img.shape[1]]
 
-        max_area = max(area, max_area)
+while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    cv2.imshow("Frame", top_left)
 
-    return max_area
+print(offset(top_left))
 
-# Returns area of the largest rectangle
-# with all 1s in A
-def maxRectangle(A):
+cropped = top_left[0:top_left.shape[0], 137:top_left.shape[1]]
 
-    # Calculate area for first row and
-    # initialize it as result
-    result = maxHist(A[0])
-
-    # iterate over row to find maximum rectangular
-    # area considering each row as histogram
-    for i in range(1, len(A)):
-
-        for j in range(len(A[i])):
-
-            # if A[i][j] is 1 then add A[i -1][j]
-            if (A[i][j] > 1):
-                A[i][j] += A[i - 1][j]
-
-        # Update result if area with current
-        # row (as last row) of rectangle) is more
-        result = max(result, maxHist(A[i]))
-
-    return result
+while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    cv2.imshow("Frame", cropped)

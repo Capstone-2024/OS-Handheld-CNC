@@ -52,17 +52,17 @@ def four_point_transform(image, corners):
     
     dst = np.array([
         [tl[0], tl[1]],
-        [tl[0] + marker_px, tl[1]],
-        [tl[0] + marker_px, tl[1] + marker_px],
-        [tl[0], tl[1] + marker_px]], dtype = "float32")
+        [tl[0] - marker_px, tl[1]],
+        [tl[0] - marker_px, tl[1] - marker_px],
+        [tl[0], tl[1] - marker_px]], dtype = "float32")
 
     # compute the perspective transform matrix and then apply it
     M = cv2.getPerspectiveTransform(corners[0], dst) # use first marker to obtain transform
     warped = cv2.warpPerspective(image, M, (image.shape[0]*2, image.shape[1]*2))
 
-   #  frame = cv2.rectangle(warped, (tl[0], tl[1]), ((tl[0] +  marker_px), (tl[1] + marker_px)), (255, 0, 0), 1)
+    # frame = cv2.rectangle(warped, (tl[0], tl[1]), ((tl[0] +  marker_px), (tl[1] + marker_px)), (255, 0, 0), 1)
 
-    frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] +  marker_px), int(tl[1] + marker_px)), (125, 125, 125), 5)
+    frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] -  marker_px), int(tl[1] - marker_px)), (125, 125, 125), 5)
     
     th = 1 # threshold for black edges
     y_nonzero, x_nonzero, _ = np.nonzero(frame>th)

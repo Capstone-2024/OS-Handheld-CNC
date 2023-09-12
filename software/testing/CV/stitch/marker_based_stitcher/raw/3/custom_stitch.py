@@ -1,8 +1,11 @@
 # Source https://docs.opencv.org/4.x/d8/d19/tutorial_stitcher.html
-# Command py .\custom_stitch.py "0.jpg" "1.jpg" "2.jpg" "3.jpg" –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 1 –ba no –ba_refine_mask xxxxx –wave_correct horiz –warp plane –blend multiband –expos_comp channels_blocks –seam gc_colorgrad
+# Command py .\custom_stitch.py "0.jpg" "1.jpg" "2.jpg" "3.jpg" –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3 –ba ray –ba_refine_mask xxxxx –wave_correct horiz –warp plane –blend multiband –expos_comp channels_blocks –seam gc_colorgrad
 # AFFINE Command py .\custom_stitch.py "0.jpg" "1.jpg" "2.jpg" "3.jpg" "4.jpg" "5.jpg" "6.jpg" –work_megapix 0.6 –features surf –matcher affine –estimator affine –match_conf 0.3 –conf_thresh 0.3 –ba affine –ba_refine_mask xxxxx –wave_correct no –warp affine
 
 # AFFINE Command py .\custom_stitch.py "1.jpg" "2.jpg" "3.jpg" "4.jpg" "5.jpg" "6.jpg" –work_megapix 0.6 –features surf –matcher affine –estimator affine –match_conf 0.3 –conf_thresh 0.3 –ba affine –ba_refine_mask xxxxx –wave_correct no –warp plane
+
+# Command py .\custom_stitch.py "0.jpg" "1.jpg" "2.jpg" "3.jpg" –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3 –ba ray –ba_refine_mask xxxxx –wave_correct horiz –warp plane –blend multiband –seam gc_colorgrad
+
 """
 Stitching sample (advanced)
 ===========================
@@ -519,8 +522,8 @@ def main():
         zoom_x = 600.0 / result.shape[1]
         dst = cv.normalize(src=result, dst=None, alpha=255., norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
         dst = cv.resize(dst, dsize=None, fx=zoom_x, fy=zoom_x)
-        cv.imshow(result_name, dst)
-        cv.waitKey()
+        # cv.imshow(result_name, dst)
+        # cv.waitKey()
 
     print("Done")
 

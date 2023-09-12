@@ -41,86 +41,50 @@ ARUCO_DICT = {
 
 def four_point_transform(image, corners):      
     # Get coordinate of each corner
-    (tl, tr, br, bl) = corners[0]
+    for corner in corners: 
+        accuracy = calc_accuracy(image, corner, 10)
 
-    # compute the width of the new image, which will be the
-    # maximum distance between bottom-right and bottom-left
-    # x-coordiates or the top-right and top-left x-coordinates
-    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-    maxWidth = max(int(widthA), int(widthB))
+        if accuracy > 0.7: 
 
-    # compute the height of the new image, which will be the
-    # maximum distance between the top-right and bottom-right
-    # y-coordinates or the top-left and bottom-left y-coordinates
-    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-    maxHeight = max(int(heightA), int(heightB))
+            (tl, tr, br, bl) = corner[0]
 
-    marker_px = min(maxWidth, maxHeight)
-    
-    dst = np.array([
-        [tl[0], tl[1]],
-        [tl[0] - marker_px, tl[1]],
-        [tl[0] - marker_px, tl[1] - marker_px],
-        [tl[0], tl[1] - marker_px]], dtype = "float32")
+            # compute the width of the new image, which will be the
+            # maximum distance between bottom-right and bottom-left
+            # x-coordiates or the top-right and top-left x-coordinates
+            widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+            widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+            maxWidth = max(int(widthA), int(widthB))
 
-    # compute the perspective transform matrix and then apply it
-    M = cv2.getPerspectiveTransform(corners[0], dst)
-    warped = cv2.warpPerspective(image, M, (image.shape[0]*4, image.shape[1]*4))
+            # compute the height of the new image, which will be the
+            # maximum distance between the top-right and bottom-right
+            # y-coordinates or the top-left and bottom-left y-coordinates
+            heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+            heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+            maxHeight = max(int(heightA), int(heightB))
 
-    # Locate the marker being used to warp perspective
-    frame = cv2.rectangle(warped.copy(), (int(tl[0]), int(tl[1])), (int(tl[0] -  marker_px), int(tl[1] - marker_px)), (125, 125, 125), 5)
-    
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", frame)
+            marker_px = min(maxWidth, maxHeight)
+            
+            dst = np.array([
+                [tl[0], tl[1]],
+                [tl[0] - marker_px, tl[1]],
+                [tl[0] - marker_px, tl[1] - marker_px],
+                [tl[0], tl[1] - marker_px]], dtype = "float32")
 
-    # Cut out black edges 
-    th = 1 # threshold for black edges
-    y_nonzero, x_nonzero, _ = np.nonzero(warped>th)
-    
-    cropped = warped[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
-    
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", cropped)
+            M = cv2.getPerspectiveTransform(corners[0], dst)
+            warped = cv2.warpPerspective(image, M, (image.shape[0]+1000, image.shape[1]+1000))
 
-    ''' Attempt to have fully filled images '''
+            # Locate the marker being used to warp perspective
+            frame = cv2.rectangle(warped, (int(tl[0]), int(tl[1])), (int(tl[0] - marker_px), int(tl[1] - marker_px)), (125, 125, 125), 2)
 
-    # find all external contours in the threshold image then find
-    # the *largest* contour which will be the contour/outline of
-    # the stitched image
-    gray = cv2.cvtColor(cropped.copy(), cv2.COLOR_BGR2GRAY)
-    thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)[1]
+            # Cut out black edges 
+            th = 1 # threshold for black edges
+            y_nonzero, x_nonzero, _ = np.nonzero(frame>th)
+            cropped = frame[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+            
+            # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            #     cv2.imshow("Frame", cropped)
 
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", thresh)
-
-    cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    c = max(cnts, key=cv2.contourArea)
-
-    # allocate memory for the mask which will contain the
-    # rectangular bounding box of the stitched image region
-    mask = np.zeros(thresh.shape, dtype="uint8")
-    (x, y, w, h) = cv2.boundingRect(c)
-    cv2.rectangle(thresh, (x, y), (x + w, y + h), 255, -1)
-
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", thresh)
-
-    # frame = cv2.polylines(warped, [dst], True, (0,255,255))
-    # return the warped and cropped image
-    return cropped
-
-def affine_transform(frame, src, dst): 
-    # src is the image we want to transform, dst is the larger/full image
-    M = cv2.getAffineTransform(src, dst)
-    output = cv2.warpAffine(frame.copy(), M, frame.shape)
-
-    # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #     cv2.imshow("Frame", output)
-    
-    return output
+            return cropped
 
 def marker_ids(frame, aruco_dict_type):
 
@@ -252,7 +216,9 @@ def calc_accuracy(img, corners, range=20, debug=False):
 
     # How much of the marker is showing as a percentage of the total space
     percent = (threshold <= 10).sum()/(threshold > 10).sum()*100
-    # print("Error Percentage: {}%".format(percent))
+    
+    if debug: 
+        print("Error Percentage: {}%".format(percent))
 
     return percent
 
@@ -289,85 +255,7 @@ def aruco_display(corners, ids, rejected, image, terminal_print=False):
 			# show the output image
 	return image
 
-def maxHist(row):
-    # Create an empty stack. The stack holds
-    # indexes of hist array / The bars stored
-    # in stack are always in increasing order
-    # of their heights.
-    result = []
-
-    # Top of stack
-    top_val = 0
-
-    # Initialize max area in current
-    max_area = 0
-    # row (or histogram)
-
-    area = 0  # Initialize area with current top
-
-    # Run through all bars of given
-    # histogram (or row)
-    i = 0
-    while (i < len(row)):
-
-        # If this bar is higher than the
-        # bar on top stack, push it to stack
-        if (len(result) == 0) or (row[result[-1]] <= row[i]):
-            result.append(i)
-            i += 1
-        else:
-
-            # If this bar is lower than top of stack,
-            # then calculate area of rectangle with
-            # stack top as the smallest (or minimum
-            # height) bar. 'i' is 'right index' for
-            # the top and element before top in stack
-            # is 'left index'
-            top_val = row[result.pop()]
-            area = top_val * i
-
-            if (len(result)):
-                area = top_val * (i - result[-1] - 1)
-            max_area = max(area, max_area)
-
-    # Now pop the remaining bars from stack
-    # and calculate area with every popped
-    # bar as the smallest bar
-    while (len(result)):
-        top_val = row[result.pop()]
-        area = top_val * i
-        if (len(result)):
-            area = top_val * (i - result[-1] - 1)
-
-        max_area = max(area, max_area)
-
-    return max_area
-
-# Returns area of the largest rectangle
-# with all 1s in A
-def maxRectangle(A):
-
-    # Calculate area for first row and
-    # initialize it as result
-    result = maxHist(A[0])
-
-    # iterate over row to find maximum rectangular
-    # area considering each row as histogram
-    for i in range(1, len(A)):
-
-        for j in range(len(A[i])):
-
-            # if A[i][j] is 1 then add A[i -1][j]
-            if (A[i][j] > 1):
-                A[i][j] += A[i - 1][j]
-
-        # Update result if area with current
-        # row (as last row) of rectangle) is more
-        result = max(result, maxHist(A[i]))
-
-    return result
-
-def stitch_prepare(base, new, single_marker=False, debug=False): 
+def stitch_prepare(base, new, crop_factor, single_marker=False, debug=False): 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_100"]
 
     ''' Now look at the processed files '''
@@ -414,7 +302,8 @@ def stitch_prepare(base, new, single_marker=False, debug=False):
                 tx_list.append(x_offset)
                 ty_list.append(y_offset)
 
-        print(markers_matrix)
+        if debug: 
+            print(markers_matrix)
         # Find the average of all the homography matrices
         h = np.mean(markers_matrix, axis=0)
 
@@ -474,16 +363,13 @@ def stitch_prepare(base, new, single_marker=False, debug=False):
 
     th = 1 # threshold for black edges
     y_nonzero, x_nonzero, _ = np.nonzero(result>th)
-    cropped = result[np.min(y_nonzero):np.max(y_nonzero), np.min(x_nonzero):np.max(x_nonzero)]
+    cropped = result[np.min(y_nonzero)+crop_factor:np.max(y_nonzero)-crop_factor, np.min(x_nonzero)+crop_factor:np.max(x_nonzero)-crop_factor]
 
-    gray = cv2.cvtColor(cropped ,cv2.COLOR_BGR2GRAY)
+    # gray = cv2.cvtColor(cropped ,cv2.COLOR_BGR2GRAY)
 
-    rectangle = maxRectangle(gray)
-
-    if debug:
-        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-            cv2.imshow("Frame", rectangle)
-
+    # if debug:
+    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+    #         cv2.imshow("Frame", rectangle)
 
     # # Remove all black edges
     # gray = cv2.cvtColor(cropped ,cv2.COLOR_BGR2GRAY)
@@ -500,15 +386,132 @@ def stitch_prepare(base, new, single_marker=False, debug=False):
 
     # crop = cropped[y:y+h,x:x+w]
 
-    # if debug:
-    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #         cv2.imshow("Frame", crop)
+    if debug:
+        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            cv2.imshow("Frame", cropped)
 
-    return rectangle
+    return cropped
+
+def flatten_final(image, crop_factor, single_marker=False, debug=False): 
+    # Collect corners and IDs of all markers
+    corners, ids = marker_ids(image, ARUCO_DICT["DICT_6X6_100"])
+
+    # Using the average of multiple markers to warp
+    if not single_marker: 
+        markers_matrix = []
+        tx_list = []
+        ty_list = []
+        tx = 0
+        ty = 0 
+    
+        for corner in corners: 
+            (tl, tr, br, bl) = corner[0]
+
+            # compute the width of the new image, which will be the
+            # maximum distance between bottom-right and bottom-left
+            # x-coordinates or the top-right and top-left x-coordinates
+            widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+            widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+            maxWidth = max(int(widthA), int(widthB))
+
+            # compute the height of the new image, which will be the
+            # maximum distance between the top-right and bottom-right
+            # y-coordinates or the top-left and bottom-left y-coordinates
+            heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+            heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+            maxHeight = max(int(heightA), int(heightB))
+
+            marker_px = min(maxWidth, maxHeight)
+                
+            dst = np.array([
+                [tl[0], tl[1]],
+                [tl[0] - marker_px, tl[1]],
+                [tl[0] - marker_px, tl[1] - marker_px],
+                [tl[0], tl[1] - marker_px]], dtype = "float32")
+
+            accuracy = calc_accuracy(image, corner, 10, debug=False)
+
+            if accuracy < 5: 
+                h_matrix, _ = cv2.findHomography(corner, dst)
+                
+                markers_matrix.append(h_matrix)
+
+                if corner[0][0] > image.shape[0]/2: 
+                    tx = corner[0][0] - dst[0][0]
+                else: 
+                    tx = dst[0][0] - corner[0][0]
+                
+                if corner[0][1] > image.shape[1]/2: 
+                    ty = corner[0][1] - dst[0][1]
+                else: 
+                    ty = dst[0][1] - corner[0][1]
+
+                tx_list.append(tx)
+                ty_list.append(ty)
+
+        if debug: 
+            print(markers_matrix)
+        # Find the average of all the homography matrices
+        h = np.mean(markers_matrix, axis=0)
+
+        # Find the average of translation for all markers
+        tx = np.mean(tx_list, axis=0)
+        ty = np.mean(ty_list, axis=0)
+
+    # Using only a single marker to find warp and offset
+    else: 
+        # Find Marker with max accuracy
+        i_max_accuracy = 0
+        last_accuracy = 1
+        tx = 0
+        ty = 0 
+
+        index = 0
+        for corner in corners:
+            accuracy = calc_accuracy(image, corner, 8)
+
+            if accuracy < last_accuracy: 
+                i_max_accuracy = index
+
+            last_accuracy = accuracy
+            index += 1
+
+        h, _ = cv2.findHomography(corner, dst)
+
+        if corner[i_max_accuracy][0][0] > image.shape[0]/2: 
+            tx = corner[i_max_accuracy][0][0] - dst[0][0]
+        else: 
+            tx = dst[0][0] - corner[i_max_accuracy][0][0]
+        
+        if corner[i_max_accuracy][0][1] > image.shape[1]/2: 
+            ty = corner[i_max_accuracy][0][1] - dst[0][1]
+        else: 
+            ty = dst[0][1] - corner[i_max_accuracy][0][1]
+
+    # Translation correction matrix
+    translate = np.array([  [1,  0, -tx],
+                            [0,  1, -ty], 
+                            [0,  0,   1]], dtype="float64")
+    
+    # Apply translation
+    M = np.matmul(h, translate)
+
+    # Warp image
+    result = cv2.warpPerspective(image, M, (image.shape[0]*2, image.shape[1]*2))
+    
+    # Crop out black edge
+    th = 1 # threshold for black edges
+    y_nonzero, x_nonzero, _ = np.nonzero(result>th)
+    cropped = result[np.min(y_nonzero)+crop_factor:np.max(y_nonzero)-crop_factor, np.min(x_nonzero)+crop_factor:np.max(x_nonzero)-crop_factor]
+
+    if debug:
+        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            cv2.imshow("Frame", cropped)
+
+    return cropped
 
 
-    # cv2.imwrite("./processed_alt/test.jpg", cropped)
-
+''' Main Program '''
 def main(): 
     ''' UI to capture images per instructions '''
 
@@ -516,7 +519,7 @@ def main():
     dir = "./raw/3/"
     files = os.listdir(dir)
 
-    for i in range(0, len(files)-1): 
+    for i in range(0, len(files)-3): 
         if files[i].endswith(".jpg"):
             if i < 1: 
                 # use the first captured image as the base only if we are stitching the first two images
@@ -528,19 +531,35 @@ def main():
             # image to be added is the next image in the list
             new = cv2.imread(dir + files[i+1])
 
-            warped = stitch_prepare(base, new, single_marker=False, debug=True)
+            warped = stitch_prepare(base, new, crop_factor=50, single_marker=False, debug=False)
             
             # save images
-            cv2.imwrite(dir + "base.jpg", base)
-            cv2.imwrite(dir + "new.jpg", warped)
+            cv2.imwrite(dir + "./result/base.jpg", base)
+            cv2.imwrite(dir + "./result/new.jpg", warped)
             
             # root_dir = os.path.dirname(os.path.abspath("."))
             # print(root_dir + '\marker_based_stitcher\raw\3\custom_stitcher.py')
 
             # Stitch them
-            # p = subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'affine'])
-            p = subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'homography', '--estimator', 'homography', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'plane'])
-            p.communicate()
+            # p = subprocess.Popen(['py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'plane'])
+            try: 
+                p = subprocess.Popen(['py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\result\base.jpg', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\result\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'homography', '--estimator', 'homography', '--match_conf', '0.3', '--conf_thresh', '0.5', '--ba', 'ray', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'horiz', '--blend', 'multiband', '--warp', 'plane'])
+                p.communicate()
+            except: 
+                print("Stitching failed (UI: retake photo)")
+                break
+
+
+
+    ''' Now we flatten the image '''
+    stitched = cv2.imread("result.jpg")
+    flattened = flatten_final(stitched, 0, debug=True)
+
+    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+        cv2.imshow("Final", flattened)
+
+    cv2.imwrite("final.jpg", flattened)
+
 
     # cap = cv2.VideoCapture(0)
     # time.sleep(1.0)
