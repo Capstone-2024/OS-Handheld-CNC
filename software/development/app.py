@@ -1,4 +1,4 @@
-from ui import main_page
+# from ui import main_page
 from cv.pose_estimation import stream
 
 # Render start page

@@ -87,7 +87,6 @@ def four_point_transform(image, corners):
             return cropped
 
 def marker_ids(frame, aruco_dict_type):
-
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
@@ -96,6 +95,7 @@ def marker_ids(frame, aruco_dict_type):
 
     corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
+    # Add Identification
     # aruco_display(corners, ids, rejected_img_points, frame)
 
     # while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
@@ -107,11 +107,9 @@ def find_pose(corners, matrix_coefficients, distortion_coefficients):
     # Estimate pose of each marker and return the camera's rotational and translational vectors
 
     # Size of the marker in real life in mmm
-    marker_size = 15 # mm
+    marker_size = 25 # mm
     
     # Object points
-    # objp = np.zeros((6*7,3), np.float32)
-    # objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)  
     objp = np.array([[-marker_size / 2, marker_size / 2, 0],
                             [marker_size / 2, marker_size / 2, 0],
                             [marker_size / 2, -marker_size / 2, 0],
@@ -258,10 +256,6 @@ def aruco_display(corners, ids, rejected, image, terminal_print=False):
 def stitch_prepare(base, new, crop_factor, single_marker=False, debug=False): 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_100"]
 
-    ''' Now look at the processed files '''
-    # base = cv2.imread("./processed_alt/base.jpg") # first frame to continually add to
-    # new = cv2.imread("./raw/3/2.jpg") # image to be transformed and added to base
-
     # Collect IDs of all markers for each image
     corners_1, ids_1 = marker_ids(base, aruco_dict_type)
     corners_2, ids_2 = marker_ids(new, aruco_dict_type)
@@ -364,27 +358,6 @@ def stitch_prepare(base, new, crop_factor, single_marker=False, debug=False):
     th = 1 # threshold for black edges
     y_nonzero, x_nonzero, _ = np.nonzero(result>th)
     cropped = result[np.min(y_nonzero)+crop_factor:np.max(y_nonzero)-crop_factor, np.min(x_nonzero)+crop_factor:np.max(x_nonzero)-crop_factor]
-
-    # gray = cv2.cvtColor(cropped ,cv2.COLOR_BGR2GRAY)
-
-    # if debug:
-    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #         cv2.imshow("Frame", rectangle)
-
-    # # Remove all black edges
-    # gray = cv2.cvtColor(cropped ,cv2.COLOR_BGR2GRAY)
-    # blur = cv2.GaussianBlur(gray,(11,11),0)
-    # _, thresh = cv2.threshold(blur, 1, 255, cv2.THRESH_OTSU)
-
-    # if debug:
-    #     while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-    #         cv2.imshow("Frame", thresh)
-
-    # contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # cnt = contours[0]
-    # x, y, w, h = cv2.boundingRect(cnt)
-
-    # crop = cropped[y:y+h,x:x+w]
 
     if debug:
         while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
@@ -510,7 +483,6 @@ def flatten_final(image, crop_factor, single_marker=False, debug=False):
 
     return cropped
 
-
 def undistort_image(k, d, image): 
     h, w = image.shape[:2]
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(k, d, (w,h), 1, (w,h))
@@ -526,82 +498,85 @@ def undistort_image(k, d, image):
 ''' Main Program '''
 def main(): 
     ''' UI to capture images per instructions '''
-
     # Directory of captured images
-    dir = "./raw/3/"
-    files = os.listdir(dir)
+    dir = "./captured/"
 
-    # Camera Distorstion Matrices
-    d = np.load("distortion_coefficients_new.npy")
-    k = np.load("calibration_matrix_new.npy")
+    # Image Capturing Sequence
+    cap = cv2.VideoCapture(0)
+    cap.set(3, 1280) # set the resolution
+    cap.set(4, 720)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+    time.sleep(1)
 
-    for i in range(0, len(files)-3): 
-        if files[i].endswith(".jpg"):
-            if i < 1: 
-                # Use the first captured image as the base only if we are stitching the first two images
-                base = cv2.imread(dir + files[0])
-                
-                # Only undistort first image not the stitched
-                # base = undistort_image(k, d, base)
+    # Index for loop
+    i = 0
 
-            else: 
-                # Use the combined image
-                base = cv2.imread("./result.jpg") 
+    while(True): 
+        time.sleep(1)
+        ret, frame = cap.read()
 
-
-            # Image to be added is the next image in the list
-            new = cv2.imread(dir + files[i+1])
-            # new = undistort_image(k, d, new)
-
-            warped = stitch_prepare(base, new, crop_factor=50, single_marker=False, debug=False)
-            
-            # Save images
-            cv2.imwrite(dir + "./result/base.jpg", base)
-            cv2.imwrite(dir + "./result/new.jpg", warped)
-            
-            # root_dir = os.path.dirname(os.path.abspath("."))
-            # print(root_dir + '\marker_based_stitcher\raw\3\custom_stitcher.py')
-
-            # Stitch them
-            # p = subprocess.Popen(['py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'plane'])
-            try: 
-                p = subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\result\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\result\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'homography', '--estimator', 'homography', '--match_conf', '0.3', '--conf_thresh', '0.5', '--ba', 'ray', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'horiz', '--blend', 'multiband', '--warp', 'plane'])
-                p.communicate()
-            except: 
-                print("Stitching failed (UI: retake photo)")
-                break
-
-
-    ''' Now we flatten the image '''
-    stitched = cv2.imread("result.jpg")
-    flattened = flatten_final(stitched, 0, debug=True)
-
-    while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
-        cv2.imshow("Final", flattened)
-
-    cv2.imwrite("final.jpg", flattened)
-
-
-    # cap = cv2.VideoCapture(0)
-    # time.sleep(1.0)
-    # Capture 6 images, an image per 2 seconds
-    # for i in range(1, 7): 
-    #     time.sleep(0.5)
-    #     ret, frame = cap.read()
-
-    #     if not ret:
-    #         break
-    #     cv2.imshow('Captured Image', frame) # Display output 
-    
-    #     frame_cropped = frame[0:frame.shape[0], 0:frame.shape[1]-100] # Crop y by 100px
-
-    #     output = marker_transform(frame_cropped, aruco_dict_type)
-
-    #     cv2.imwrite("./captured/" + str(i) + ".jpg", output)
-    #     cv2.imshow('Captured Image', output) # Display output 
+        if not ret:
+            break
+        time.sleep(2)
         
-    #     time.sleep(2)
-    #     cv2.destroyAllWindows()
+        cv2.imshow('Captured Image', frame) # Display output 
+        cv2.waitKey(0)
+        cv2.imwrite(dir + str(i) + ".jpg", frame)
+
+        time.sleep(0.5)
+
+        # First image
+        if i < 1: 
+            i += 1
+            
+            # Back to top of loop to take next image
+            continue
+        
+        # Use the first captured image as the base only if we are stitching the first two images
+        if i == 1: # Captured two image
+            base = cv2.imread(dir + "0.jpg") 
+
+        # Other images
+        else: 
+            # Use the stitched base image
+            base = cv2.imread("./result.jpg") 
+
+        # Image to be added is the captured frame
+        new = frame.copy()
+
+        # Prepare image for stitching
+        warped = stitch_prepare(base, new, crop_factor=50, single_marker=False, debug=True)
+        
+        # Save images for error checking
+        cv2.imwrite(dir + "./result/base.jpg", base)
+        cv2.imwrite(dir + "./result/new.jpg", warped)
+
+        i += 1
+        
+        root_dir = os.path.dirname(os.path.abspath("."))
+        print(root_dir + r'\marker_based_stitcher\raw\3\custom_stitcher.py')
+
+        # Stitch them
+        # p = subprocess.Popen(['py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'plane'])
+        try: 
+            p = subprocess.Popen(['py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\result\base.jpg', r'C:\Users\victo\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\result\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'homography', '--estimator', 'homography', '--match_conf', '0.3', '--conf_thresh', '0.5', '--ba', 'ray', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'horiz', '--blend', 'multiband', '--warp', 'plane'])
+            p.communicate()
+        except: 
+            print("Stitching failed (UI: retake photo)")
+            break
+
+    stitched = cv2.imread("result.jpg")
+    
+    try: 
+        ''' Now we flatten the image '''
+        flattened = flatten_final(stitched, 0, debug=True)
+
+        while cv2.waitKey(1) & 0xFF != ord('q'): # Press Q to quit
+            cv2.imshow("Final", flattened)
+
+        cv2.imwrite("final.jpg", flattened)
+    except: 
+        print("Something went wrong for end of stitching")
 
 if __name__ == "__main__": 
     main()

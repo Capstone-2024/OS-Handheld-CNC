@@ -1,5 +1,6 @@
 # Source: https://github.com/GSNCodes/ArUCo-Markers-Pose-Estimation-Generation-Python/tree/main
 # Command: py calibration.py --dir checkerboard/ --square_size 0.018
+# New Camera Command: py calibration.py --dir checkerboard/new/ --square_size 0.024 --height 9 --width 6 --visualize True
 
 
 import numpy as np
@@ -30,7 +31,6 @@ def calibrate(dirpath, square_size, width, height, visualize=False):
         img = cv2.imread(os.path.join(dirpath, fname))
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, (width, height), None)
 
         # If found, add object points, image points (after refining them)
@@ -49,6 +49,13 @@ def calibrate(dirpath, square_size, width, height, visualize=False):
 
 
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+    mean_error = 0
+    for i in range(len(objpoints)):
+        imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+        error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2)/len(imgpoints2)
+        mean_error += error
+    print( "total error: {}".format(mean_error/len(objpoints)) )
 
     return [ret, mtx, dist, rvecs, tvecs]
 

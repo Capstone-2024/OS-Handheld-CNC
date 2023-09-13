@@ -29,7 +29,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # Estimate pose of each marker and return the camera's rotational and translational vectors
             
             # Size of the marker in real life in mmm
-            marker_size = 15 # mm
+            marker_size = 25 # mm
             
             # Object points
             objp = np.array([[-marker_size / 2, marker_size / 2, 0],
@@ -106,8 +106,8 @@ def stream():
     video = cv2.VideoCapture(0)
 
     # WINDOWS - does not work for the older version camera
-    video.set(cv2.CAP_PROP_FOCUS, 200)
-    # video.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn off auto focus
+    # video.set(cv2.CAP_PROP_FOCUS, 200)
+    video.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn off auto focus
     # focus = 255 # min: 0, max: 255, increment:5
     # video.set(cv2.CAP_PROP_FOCUS, focus) 
 
