@@ -436,15 +436,15 @@ def flatten_final(image, crop_factor, single_marker=False, debug=False):
                 
                 markers_matrix.append(h_matrix)
 
-                if corner[0][0] > image.shape[0]/2: 
-                    tx = corner[0][0] - dst[0][0]
+                if corner[0][0][0] > image.shape[0]/2: 
+                    tx = corner[0][0][0] - dst[0][0]
                 else: 
-                    tx = dst[0][0] - corner[0][0]
+                    tx = dst[0][0] - corner[0][0][0]
                 
-                if corner[0][1] > image.shape[1]/2: 
-                    ty = corner[0][1] - dst[0][1]
+                if corner[0][0][1] > image.shape[1]/2: 
+                    ty = corner[0][0][1] - dst[0][1]
                 else: 
-                    ty = dst[0][1] - corner[0][1]
+                    ty = dst[0][1] - corner[0][0][1]
 
                 tx_list.append(tx)
                 ty_list.append(ty)
@@ -497,7 +497,7 @@ def flatten_final(image, crop_factor, single_marker=False, debug=False):
     M = np.matmul(h, translate)
 
     # Warp image
-    result = cv2.warpPerspective(image, M, (image.shape[0]*2, image.shape[1]*2))
+    result = cv2.warpPerspective(image, M, (image.shape[0]*3, image.shape[1]*3))
     
     # Crop out black edge
     th = 1 # threshold for black edges
