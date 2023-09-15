@@ -296,10 +296,12 @@ def stitch_prepare(base, new, crop_factor, single_marker=False, debug=False):
                 tx_list.append(x_offset)
                 ty_list.append(y_offset)
 
-        if debug: 
-            print(markers_matrix)
+
         # Find the average of all the homography matrices
         h = np.mean(markers_matrix, axis=0)
+
+        if debug: 
+            print(h)
 
         # Find the average of translation for all markers
         tx = np.mean(tx_list, axis=0)
@@ -483,17 +485,17 @@ def flatten_final(image, crop_factor, single_marker=False, debug=False):
 
     return cropped
 
-def undistort_image(k, d, image): 
-    h, w = image.shape[:2]
-    newcameramtx, roi = cv2.getOptimalNewCameraMatrix(k, d, (w,h), 1, (w,h))
-    dst = cv2.undistort(image, k, d, None, newcameramtx)
+def blurry(image, threshold):
+	# compute the Laplacian of the image and then return the focus
+	# measure, which is simply the variance of the Laplacian
+    blur = cv2.Laplacian(image, cv2.CV_64F).var()
     
-    # Crop the image
-    x, y, w, h = roi
-    undistorted = dst[y:y+h, x:x+w]
-
-    return undistorted
-
+    print(blur)
+	
+    if blur < threshold: 
+        return True
+    else: 
+        return False
 
 ''' Main Program '''
 def main(): 
@@ -505,33 +507,42 @@ def main():
     cap = cv2.VideoCapture(0)
     cap.set(3, 1280) # set the resolution
     cap.set(4, 720)
-    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-    time.sleep(1)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)
+
+    # time.sleep(1)
 
     # Index for loop
     i = 0
 
+    time.sleep(1)
+
     while(True): 
-        time.sleep(1)
-        ret, frame = cap.read()
+        # Camera startup before taking a photo
+        while not cap.isOpened(): # wait for camera
+            pass
+        else: 
+            time.sleep(2)
+            ret, frame = cap.read()
 
-        if not ret:
-            break
-        time.sleep(2)
-        
-        cv2.imshow('Captured Image', frame) # Display output 
-        cv2.waitKey(0)
-        cv2.imwrite(dir + str(i) + ".jpg", frame)
+            if not ret:
+                break
 
-        time.sleep(0.5)
+            # cv2.imshow('Captured Image', frame) # Display output 
+            # cv2.waitKey(0)
+            cv2.imwrite(dir + str(i) + ".jpg", frame)
+
+            time.sleep(0.5)
 
         # First image
-        if i < 1: 
-            i += 1
+        if i == 0: 
+            if blurry(frame, 200): 
+                i = 0
+            else: 
+                i += 1
             
             # Back to top of loop to take next image
             continue
-        
+
         # Use the first captured image as the base only if we are stitching the first two images
         if i == 1: # Captured two image
             base = cv2.imread(dir + "0.jpg") 
@@ -551,10 +562,14 @@ def main():
         cv2.imwrite(dir + "./result/base.jpg", base)
         cv2.imwrite(dir + "./result/new.jpg", warped)
 
-        i += 1
-        
+        cv2.imshow("Confirm Your Images", np.concatenate([base, new]))
+        cv2.waitKey(0)
+
+        # Build absolute paths
         root_dir = os.path.dirname(os.path.abspath("."))
         print(root_dir + r'\marker_based_stitcher\raw\3\custom_stitcher.py')
+
+        i += 1
 
         # Stitch them
         # p = subprocess.Popen(['py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\custom_stitch.py', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\base.jpg', r'C:\Users\Victor Zhang\Documents\GitHub\OS-Handheld-CNC\software\testing\CV\stitch\marker_based_stitcher\raw\3\new.jpg', '--work_megapix', '0.6', '--features', 'orb', '--matcher', 'affine', '--estimator', 'affine', '--match_conf', '0.3', '--conf_thresh', '0.3', '--ba', 'affine', '--ba_refine_mask', 'xxxxx', '--wave_correct', 'no', '--warp', 'plane'])
