@@ -42,8 +42,8 @@ void loop()
         float ax = a.acceleration.x;
         float ay = a.acceleration.y;
 
-        float v_x = last_v_x + ax*interval;
-        float v_y = last_v_y + ay*interval;
+        float v_x = last_v_x + ax*interval/1000;
+        float v_y = last_v_y + ay*interval/1000;
 
         previous_t = current_t;
         last_v_x = v_x; 

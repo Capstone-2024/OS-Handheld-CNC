@@ -2,42 +2,55 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 
-#define Q 0.01 // Process noise covariance
-#define R 0.1  // Measurement noise covariance
-
-// Define state variables
-double x_hat = 0.0; // Estimated state (initially set to 0)
-double P = 1.0;     // Estimated error covariance (initially set to 1)
-
-// Predict step of the Kalman filter
-void predict(double u)
-{
-    // Prediction step
-    double x_pred = x_hat;
-    double P_pred = P + Q;
-
-    // Update state variables
-    x_hat = x_pred;
-    P = P_pred;
-}
-
-// Update step of the Kalman filter
-void update(double z)
-{
-    // Update step
-    double K = P / (P + R);
-    double x_updated = x_hat + K * (z - x_hat);
-    double P_updated = (1 - K) * P;
-
-    // Update state variables
-    x_hat = x_updated;
-    P = P_updated;
-}
-
 Adafruit_MPU6050 mpu;
+// Define Kalman filter variables
+double x_hat = 0.0;    // Estimated state: acceleration
+double y_hat = 0.0;    // Estimated state: acceleration
+double Px = 1.0;        // Covariance matrix
+double Py = 1.0;        // Covariance matrix
+double Q = 0.01;       // Process noise covariance
+double R = 0.1;        // Measurement noise covariance
 
-void setup()
-{
+// Kalman filter prediction step
+void x_predict() {
+    // Predict the next state
+    double x_pred = x_hat;
+    double Px_pred = Px + Q;
+
+    x_hat = x_pred;
+    Px = Px_pred;
+}
+
+void y_predict() {
+    // Predict the next state
+    double y_pred = y_hat;
+    double Py_pred = Py + Q;
+
+    y_hat = y_pred;
+    Py = Py_pred;
+}
+
+// Kalman filter update step
+void updatex(double z) {
+    // Calculate Kalman gain
+    double Kx = Px / (Px + R);
+
+    // Update state estimate and covariance
+    x_hat = x_hat + Kx * (z - x_hat);
+    Px = (1 - Kx) * Px;
+}
+
+void updatey(double z) {
+    // Calculate Kalman gain
+    double Ky = Py / (Py + R);
+
+    // Update state estimate and covariance
+    y_hat = y_hat + Ky * (z - y_hat);
+    Py = (1 - Ky) * Py;
+}
+
+
+void setup() {
     Serial.begin(115200);
 
     // Try to initialize!
@@ -53,15 +66,15 @@ void setup()
     mpu.setGyroRange(MPU6050_RANGE_500_DEG);
 
     // set filter bandwidth to 21 Hz
-    mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
+    mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 
     delay(100);
 }
 
 int previous_t = 0;
-float last_v_x = 0; // v_0
-float last_v_y = 0; // v_0
-int interval = 100; // ms
+float last_v_x = 0; //v_0 m/s
+float last_v_y = 0; //v_0 m/s
+int interval = 10; //s m/s
 
 void loop()
 {
@@ -69,41 +82,39 @@ void loop()
     sensors_event_t a, g, temp;
     mpu.getEvent(&a, &g, &temp);
 
-    double measurement_x = a.acceleration.x;
-    double measurement_y = a.acceleration.y;
-
-    // Predict step
-    predict(0.0); // Assuming no control input
-
-    // Update step
-    update(measurement_x);
-
-    double reduce_acceleration_x = x_hat;
-
-    // Update step
-    update(measurement_y);
-
-    double reduce_acceleration_y = x_hat;
-
     int current_t = millis();
 
-    if (current_t - previous_t > interval)
-    {
-        float ax = reduce_acceleration_x;
-        float ay = reduce_acceleration_y;
+    if (current_t - previous_t >= interval) {
 
-        float v_x = last_v_x + ax * interval;
-        float v_y = last_v_y + ay * interval;
+        float accelerometer_data_x=a.acceleration.x;
+        float accelerometer_data_y=a.acceleration.y;
+
+        x_predict();
+        y_predict();
+
+        // Update step with noisy accelerometer data
+        double z = accelerometer_data_x;
+        updatex(z);
+        float ax = x_hat;
+
+        z = accelerometer_data_y;
+        updatey(z);
+        float ay = y_hat;
+
+        float v_x = last_v_x + ax*interval/1000;
+        float v_y = last_v_y + ay*interval/1000;
+
+        previous_t = current_t;
+        last_v_x = v_x;
+        last_v_y = v_y;
 
         Serial.print("V_x:");
         Serial.print(v_x);
-        Serial.print(",");
+        Serial.print(", ");
         Serial.print("V_y:");
         Serial.print(v_y);
-        last_v_x = v_x;
-        last_v_y = v_y;
-        previous_t = current_t;
     }
 
+
     Serial.println("");
-}
+    }

@@ -2,6 +2,8 @@
 # 1. Look at min and max xy and set start location
 # 1.1 (x_array[0], y_array[0]) should be default
 # 1.2 If starting is not (0, 0) for some reason, make svg 
+# Make the starting point for each new contour to be close to the end point of last closed contour 
+# otherwise if its the first, we make the starting point the point closest to the 
 
 # 2. Scale svg points input to available size on stitched image
 # 2.1 Assume that 1 length in svg = stitched image size
