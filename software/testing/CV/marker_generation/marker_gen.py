@@ -16,7 +16,7 @@ def create_marker_board(columns, rows): # workpiece_x, workpiece_y
     cv2.imwrite("board.jpg", image)
 
     pdf = Image.fromarray(image)
-    pdf.save("board.pdf", "PDF", resolution=100)
+    pdf.save("board.pdf", "PDF", resolution=300)
     
     cv2.waitKey(0)
 
