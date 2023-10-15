@@ -6,6 +6,7 @@ import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
+from sys import platform
 
 def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
 
@@ -110,19 +111,20 @@ def stream():
     d = np.load("./distortion_coefficients.npy")
 
     # LINUX 
-    # cam_props = {'focus_auto': 0, 'focus_absolute': 30}
-    
-    # for key in cam_props:
-    #     subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
-    #                  shell=True)
+    if platform == "linux":
+        cam_props = {'focus_auto': 0, 'focus_absolute': 30}
+        
+        for key in cam_props:
+            subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
+                        shell=True)
 
-    video = cv2.VideoCapture(0)
-
-    # WINDOWS - does not work for the older version camera
-    # video.set(cv2.CAP_PROP_FOCUS, 200)
-    video.set(cv2.CAP_PROP_AUTOFOCUS, 1) # turn off auto focus
-    # focus = 255 # min: 0, max: 255, increment:5
-    # video.set(cv2.CAP_PROP_FOCUS, focus) 
+        video = cv2.VideoCapture(0)
+    else: 
+        # WINDOWS - does not work for the older version camera
+        # video.set(cv2.CAP_PROP_FOCUS, 200)
+        video.set(cv2.CAP_PROP_AUTOFOCUS, 1) # turn off auto focus
+        # focus = 255 # min: 0, max: 255, increment:5
+        # video.set(cv2.CAP_PROP_FOCUS, focus) 
 
     # used to record the time when we processed last frame
     prev_frame_time = 0
@@ -171,16 +173,17 @@ def stream():
             break
 
         # FPS
-        # new_frame_time = time.time()
-        # fps = 1/(new_frame_time-prev_frame_time)
-        # prev_frame_time = new_frame_time
-        # fps = int(fps)
-        # fps = str(fps)
-        # font = cv2.FONT_HERSHEY_PLAIN
-        # print(f'FPS: {fps}')
-        # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+        new_frame_time = time.time()
+        fps = 1/(new_frame_time-prev_frame_time)
+        prev_frame_time = new_frame_time
+        fps = int(fps)
+        fps = str(fps)
+        font = cv2.FONT_HERSHEY_PLAIN
+        print(f'FPS: {fps}')
+        cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
 
-        # cv2.imshow('Output Result', output)
+        if platform != "linux":
+            cv2.imshow('Output Result', output)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
