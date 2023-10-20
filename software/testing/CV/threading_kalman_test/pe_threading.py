@@ -5,6 +5,7 @@ import time
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
+from kalman_utils import PE_filter
 
 
 def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
@@ -83,6 +84,8 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
         # Add Data Tag
             # aruco_display(corners, ids, rejected_img_points, frame)
             return [cam_change[0]/len(ids), cam_change[1]/len(ids)], frame
+        else: 
+            return [0, 0], frame
 
 def plot_chart(x_data, y_data, velocity): 
     fig, axs = plt.subplots(2, 1, layout='constrained')
@@ -118,54 +121,84 @@ def stream():
     # used to record the time at which we processed current frame
     new_frame_time = 0
 
-    sample_time = 0.05 # second
-    prev_sample_time = 0 
+    # sample_time = 0.05 # second
+    # prev_sample_time = 0 
 
+    # Kalman Filter
+    dt = 1/60 # 60 fps, i want to make this dynamic but idk if it works that way
+    # P
+    P_x = np.diag([1.5**2., 50/3**2]) # covariance matrix
+    P_y = np.diag([1.5**2., 50/3**2])
+
+    # R 
+    R_x = np.array([1.5**2])
+    R_y = np.array([1.5**2])
+
+    # Q
+    Q = 5**2 # process variance
+
+    x = np.array([0., 0.])
+    kf_x = PE_filter(x, P_x, R_x, Q, dt)
+    kf_y = PE_filter(x, P_y, R_y, Q, dt)
+
+    # Main Loop
     while True:
 
         frame = vs.read()
 
-        change, output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
-        if change: 
-            hyp = math.sqrt(change[0]**2 + change[1]**2)
-            record_data.append(hyp)
-            print(hyp)
+        try: # prevent errors
+            change, output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
+            
+            kf_x.predict()
+            kf_x.update(change[0])
+            print(f'X: {kf_x.x}')
+
+            kf_y.predict()
+            kf_y.update(change[0])
+            print(f'Y: {kf_y.y}')
+            
+            # if change: 
+            #     hyp = math.sqrt(change[0]**2 + change[1]**2)
+            #     record_data.append(hyp)
+            #     print(hyp)
+            
+            # if change: 
+            # if change: 
+            #     record_data.append(change)
+            # hyp = math.sqrt(change[0]**2 + change[1]**2)
+
+            # if change: 
+            #     record_data.append(hyp)
+            # print(hyp)
+
+            # if len(record_data) >= num_data_p: 
+
+            #     print(record_data)
+            #     velocity = [d/sample_time for d in record_data]
+            #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
+            #     # df = pd.DataFrame(record_data)
+            #     # df.to_excel('output.xlsx')
+            #     break
+
+            new_frame_time = time.time()
+            fps = 1/(new_frame_time-prev_frame_time)
+            prev_frame_time = new_frame_time
+            fps = int(fps)
+            fps = str(fps)
+            font = cv2.FONT_HERSHEY_PLAIN
+            print(f'FPS: {fps}')
+
+            # cv2.putText(frame, fps.fps(), (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+
+            # if platform != "linux":
+            #     cv2.imshow('Output Result', output) 
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):
+                break
         
-        # if change: 
-        # if change: 
-        #     record_data.append(change)
-        # hyp = math.sqrt(change[0]**2 + change[1]**2)
-
-        # if change: 
-        #     record_data.append(hyp)
-        # print(hyp)
-
-        # if len(record_data) >= num_data_p: 
-
-        #     print(record_data)
-        #     velocity = [d/sample_time for d in record_data]
-        #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
-        #     # df = pd.DataFrame(record_data)
-        #     # df.to_excel('output.xlsx')
-        #     break
-
-        new_frame_time = time.time()
-        fps = 1/(new_frame_time-prev_frame_time)
-        prev_frame_time = new_frame_time
-        fps = int(fps)
-        fps = str(fps)
-        font = cv2.FONT_HERSHEY_PLAIN
-        print(f'FPS: {fps}')
-
-        print(f'FPS: {fps}')
-        # cv2.putText(frame, fps.fps(), (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-
-        # if platform != "linux":
-        #     cv2.imshow('Output Result', output) 
-
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord('q'):
-            break
+        except: 
+            print("No markers found")
 
     cv2.destroyAllWindows()
     vs.stop() 
