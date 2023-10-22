@@ -59,40 +59,51 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
                     cam_change[j] += difference[j] # Positive
             
             # Overwrite/add pose
-            current_pose[str(ids[i][0])] = {'rotation': rvec,'translation': tvec}
+            # current_pose[str(ids[i][0])] = {'rotation': rvec,'translation': tvec}
             # print(current_pose)
+
+            current_pose[str(ids[i][0])] = {'translation': tvec}
+
+            x_sum = 0
+            y_sum = 0
+            x_pos = 0 
+            y_pos = 0 
+
+            for key, value in current_pose.items(): 
+                # DONT DO THIS, we should be avearging the change in position, but does this mean we need a kalman filter for each marker? 
+                x_sum = x_sum + value['translation'][0]
+                y_sum = y_sum + value['translation'][1]
+
+            x_pos = x_sum/len((ids))
+            y_pos = y_sum/len((ids))
 
             # Draw Axis
             cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
 
             # increment counter
             i += 1
-        
-        # Determine Direction of Movement using first available marker
-        # if str(ids[0][0]) in prev_pose: 
-        #     marker_change = current_pose[str(ids[0][0])]['translation'][0] - prev_pose[str(ids[0][0])]['translation'][0]
 
-        # Dont need to do it for y
-        # if current_pose[str(ids[0])]['translation'][0] <= 0: # if on top
-        #     cam_change[1] = -1*cam_change[1]
+            return [x_pos, y_pos], frame
+    
+
+        # Return Change
         if cam_change: 
-            # total_change[0] += cam_change[0]/(len(ids))
-            # total_change[1] += cam_change[1]/(len(ids))
-            # print(f'X Movement: {cam_change[0]/(len(ids))}')
-            # print(f'Y Movement: {cam_change[1]/(len(ids))}')
-
         # Add Data Tag
             # aruco_display(corners, ids, rejected_img_points, frame)
             return [cam_change[0]/len(ids), cam_change[1]/len(ids)], frame
         else: 
             return [0, 0], frame
 
-def plot_chart(x_data, y_data, velocity): 
-    fig, axs = plt.subplots(2, 1, layout='constrained')
-    axs[0].plot(x_data, y_data)
-    axs[1].plot(x_data, velocity)
-    axs[0].set_title('Camera Pose Change per Cycle (mm)')
-    axs[1].set_title('Velocity (mm/s)')
+def plot_chart(time, raw_x, raw_y, x_data, y_data): 
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
+    ax1.plot(time, raw_x)
+    ax2.plot(time, raw_y)
+    ax3.plot(time, x_data)
+    ax4.plot(time, y_data)
+    ax1.set_title('Raw X')
+    ax2.set_title('Raw Y')
+    ax3.set_title('Camera Pose X Change per Cycle (mm)')
+    ax4.set_title('Camera Pose Y Change per Cycle (mm)')
 
     # display the plot
     plt.show()
@@ -105,8 +116,11 @@ def stream():
     prev_pose = {}
 
     # Plot characteristics
-    record_data = []
-    num_data_p = 1000
+    x_data = []
+    y_data = []
+    raw_x = []
+    raw_y = []
+    num_data_p = 500
     
     # load numpy data files
     k = np.load("./calibration_matrix.npy")
@@ -127,15 +141,15 @@ def stream():
     # Kalman Filter
     dt = 1/60 # 60 fps, i want to make this dynamic but idk if it works that way
     # P
-    P_x = np.diag([1.5**2., 50/3**2]) # covariance matrix
-    P_y = np.diag([1.5**2., 50/3**2])
+    P_x = np.diag([0.5**2., 50/10**2]) # covariance matrix
+    P_y = np.diag([0.5**2., 50/10**2])
 
     # R 
-    R_x = np.array([1.5**2])
-    R_y = np.array([1.5**2])
+    R_x = np.array([0.5**2])
+    R_y = np.array([0.5**2])
 
     # Q
-    Q = 5**2 # process variance
+    Q = 1**2 # process variance
 
     x = np.array([0., 0.])
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
@@ -146,63 +160,81 @@ def stream():
 
         frame = vs.read()
 
-        try: # prevent errors
-            change, output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
-            
-            kf_x.predict()
-            kf_x.update(change[0])
-            print(f'X: {kf_x.x}')
+        # try: # prevent errors
+        pos, output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
 
-            kf_y.predict()
-            kf_y.update(change[0])
-            print(f'Y: {kf_y.y}')
-            
-            # if change: 
-            #     hyp = math.sqrt(change[0]**2 + change[1]**2)
-            #     record_data.append(hyp)
-            #     print(hyp)
-            
-            # if change: 
-            # if change: 
-            #     record_data.append(change)
-            # hyp = math.sqrt(change[0]**2 + change[1]**2)
-
-            # if change: 
-            #     record_data.append(hyp)
-            # print(hyp)
-
-            # if len(record_data) >= num_data_p: 
-
-            #     print(record_data)
-            #     velocity = [d/sample_time for d in record_data]
-            #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
-            #     # df = pd.DataFrame(record_data)
-            #     # df.to_excel('output.xlsx')
-            #     break
-
-            new_frame_time = time.time()
-            fps = 1/(new_frame_time-prev_frame_time)
-            prev_frame_time = new_frame_time
-            fps = int(fps)
-            fps = str(fps)
-            font = cv2.FONT_HERSHEY_PLAIN
-            print(f'FPS: {fps}')
-
-            # cv2.putText(frame, fps.fps(), (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-
-            # if platform != "linux":
-            #     cv2.imshow('Output Result', output) 
-
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                break
+        raw_x.append(float(pos[0]))
+        raw_y.append(float(pos[1]))
         
-        except: 
-            print("No markers found")
+        kf_x.predict()
+        kf_x.update(pos[0])
+        print(f'X: {kf_x.x}')
+
+        kf_y.predict()
+        kf_y.update(pos[1])
+        print(f'Y: {kf_y.x}')
+
+        x_data.append(kf_x.x[0])
+        y_data.append(kf_y.x[0])
+
+        if len(x_data) >= num_data_p: 
+
+            # print(record_data)
+            print(raw_x)
+            plot_chart([i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data)
+            df = pd.DataFrame([x_data, y_data])
+            df.to_excel('output.xlsx')
+            break
+        
+        # if change: 
+        #     hyp = math.sqrt(change[0]**2 + change[1]**2)
+        #     record_data.append(hyp)
+        #     print(hyp)
+        
+        # if change: 
+        # if change: 
+        #     record_data.append(change)
+        # hyp = math.sqrt(change[0]**2 + change[1]**2)
+
+        # if change: 
+        #     record_data.append(hyp)
+        # print(hyp)
+
+        # if len(record_data) >= num_data_p: 
+
+        #     print(record_data)
+        #     velocity = [d/sample_time for d in record_data]
+        #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
+        #     # df = pd.DataFrame(record_data)
+        #     # df.to_excel('output.xlsx')
+        #     break
+
+        new_frame_time = time.time()
+        fps = 1/(new_frame_time-prev_frame_time)
+        prev_frame_time = new_frame_time
+        fps = int(fps)
+        fps = str(fps)
+        font = cv2.FONT_HERSHEY_PLAIN
+        print(f'FPS: {fps}')
+
+        # cv2.putText(frame, fps.fps(), (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+
+        # if platform != "linux":
+        #     cv2.imshow('Output Result', output) 
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        
+        # except: 
+        #     print("No markers found")
+
+        #     if len(x_data) >= num_data_p: 
+        #         break
 
     cv2.destroyAllWindows()
     vs.stop() 
-    
+
 
 if __name__ == '__main__': 
     stream()
