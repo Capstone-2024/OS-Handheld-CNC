@@ -8,6 +8,27 @@ import math
 from kalman_utils import PE_filter
 from sys import platform
 
+def analyze_stitched(img, aruco_dict_type, matrix_coefficients, distortion_coefficients,): 
+    # Generate a matrix of all the markers
+
+    # Find all the markers
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
+    parameters = cv2.aruco.DetectorParameters()
+    detector = cv2.aruco.ArucoDetector(dictionary, parameters)
+
+    corners, ids, rejected_img_points = detector.detectMarkers(gray)
+
+    # If markers are detected
+    if len(ids) > 0: 
+        for i in range(0, len(ids)):
+            corners
+    else: 
+        return None
+
+    return marker_matrix
+
 
 def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
 

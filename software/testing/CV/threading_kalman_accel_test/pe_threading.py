@@ -84,7 +84,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # increment counter
             i += 1
 
-            # aruco_display(corners, ids, rejected_img_points, frame)
+            aruco_display(corners, ids, rejected_img_points, frame)
 
             return [x_pos, y_pos], frame
     
@@ -163,77 +163,77 @@ def stream():
 
         frame = vs.read()
 
-        try: # prevent errors
-            (x_pos, y_pos), output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
+        # try: # prevent errors
+        (x_pos, y_pos), output = pose_estimation(frame, aruco_dict_type, k, d, current_pose, prev_pose)
 
-            raw_x.append(float(x_pos))
-            raw_y.append(float(y_pos))
+        raw_x.append(float(x_pos))
+        raw_y.append(float(y_pos))
 
-            kf_x.predict()
-            kf_x.update(x_pos)
-            print(f'X: {kf_x.x}')
+        kf_x.predict()
+        kf_x.update(x_pos)
+        print(f'X: {kf_x.x}')
 
-            kf_y.predict()
-            kf_y.update(y_pos)
-            print(f'Y: {kf_y.x}')
+        kf_y.predict()
+        kf_y.update(y_pos)
+        print(f'Y: {kf_y.x}')
 
-            x_data.append(kf_x.x[0])
-            y_data.append(kf_y.x[0])
+        x_data.append(kf_x.x[0])
+        y_data.append(kf_y.x[0])
 
-            if len(x_data) >= num_data_p: 
+        if len(x_data) >= num_data_p: 
 
-                # print(record_data)
-                print(raw_x)
-                plot_chart([i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data)
-                df = pd.DataFrame([x_data, y_data])
-                df.to_excel('output.xlsx')
-                break
-
-            # if change: 
-            #     hyp = math.sqrt(change[0]**2 + change[1]**2)
-            #     record_data.append(hyp)
-            #     print(hyp)
-            
-            # if change: 
-            # if change: 
-            #     record_data.append(change)
-            # hyp = math.sqrt(change[0]**2 + change[1]**2)
-
-            # if change: 
-            #     record_data.append(hyp)
-            # print(hyp)
-
-            # if len(record_data) >= num_data_p: 
-
-            #     print(record_data)
-            #     velocity = [d/sample_time for d in record_data]
-            #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
-            #     # df = pd.DataFrame(record_data)
-            #     # df.to_excel('output.xlsx')
-            #     break
-
-            new_frame_time = time.time()
-            fps = 1/(new_frame_time-prev_frame_time)
-            prev_frame_time = new_frame_time
-            fps = int(fps)
-            fps = str(fps)
-            font = cv2.FONT_HERSHEY_PLAIN
-            print(f'FPS: {fps}')
-
-            # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-
-            if platform != "linux":
-                cv2.imshow('Output Result', output) 
-
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                break
+            # print(record_data)
+            print(raw_x)
+            plot_chart([i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data)
+            df = pd.DataFrame([x_data, y_data])
+            df.to_excel('output.xlsx')
+            break
+    
+        # if change: 
+        #     hyp = math.sqrt(change[0]**2 + change[1]**2)
+        #     record_data.append(hyp)
+        #     print(hyp)
         
-        except: 
-            print("No markers found")
+        # if change: 
+        # if change: 
+        #     record_data.append(change)
+        # hyp = math.sqrt(change[0]**2 + change[1]**2)
 
-            if len(x_data) >= num_data_p: 
-                break
+        # if change: 
+        #     record_data.append(hyp)
+        # print(hyp)
+
+        # if len(record_data) >= num_data_p: 
+
+        #     print(record_data)
+        #     velocity = [d/sample_time for d in record_data]
+        #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
+        #     # df = pd.DataFrame(record_data)
+        #     # df.to_excel('output.xlsx')
+        #     break
+
+        new_frame_time = time.time()
+        fps = 1/(new_frame_time-prev_frame_time)
+        prev_frame_time = new_frame_time
+        fps = int(fps)
+        fps = str(fps)
+        font = cv2.FONT_HERSHEY_PLAIN
+        print(f'FPS: {fps}')
+
+        cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+
+        if platform != "linux":
+            cv2.imshow('Output Result', output) 
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        
+        # except: 
+        #     print("No markers found")
+
+        #     if len(x_data) >= num_data_p: 
+        #         break
 
     cv2.destroyAllWindows()
     vs.stop() 
