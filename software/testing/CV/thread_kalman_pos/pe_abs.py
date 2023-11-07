@@ -1,4 +1,4 @@
-from threading_utils import WebcamVideoStream, ARUCO_DICT, aruco_display
+from threading_utils import WebcamVideoStream, ARUCO_DICT, aruco_display, sort_centers
 import cv2
 import numpy as np
 import time
@@ -8,10 +8,13 @@ import math
 from kalman_utils import PE_filter
 from sys import platform
 
-def analyze_stitched(img, aruco_dict_type, matrix_coefficients, distortion_coefficients,): 
+def analyze_stitched(img_path, aruco_dict_type, matrix_coefficients, distortion_coefficients,): 
     # Generate a matrix of all the markers
 
     # Find all the markers
+
+    img = cv2.imread(img_path)
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
@@ -20,14 +23,61 @@ def analyze_stitched(img, aruco_dict_type, matrix_coefficients, distortion_coeff
 
     corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
+    # Numpy array of markers
+    world_markers_xy = np.zeros(shape=(len(ids), 2))
+    image_markers_xy = np.zeros(shape=(len(ids), 2))
+
     # If markers are detected
     if len(ids) > 0: 
+
         for i in range(0, len(ids)):
-            corners
+            # Size of the marker in real life in mmm
+            marker_size = 25 # mm
+            
+            # Object points
+            objp = np.array([[-marker_size / 2, marker_size / 2, 0],
+                                    [marker_size / 2, marker_size / 2, 0],
+                                    [marker_size / 2, -marker_size / 2, 0],
+                                    [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
+
+            ret, rvec, tvec = cv2.solvePnP(objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+
+            world_markers_xy[i] = [tvec[0][0], tvec[1][0]]
+            # print(corners[i])
+
+            (topLeft, topRight, bottomRight, bottomLeft) = corners[i][0]
+            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+
+            image_markers_xy[i] = [cX, cY]
+
+
     else: 
         return None
+    
+    # Plots for visualization of the markers' coordinates in world and image frames
+    world_coord_data = world_markers_xy.T
+    image_coord_data = image_markers_xy.T
+    x1, y1 = world_coord_data
+    x2, y2 = image_coord_data
 
-    return marker_matrix
+    fig, (ax1, ax2) = plt.subplots(2)
+    ax1.scatter(x1, y1)
+    ax1.set_title("Pose Estimation Marker Center World Coordinates")
+    ax2.scatter(x2, y2)
+    ax2.set_title("Marker Center Image Coordinates")
+    plt.show()
+
+    # Sort markers and make rows
+    sorted_xy = sort_centers(world_markers_xy, 25)
+    print(sorted_xy)
+
+    # df = pd.DataFrame(sorted_xy)
+    # df.style \
+    #     .format(precision=3) \
+    #     .format_index(str.upper, axis=1)
+    # print(df)
+    # return marker_matrix
 
 
 def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
@@ -92,7 +142,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             y_pos = 0 
 
             for key, value in current_pose.items(): 
-                # DONT DO THIS, we should be avearging the change in position, but does this mean we need a kalman filter for each marker? 
+                # DONT DO THIS, we should be averaging the change in position, but does this mean we need a kalman filter for each marker? 
                 x_sum = x_sum + value['translation'][0]
                 y_sum = y_sum + value['translation'][1]
 
@@ -261,4 +311,9 @@ def stream():
 
 
 if __name__ == '__main__': 
-    stream()
+    # stream()
+
+    aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
+    k = np.load("./calibration_matrix.npy")
+    d = np.load("./distortion_coefficients.npy")
+    analyze_stitched("result.jpg", aruco_dict_type, k, d)

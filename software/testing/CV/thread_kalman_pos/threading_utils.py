@@ -4,6 +4,7 @@ import cv2
 import time
 from sys import platform
 import subprocess
+import numpy as np
 
 class WebcamVideoStream:
     def __init__(self, src=0):
@@ -110,3 +111,49 @@ def aruco_display(corners, ids, rejected, image, terminal_print=False):
 				print("[Inference] ArUco marker ID: {}".format(markerID))
 			# show the output image
 	return image
+
+
+# Find the top left point: min(x+y)
+# Find the top right point: max(x-y)
+# Create a straight line from the points.
+# Calculate the distance of all points to the line
+# If it is smaller than the radius of the circle (or a threshold): point is in the top line.
+# Otherwise: point is in the rest of the block.
+# Sort points of the top line by x value and save.
+# Repeat until there are no points left.
+
+# Sorting of an array of points
+def sort_centers(markers, marker_size): 
+
+	markers_xy = []
+
+	# Deep copy of the markers coordinates
+	# Array to subtract points from
+	searching_markers = markers[:]
+		
+	while len(searching_markers) > 0: 
+		# Find top left point
+		top_left = sorted(searching_markers, key=lambda p: (p[0]) + (p[1]))[0]
+		top_right = sorted(searching_markers, key=lambda p: (p[0]) - (p[1]))[-1]
+		
+		top_left = np.array([top_left[0], top_left[1], 0])
+		top_right = np.array([top_right[0], top_right[1], 0])
+
+		row = []
+		remaining_markers = []
+        
+		for k in searching_markers:
+			p = np.array([k[0], k[1], 0])
+			d = marker_size  # diameter of the keypoint (might be a theshold)
+			dist = np.linalg.norm(np.cross(np.subtract(p, top_left), np.subtract(top_right, top_left))) / np.linalg.norm(top_right)   # distance between keypoint and line a->b
+			if d/2 > dist:
+				row.append(k)
+			else:
+				remaining_markers.append(k)
+
+		print(f'Row {row} \n')
+		markers_xy.extend(sorted(row, key=lambda h: h[0]))
+		searching_markers = remaining_markers
+	
+	return markers_xy
+    

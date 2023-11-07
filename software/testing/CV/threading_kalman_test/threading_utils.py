@@ -4,6 +4,7 @@ import cv2
 import time
 from sys import platform
 import subprocess
+import numpy as np
 
 class WebcamVideoStream:
     def __init__(self, src=0):
