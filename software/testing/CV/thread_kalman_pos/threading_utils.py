@@ -6,27 +6,28 @@ from sys import platform
 import subprocess
 import numpy as np
 
+
 class WebcamVideoStream:
     def __init__(self, src=0):
         # initialize the video camera stream and read the first frame
         # from the stream
         self.stream = cv2.VideoCapture(src)
-        
+
         # Camera Settings
-        # LINUX 
+        # LINUX
         # if platform == "linux":
         #     cam_props = {'focus_auto': 1}
-            
+
         #     for key in cam_props:
         #         subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
         #                     shell=True)
 
-        # else: 
+        # else:
         #     # WINDOWS - does not work for the older version camera
         #     # video.set(cv2.CAP_PROP_FOCUS, 200)
         #     self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 1) # turn off auto focus
         #     # focus = 255 # min: 0, max: 255, increment:5
-        #     # video.set(cv2.CAP_PROP_FOCUS, focus) 
+        #     # video.set(cv2.CAP_PROP_FOCUS, focus)
 
         (self.grabbed, self.frame) = self.stream.read()
         # initialize the variable used to indicate if the thread should
@@ -55,62 +56,71 @@ class WebcamVideoStream:
         # indicate that the thread should be stopped
         self.stopped = True
 
+
 ARUCO_DICT = {
-	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
-	"DICT_4X4_100": cv2.aruco.DICT_4X4_100,
-	"DICT_4X4_250": cv2.aruco.DICT_4X4_250,
-	"DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
-	"DICT_5X5_50": cv2.aruco.DICT_5X5_50,
-	"DICT_5X5_100": cv2.aruco.DICT_5X5_100,
-	"DICT_5X5_250": cv2.aruco.DICT_5X5_250,
-	"DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
-	"DICT_6X6_50": cv2.aruco.DICT_6X6_50,
-	"DICT_6X6_100": cv2.aruco.DICT_6X6_100,
-	"DICT_6X6_250": cv2.aruco.DICT_6X6_250,
-	"DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
-	"DICT_7X7_50": cv2.aruco.DICT_7X7_50,
-	"DICT_7X7_100": cv2.aruco.DICT_7X7_100,
-	"DICT_7X7_250": cv2.aruco.DICT_7X7_250,
-	"DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
-	"DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
-	"DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
-	"DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
-	"DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
-	"DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
+    "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+    "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+    "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+    "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+    "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+    "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+    "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+    "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+    "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+    "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+    "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+    "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+    "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+    "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+    "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+    "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+    "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+    "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+    "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+    "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
+    "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11,
 }
 
-def aruco_display(corners, ids, rejected, image, terminal_print=False):
-	if len(corners) > 0:
-		# flatten the ArUco IDs list
-		ids = ids.flatten()
-		# loop over the detected ArUCo corners
-		for (markerCorner, markerID) in zip(corners, ids):
-			# extract the marker corners (which are always returned in
-			# top-left, top-right, bottom-right, and bottom-left order)
-			corners = markerCorner.reshape((4, 2))
-			(topLeft, topRight, bottomRight, bottomLeft) = corners
-			# convert each of the (x, y)-coordinate pairs to integers
-			topRight = (int(topRight[0]), int(topRight[1]))
-			bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-			bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-			topLeft = (int(topLeft[0]), int(topLeft[1]))
 
-			cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
-			cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
-			cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
-			cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
-			# compute and draw the center (x, y)-coordinates of the ArUco
-			# marker
-			cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-			cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-			cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
-			# draw the ArUco marker ID on the image
-			cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-				0.5, (0, 255, 0), 2)
-			if terminal_print: 
-				print("[Inference] ArUco marker ID: {}".format(markerID))
-			# show the output image
-	return image
+def aruco_display(corners, ids, rejected, image, terminal_print=False):
+    if len(corners) > 0:
+        # flatten the ArUco IDs list
+        ids = ids.flatten()
+        # loop over the detected ArUCo corners
+        for markerCorner, markerID in zip(corners, ids):
+            # extract the marker corners (which are always returned in
+            # top-left, top-right, bottom-right, and bottom-left order)
+            corners = markerCorner.reshape((4, 2))
+            (topLeft, topRight, bottomRight, bottomLeft) = corners
+            # convert each of the (x, y)-coordinate pairs to integers
+            topRight = (int(topRight[0]), int(topRight[1]))
+            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+            topLeft = (int(topLeft[0]), int(topLeft[1]))
+
+            cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
+            cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
+            cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
+            cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
+            # compute and draw the center (x, y)-coordinates of the ArUco
+            # marker
+            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+            cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
+            # draw the ArUco marker ID on the image
+            cv2.putText(
+                image,
+                str(markerID),
+                (topLeft[0], topLeft[1] - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (0, 255, 0),
+                2,
+            )
+            if terminal_print:
+                print("[Inference] ArUco marker ID: {}".format(markerID))
+            # show the output image
+    return image
 
 
 # Find the top left point: min(x+y)
@@ -122,38 +132,43 @@ def aruco_display(corners, ids, rejected, image, terminal_print=False):
 # Sort points of the top line by x value and save.
 # Repeat until there are no points left.
 
+
 # Sorting of an array of points
-def sort_centers(markers, marker_size): 
+def sort_centers(markers, marker_size):
+    markers_xy = []
 
-	markers_xy = []
+    # Deep copy of the markers coordinates
+    # Array to subtract points from
+    searching_markers = markers[:]
 
-	# Deep copy of the markers coordinates
-	# Array to subtract points from
-	searching_markers = markers[:]
-		
-	while len(searching_markers) > 0: 
-		# Find top left point
-		top_left = sorted(searching_markers, key=lambda p: (p[0]) + (p[1]))[0]
-		top_right = sorted(searching_markers, key=lambda p: (p[0]) - (p[1]))[-1]
-		
-		top_left = np.array([top_left[0], top_left[1], 0])
-		top_right = np.array([top_right[0], top_right[1], 0])
+    while len(searching_markers) > 0:
+        # Find top left point
+        top_left = sorted(searching_markers, key=lambda p: (p[0]) + (p[1]))[0]
+        top_right = sorted(searching_markers, key=lambda p: (p[0]) - (p[1]))[-1]
 
-		row = []
-		remaining_markers = []
-        
-		for k in searching_markers:
-			p = np.array([k[0], k[1], 0])
-			d = marker_size  # diameter of the keypoint (might be a theshold)
-			dist = np.linalg.norm(np.cross(np.subtract(p, top_left), np.subtract(top_right, top_left))) / np.linalg.norm(top_right)   # distance between keypoint and line a->b
-			if d/2 > (dist-5):
-				row.append(k)
-			else:
-				remaining_markers.append(k)
+        top_left = np.array([top_left[0], top_left[1], 0])
+        top_right = np.array([top_right[0], top_right[1], 0])
+        print(f"top left: {top_left}")
+        print(f"top right: {top_right}")
 
-		print(f'Row {row} \n')
-		markers_xy.append(sorted(row, key=lambda h: h[0]))
-		searching_markers = remaining_markers
-	
-	return markers_xy
-    
+        row = []
+        remaining_markers = []
+
+        for k in searching_markers:
+            p = np.array([k[0], k[1], 0])
+            d = marker_size  # diameter of the keypoint (might be a theshold)
+            dist = np.linalg.norm(
+                np.cross(np.subtract(p, top_left), np.subtract(top_right, top_left))
+            ) / np.linalg.norm(
+                top_right
+            )  # distance between keypoint and line a->b
+            if d / 2 > (dist + 2):
+                row.append(k)
+            else:
+                remaining_markers.append(k)
+
+        print(f"Row {row} \n")
+        markers_xy.append(sorted(row, key=lambda h: h[0]))
+        searching_markers = remaining_markers
+
+    return markers_xy
