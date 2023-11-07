@@ -72,11 +72,11 @@ def analyze_stitched(img_path, aruco_dict_type, matrix_coefficients, distortion_
     sorted_xy = sort_centers(world_markers_xy, 25)
     print(sorted_xy)
 
-    # df = pd.DataFrame(sorted_xy)
-    # df.style \
-    #     .format(precision=3) \
-    #     .format_index(str.upper, axis=1)
-    # print(df)
+    df = pd.DataFrame(sorted_xy)
+    df.style \
+        .format(precision=3) \
+        .format_index(str.upper, axis=1)
+    print(df)
     # return marker_matrix
 
 

@@ -146,13 +146,13 @@ def sort_centers(markers, marker_size):
 			p = np.array([k[0], k[1], 0])
 			d = marker_size  # diameter of the keypoint (might be a theshold)
 			dist = np.linalg.norm(np.cross(np.subtract(p, top_left), np.subtract(top_right, top_left))) / np.linalg.norm(top_right)   # distance between keypoint and line a->b
-			if d/2 > dist:
+			if d/2 > (dist-5):
 				row.append(k)
 			else:
 				remaining_markers.append(k)
 
 		print(f'Row {row} \n')
-		markers_xy.extend(sorted(row, key=lambda h: h[0]))
+		markers_xy.append(sorted(row, key=lambda h: h[0]))
 		searching_markers = remaining_markers
 	
 	return markers_xy
