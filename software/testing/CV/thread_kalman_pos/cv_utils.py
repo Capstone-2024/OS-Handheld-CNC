@@ -1,19 +1,21 @@
-from threading_utils import WebcamVideoStream, ARUCO_DICT, aruco_display, sort_centers
+from threading_utils import ARUCO_DICT, aruco_display
 import cv2
 import numpy as np
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
-from kalman_utils import PE_filter
 from sys import platform
+import subprocess
 
-
-def analyze_stitched(img_path, aruco_dict_type, matrix_coefficients, distortion_coefficients,):
-    # Generate a matrix of all the markers
-
+# Generate a matrix of all the markers
+def analyze_stitched(img_path, marker_size):
+    # Load Data
+    aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
+    matrix_coefficients = np.load("./calibration_matrix.npy")
+    distortion_coefficients = np.load("./distortion_coefficients.npy")
+    
     # Find all the markers
-
     img = cv2.imread(img_path)
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -24,9 +26,11 @@ def analyze_stitched(img_path, aruco_dict_type, matrix_coefficients, distortion_
 
     corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
+
     # Numpy array of markers
     world_markers_xy = np.zeros(shape=(len(ids), 2))
     image_markers_xy = np.zeros(shape=(len(ids), 2))
+
 
     # If markers are detected
     if len(ids) > 0:
@@ -47,7 +51,7 @@ def analyze_stitched(img_path, aruco_dict_type, matrix_coefficients, distortion_
             world_markers_xy[i] = [tvec[0][0], tvec[1][0]]
             # print(corners[i])
 
-            (topLeft, topRight, bottomRight, bottomLeft) = corners[i][0]
+            (topLeft, _, bottomRight, _) = corners[i][0]
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
@@ -70,8 +74,8 @@ def analyze_stitched(img_path, aruco_dict_type, matrix_coefficients, distortion_
     plt.show()
 
     # Sort markers and make rows
-    sorted_xy = sort_centers(world_markers_xy, 25)
-    print(sorted_xy)
+    sorted_xy = sort_centers(world_markers_xy, marker_size, ids)
+    # print(sorted_xy)
 
     df = pd.DataFrame(sorted_xy)
     df.style \
@@ -81,7 +85,11 @@ def analyze_stitched(img_path, aruco_dict_type, matrix_coefficients, distortion_
     # return marker_matrix
 
 
-def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients, current_pose, prev_pose):
+def pose_estimation(frame, current_pose, prev_pose):
+    # Pose Estimation Initialize 
+    aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
+    matrix_coefficients = np.load("./calibration_matrix.npy")
+    distortion_coefficients = np.load("./distortion_coefficients.npy")
 
     # more processing can be done to the images
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -186,141 +194,68 @@ def plot_chart(time, raw_x, raw_y, x_data, y_data):
     # display the plot
     plt.show()
 
+# Find the top left point: min(x+y)
+# Find the top right point: max(x-y)
+# Create a straight line from the points.
+# Calculate the distance of all points to the line
+# If it is smaller than the radius of the circle (or a threshold): point is in the top line.
+# Otherwise: point is in the rest of the block.
+# Sort points of the top line by x value and save.
+# Repeat until there are no points left.
 
-def stream():
-    aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
+# Sorting of an array of points
+def sort_centers(markers, marker_size, ids):
+    markers_xy = []
+    final_markers = {}
 
-    # Record camera pose relative to each marker according to their unique id, using a dictionary
-    current_pose = {}
-    prev_pose = {}
+    # Deep copy of the markers coordinates
+    # Array to subtract points from
+    searching_markers = markers[:]
 
-    # Plot characteristics
-    x_data = []
-    y_data = []
-    raw_x = []
-    raw_y = []
-    num_data_p = 500
+    while len(searching_markers) > 0:
+        # Find top left point
+        top_left = sorted(searching_markers, key=lambda p: (p[0]) + (p[1]))[0]
+        top_right = sorted(searching_markers, key=lambda p: (p[0]) - (p[1]))[-1]
 
-    # load numpy data files
-    k = np.load("./calibration_matrix.npy")
-    d = np.load("./distortion_coefficients.npy")
+        tl_i = np.where(markers==top_left)[0][0]
+        tr_i = np.where(markers==top_right)[0][0]
 
-    # Start Camera Stream and FPS Counter
-    vs = WebcamVideoStream(src=0).start()
+        top_left = np.array([top_left[0], top_left[1], 0])
+        top_right = np.array([top_right[0], top_right[1], 0])
+        print(f"top left: {top_left}, index: {tl_i}")
+        print(f"top right: {top_right}, index: {tr_i}")
 
-    # used to record the time when we processed last frame
-    prev_frame_time = 0
+        row = []
+        remaining_markers = []
 
-    # used to record the time at which we processed current frame
-    new_frame_time = 0
+        for k in searching_markers:
+            p = np.array([k[0], k[1], 0])
+            index = np.where(markers==k)[0][0]
+            d = marker_size  # diameter of the keypoint (might be a theshold)
+            dist = np.linalg.norm(
+                np.cross(np.subtract(p, top_left), np.subtract(top_right, top_left))
+            ) / np.linalg.norm(
+                top_right
+            )  # distance between keypoint and line a->b
+            if d / 2 > (dist + 2):
+                row.append(k)
+            else:
+                remaining_markers.append(k)
 
-    # sample_time = 0.05 # second
-    # prev_sample_time = 0
+        print(f"Row {row} \n")
+        markers_xy.append(sorted(row, key=lambda h: h[0]))
+        searching_markers = remaining_markers
 
-    # Kalman Filter
-    dt = 1/60  # 60 fps, i want to make this dynamic but idk if it works that way
-    # P
-    P_x = np.diag([0.5**2., 5**2])  # covariance matrix
-    P_y = np.diag([0.5**2., 5**2])
+        # find ID of each marker and put it in a matrix
+        row = [[{ids[np.where(markers==markers[i])[0][0]]: markers[i]} for i in range(num_cols)] for _ in range(num_rows)] # LOOP THROUGH
 
-    # R
-    R_x = np.array([0.5**2])
-    R_y = np.array([0.5**2])
 
-    # Q
-    Q = 0.5**2  # process variance
-
-    x = np.array([0., 0.])
-    kf_x = PE_filter(x, P_x, R_x, Q, dt)
-    kf_y = PE_filter(x, P_y, R_y, Q, dt)
-
-    # Main Loop
-    while True:
-
-        frame = vs.read()
-
-        try:  # prevent errors
-            (x_pos, y_pos), output = pose_estimation(
-                frame, aruco_dict_type, k, d, current_pose, prev_pose)
-
-            raw_x.append(float(x_pos))
-            raw_y.append(float(y_pos))
-
-            kf_x.predict()
-            kf_x.update(x_pos)
-            print(f'X: {kf_x.x}')
-
-            kf_y.predict()
-            kf_y.update(y_pos)
-            print(f'Y: {kf_y.x}')
-
-            x_data.append(kf_x.x[0])
-            y_data.append(kf_y.x[0])
-
-            if len(x_data) >= num_data_p:
-
-                # print(record_data)
-                print(raw_x)
-                plot_chart([i for i in range(0, num_data_p)],
-                           raw_x, raw_y, x_data, y_data)
-                df = pd.DataFrame([x_data, y_data])
-                df.to_excel('output.xlsx')
-                break
-
-            # if change:
-            #     hyp = math.sqrt(change[0]**2 + change[1]**2)
-            #     record_data.append(hyp)
-            #     print(hyp)
-
-            # if change:
-            # if change:
-            #     record_data.append(change)
-            # hyp = math.sqrt(change[0]**2 + change[1]**2)
-
-            # if change:
-            #     record_data.append(hyp)
-            # print(hyp)
-
-            # if len(record_data) >= num_data_p:
-
-            #     print(record_data)
-            #     velocity = [d/sample_time for d in record_data]
-            #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
-            #     # df = pd.DataFrame(record_data)
-            #     # df.to_excel('output.xlsx')
-            #     break
-
-            new_frame_time = time.time()
-            fps = 1/(new_frame_time-prev_frame_time)
-            prev_frame_time = new_frame_time
-            fps = int(fps)
-            fps = str(fps)
-            font = cv2.FONT_HERSHEY_PLAIN
-            print(f'FPS: {fps}')
-
-            # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-
-            if platform != "linux":
-                cv2.imshow('Output Result', output)
-
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                break
-
-        except:
-            print("No markers found")
-
-            if len(x_data) >= num_data_p:
-                break
-
-    cv2.destroyAllWindows()
-    vs.stop()
-
+    return markers_xy
 
 if __name__ == '__main__':
-    # stream()
+    # stream(
 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
     k = np.load("./calibration_matrix.npy")
     d = np.load("./distortion_coefficients.npy")
-    analyze_stitched("result.jpg", aruco_dict_type, k, d)
+    analyze_stitched("result.jpg", 25)
