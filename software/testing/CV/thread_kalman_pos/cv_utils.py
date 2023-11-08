@@ -10,6 +10,9 @@ import subprocess
 
 # Generate a matrix of all the markers
 def analyze_stitched(img_path, marker_size):
+    # Dictionary for accessing the marker locations
+    dict_xy = {}
+
     # Load Data
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
     matrix_coefficients = np.load("./calibration_matrix.npy")
@@ -37,7 +40,7 @@ def analyze_stitched(img_path, marker_size):
 
         for i in range(0, len(ids)):
             # Size of the marker in real life in mmm
-            marker_size = 25  # mm
+            marker_size = 25 # mm
 
             # Object points
             objp = np.array([[-marker_size / 2, marker_size / 2, 0],
@@ -49,6 +52,7 @@ def analyze_stitched(img_path, marker_size):
                 objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
 
             world_markers_xy[i] = [tvec[0][0], tvec[1][0]]
+            dict_xy = {ids[i]: [tvec[0][0], tvec[1][0]]}
             # print(corners[i])
 
             (topLeft, _, bottomRight, _) = corners[i][0]
@@ -73,19 +77,21 @@ def analyze_stitched(img_path, marker_size):
     ax2.set_title("Marker Center Image Coordinates")
     plt.show()
 
-    # Sort markers and make rows
-    sorted_xy = sort_centers(world_markers_xy, marker_size, ids)
+    # Sort markers and make rows, not doing this anymore
+    # sorted_xy = sort_centers(world_markers_xy, marker_size, ids)
     # print(sorted_xy)
 
-    df = pd.DataFrame(sorted_xy)
-    df.style \
-        .format(precision=3) \
-        .format_index(str.upper, axis=1)
-    print(df)
-    # return marker_matrix
+    # df = pd.DataFrame(sorted_xy)
+    # df.style \
+    #     .format(precision=3) \
+    #     .format_index(str.upper, axis=1)
+    # print(df)
+
+    print(dict_xy)
+    return dict_xy
 
 
-def pose_estimation(frame, current_pose, prev_pose):
+def pose_estimation(frame, marker_locations, current_pose, prev_pose):
     # Pose Estimation Initialize 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
     matrix_coefficients = np.load("./calibration_matrix.npy")
@@ -104,80 +110,53 @@ def pose_estimation(frame, current_pose, prev_pose):
     # Most computing heavy
     if len(corners) > 0:
 
-        # Store Sum of Differences
-        cam_change = [0, 0, 0]
+        # Store Sum
+        global_pos_sum = [0, 0]
 
         i = 0
         # For each detected ID
         for i in range(0, len(ids)):
 
-            # Estimate pose of each marker and return the camera's rotational and translational vectors
+            # If it is in the stitched images
+            if ids[i] in marker_locations.keys():
 
-            # Size of the marker in real life in mmm
-            marker_size = 25  # mm
+                # Size of the marker in real life in mmm
+                marker_size = 25  # mm
 
-            # Object points
-            objp = np.array([[-marker_size / 2, marker_size / 2, 0],
-                             [marker_size / 2, marker_size / 2, 0],
-                             [marker_size / 2, -marker_size / 2, 0],
-                             [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
+                # Object points
+                objp = np.array([[-marker_size / 2, marker_size / 2, 0],
+                                [marker_size / 2, marker_size / 2, 0],
+                                [marker_size / 2, -marker_size / 2, 0],
+                                [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
 
-            ret, rvec, tvec = cv2.solvePnP(
-                objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+                ret, rvec, tvec = cv2.solvePnP(
+                    objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
 
-            # XY rotation might not be useful since it will be fixed
-            # rotation around Z might be useful, since it can show us where the camera is pointing
+                # USE TVEC, representing the relative position of each marker to the camera
+                # then add by the global value to get the real value
+                global_pos = {ids[i]: tvec + marker_locations[ids[i]]}
+                global_pos_sum = [global_pos_sum[0] + tvec[0], global_pos_sum[1] + tvec[1]]
+                print(f'ID: {ids[i]}, xy: {global_pos}')
 
-            # If marker has been stored
-            # if str(ids[i][0]) in current_pose:
-            #     # Store Current Pos
-            #     prev_pose[str(ids[i][0])] = current_pose[str(ids[i][0])]
+                # Draw Axis
+                cv2.drawFrameAxes(frame, matrix_coefficients,
+                                distortion_coefficients, rvec, tvec, 4, 1)
 
-            #     # Calculate the Change in Translation for each marker
-            #     difference = tvec - prev_pose[str(ids[i][0])]['translation']
-            #     # print("Marker {} moved by: X: {}, Y: {}, Z: {}".format(ids[i][0], difference[0], difference[1], difference[2]))
+            
+                # increment counter
+                i += 1
 
-            #     # Add marker's change into average sum
-            #     # for j in range(0, len(tvec)):
-            #     #     cam_change[j] += difference[j] # Positive
+                # aruco_display(corners, ids, rejected_img_points, frame)
 
-            # Overwrite/add pose
-            # current_pose[str(ids[i][0])] = {'rotation': rvec,'translation': tvec}
-            # print(current_pose)
+            return global_pos_sum/len(marker_locations.keys()), frame
 
-            current_pose[str(ids[i][0])] = {'translation': tvec}
-
-            x_sum = 0
-            y_sum = 0
-            x_pos = 0
-            y_pos = 0
-
-            for key, value in current_pose.items():
-                # DONT DO THIS, we should be averaging the change in position, but does this mean we need a kalman filter for each marker?
-                x_sum = x_sum + value['translation'][0]
-                y_sum = y_sum + value['translation'][1]
-
-            x_pos = x_sum/len((ids))
-            y_pos = y_sum/len((ids))
-
-            # Draw Axis
-            cv2.drawFrameAxes(frame, matrix_coefficients,
-                              distortion_coefficients, rvec, tvec, 4, 1)
-
-            # increment counter
-            i += 1
-
-            # aruco_display(corners, ids, rejected_img_points, frame)
-
-            return [x_pos, y_pos], frame
-
-        # Return Change
-        # if cam_change:
-        # # Add Data Tag
-        #     # aruco_display(corners, ids, rejected_img_points, frame)
-        #     return [cam_change[0]/len(ids), cam_change[1]/len(ids)], frame
-        # else:
-        #     return [0, 0], frame
+            # Return Change
+            # if cam_change:
+            # # Add Data Tag
+            #     # aruco_display(corners, ids, rejected_img_points, frame)
+            #     return [cam_change[0]/len(ids), cam_change[1]/len(ids)], frame
+            # else:
+            #     return [0, 0], frame
 
 
 def plot_chart(time, raw_x, raw_y, x_data, y_data):
@@ -206,7 +185,6 @@ def plot_chart(time, raw_x, raw_y, x_data, y_data):
 # Sorting of an array of points
 def sort_centers(markers, marker_size, ids):
     markers_xy = []
-    final_markers = {}
 
     # Deep copy of the markers coordinates
     # Array to subtract points from
@@ -222,8 +200,8 @@ def sort_centers(markers, marker_size, ids):
 
         top_left = np.array([top_left[0], top_left[1], 0])
         top_right = np.array([top_right[0], top_right[1], 0])
-        print(f"top left: {top_left}, index: {tl_i}")
-        print(f"top right: {top_right}, index: {tr_i}")
+        # print(f"top left: {top_left}, index: {tl_i}")
+        # print(f"top right: {top_right}, index: {tr_i}")
 
         row = []
         remaining_markers = []
@@ -231,26 +209,45 @@ def sort_centers(markers, marker_size, ids):
         for k in searching_markers:
             p = np.array([k[0], k[1], 0])
             index = np.where(markers==k)[0][0]
-            d = marker_size  # diameter of the keypoint (might be a theshold)
+            d = marker_size  # diameter of the point of interest (threshold)
             dist = np.linalg.norm(
                 np.cross(np.subtract(p, top_left), np.subtract(top_right, top_left))
             ) / np.linalg.norm(
                 top_right
-            )  # distance between keypoint and line a->b
+            )  # distance between point of interest and line a->b
             if d / 2 > (dist + 2):
                 row.append(k)
             else:
                 remaining_markers.append(k)
 
-        print(f"Row {row} \n")
+        # print(f"Row {row} \n")
         markers_xy.append(sorted(row, key=lambda h: h[0]))
         searching_markers = remaining_markers
 
-        # find ID of each marker and put it in a matrix
-        row = [[{ids[np.where(markers==markers[i])[0][0]]: markers[i]} for i in range(num_cols)] for _ in range(num_rows)] # LOOP THROUGH
+    
 
 
-    return markers_xy
+
+
+    # Find ID of each marker and put it in a matrix, this can be used to regenerate a perfect image, but we dont really need it...
+    # final = [[{ids[np.where(markers==markers_xy[i][j])[0][0]][0]: markers_xy[i][j]} for j in range(0, len(markers_xy[i]))] for i in range(0, len(markers_xy))] # LOOP THROUGH
+    # print(final)
+
+    # LONGER VERSION
+    # final_markers = []
+    # for i in range(0, len(markers_xy)): 
+    #     # print(i)
+    #     row = []
+    #     for j in range(0, len(markers_xy[i])): 
+    #         marker = markers_xy[i][j]
+    #         marker_id = ids[np.where(markers==marker)[0][0]]
+    #         obj = {marker_id[0]: marker}
+    #         row.append(obj)
+    #         # row.append({ids[(np.where(markers==markers_xy[i][j])[0][0])]: markers_xy[i][j]})
+
+    #     final_markers.append(row)
+
+    # return final
 
 if __name__ == '__main__':
     # stream(

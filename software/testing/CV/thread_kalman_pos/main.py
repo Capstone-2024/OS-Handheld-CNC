@@ -30,8 +30,6 @@ def main():
     # FPS Counter
     prev_frame_time = 0  # used to record the time when we processed last frame
     new_frame_time = 0  # used to record the time at which we processed current frame
-    # sample_time = 0.05 # second
-    # prev_sample_time = 0
 
     # Kalman Filter
     dt = 1 / 60  # 60 fps, i want to make this dynamic but idk if it works that way
@@ -71,7 +69,7 @@ def main():
         # CV Stuff
 
         try:  # prevent errors
-            (x_pos, y_pos), output = pose_estimation(frame, current_pose, prev_pose)
+            (x_pos, y_pos), output = pose_estimation(frame, marker_locations, current_pose, prev_pose)
 
             raw_x.append(float(x_pos))
             raw_y.append(float(y_pos))
