@@ -74,6 +74,7 @@ def main():
             raw_x.append(float(x_pos))
             raw_y.append(float(y_pos))
 
+            # Kalman Filter Predict and Update
             kf_x.predict()
             kf_x.update(x_pos)
             print(f"X: {kf_x.x}")
@@ -94,30 +95,8 @@ def main():
                 df = pd.DataFrame([x_data, y_data])
                 df.to_excel("output.xlsx")
                 break
-
-            # if change:
-            #     hyp = math.sqrt(change[0]**2 + change[1]**2)
-            #     record_data.append(hyp)
-            #     print(hyp)
-
-            # if change:
-            # if change:
-            #     record_data.append(change)
-            # hyp = math.sqrt(change[0]**2 + change[1]**2)
-
-            # if change:
-            #     record_data.append(hyp)
-            # print(hyp)
-
-            # if len(record_data) >= num_data_p:
-
-            #     print(record_data)
-            #     velocity = [d/sample_time for d in record_data]
-            #     plot_chart([i for i in range(0, num_data_p)], record_data, velocity)
-            #     # df = pd.DataFrame(record_data)
-            #     # df.to_excel('output.xlsx')
-            #     break
-
+            
+            # FPS 
             new_frame_time = time.time()
             fps = 1 / (new_frame_time - prev_frame_time)
             prev_frame_time = new_frame_time
