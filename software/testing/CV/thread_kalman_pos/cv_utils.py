@@ -114,6 +114,7 @@ def pose_estimation(frame, marker_locations):
 
         # Store Sum
         global_pos_sum = [0, 0]
+        gloabl_z_rotation = 0
 
         # Store all data
         global_pos_data = {}
@@ -143,9 +144,11 @@ def pose_estimation(frame, marker_locations):
                 # then add by the global value to get the real value
                 id_global_pos = [tvec[0] + marker_locations[ids[i][0]][0], tvec[1] + marker_locations[ids[i][0]][1]] # Global ID Position, 3D
 
-                global_pos_data = {ids[i][0]: tvec + marker_locations[ids[i][0]]} # Store position in dictionary (backup/visualize)
+                global_pos_data[ids[i][0]] = {tvec + marker_locations[ids[i][0]]} # Store position in dictionary (backup/visualize)
                 # print(f'xy: {global_pos_data}')
                 global_pos_sum = [global_pos_sum[0] + id_global_pos[0], global_pos_sum[1] + id_global_pos[1]] # Add new marker to sum
+
+                gloabl_z_rotation =+ rvec[2] # Add rotation about Z
                 
                 # Draw Axis
                 cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
@@ -157,13 +160,15 @@ def pose_estimation(frame, marker_locations):
         avg_pos = [global_pos_sum[0]/len(available_ids), global_pos_sum[1]/len(available_ids)]
         # print(avg_pos)
 
-        return avg_pos, frame
+        avg_z_rotation = gloabl_z_rotation/len(available_ids)
+
+        return avg_pos, avg_z_rotation, frame
     
     else: 
         # Trigger error
         # Write error sequence 
         print("Moving Too fast please slow down")
-        return [None, None], frame
+        return [None, None], None, frame
 
 
 def plot_chart(time, raw_x, raw_y, x_data, y_data):
