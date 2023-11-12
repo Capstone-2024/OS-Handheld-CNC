@@ -60,29 +60,30 @@ def analyze_stitched(img_path, marker_size):
             image_markers_xy[i] = [cX, cY]
 
     # Plots for visualization of the markers' coordinates in world and image frames
-    # world_coord_data = world_markers_xy.T
-    # image_coord_data = image_markers_xy.T
-    # x1, y1 = world_coord_data
-    # x2, y2 = image_coord_data
+    world_coord_data = world_markers_xy.T
+    image_coord_data = image_markers_xy.T
+    x1, y1 = world_coord_data
+    x2, y2 = image_coord_data
 
-    # fig, (ax1, ax2) = plt.subplots(2)
-    # ax1.scatter(x1, y1)
-    # ax1.set_title("Pose Estimation Marker Center World Coordinates")
-    # ax2.scatter(x2, y2)
-    # ax2.set_title("Marker Center Image Coordinates")
-    # plt.show()
-
+    fig, (ax1, ax2) = plt.subplots(2)
+    ax1.scatter(x1, y1)
+    ax1.set_title("Pose Estimation Marker Center World Coordinates")
+    ax2.scatter(x2, y2)
+    ax2.set_title("Marker Center Image Coordinates")
+    plt.show()
 
 
     # Sort markers and make rows, not doing this anymore
     sorted_xy = sort_centers(world_markers_xy, marker_size)
-    print(sorted_xy)
+    # print(sorted_xy)
 
-    # df = pd.DataFrame(sorted_xy)
-    # df.style \
-    #     .format(precision=3) \
-    #     .format_index(str.upper, axis=1)
-    # print(df)
+    df = pd.DataFrame(sorted_xy)
+    df.style \
+        .format(precision=3) \
+        .format_index(str.upper, axis=1)
+    print(df)
+
+    # print(dict_xy)
 
     # Find Marker at the Bottom Left Corner and offset the entire matrix
     offset_xy = {}
@@ -144,7 +145,7 @@ def pose_estimation(frame, marker_locations):
                 # then add by the global value to get the real value
                 id_global_pos = [tvec[0] + marker_locations[ids[i][0]][0], tvec[1] + marker_locations[ids[i][0]][1]] # Global ID Position, 3D
 
-                global_pos_data[ids[i][0]] = {tvec + marker_locations[ids[i][0]]} # Store position in dictionary (backup/visualize)
+                global_pos_data[ids[i][0]] = tvec + marker_locations[ids[i][0]] # Store position in dictionary (backup/visualize)
                 # print(f'xy: {global_pos_data}')
                 global_pos_sum = [global_pos_sum[0] + id_global_pos[0], global_pos_sum[1] + id_global_pos[1]] # Add new marker to sum
 
@@ -233,13 +234,10 @@ def sort_centers(markers, marker_size):
                 remaining_markers.append(k)
 
         # print(f"Row {row} \n")
-        markers_xy.append(sorted(row, key=lambda h: h[0]))
+        markers_xy.insert(0, sorted(row, key=lambda h: h[0]))
         searching_markers = remaining_markers
 
     return markers_xy
-
-    
-
 
     # Find ID of each marker and put it in a matrix, this can be used to regenerate a perfect image, but we dont really need it...
     # final = [[{ids[np.where(markers==markers_xy[i][j])[0][0]][0]: markers_xy[i][j]} for j in range(0, len(markers_xy[i]))] for i in range(0, len(markers_xy))] # LOOP THROUGH
@@ -258,6 +256,19 @@ def sort_centers(markers, marker_size):
     #         # row.append({ids[(np.where(markers==markers_xy[i][j])[0][0])]: markers_xy[i][j]})
 
     #     final_markers.append(row)
+
+# 2D Rotation Matrix
+def rotationMatrix2D(center, theta): 
+    alpha = math.cos(theta)
+    beta = math.sin(theta)
+
+    row_1 = [alpha, beta, ((1-alpha)*center[0]-beta*center[1])[0]]
+    row_2 = [-beta, alpha, (beta*center[0]+(1-alpha)*center[1])[0]]
+
+    M = np.array([row_1, row_2])
+    print(M)
+    
+    return M 
 
 if __name__ == '__main__':
     # stream(

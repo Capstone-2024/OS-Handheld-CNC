@@ -5,7 +5,6 @@ px_to_mm = 300/100
 
 
 circle = svg_to_points('./svg_files/circle.svg', px_to_mm)
-print(circle)
 square = svg_to_points('./svg_files/square.svg', px_to_mm)
 
 def app():
