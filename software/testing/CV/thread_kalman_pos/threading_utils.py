@@ -1,6 +1,7 @@
 from threading import Thread
 import cv2
 from sys import platform
+import subprocess
 
 class WebcamVideoStream:
     def __init__(self, src=0):
@@ -10,19 +11,19 @@ class WebcamVideoStream:
 
         # Camera Settings
         # LINUX
-        # if platform == "linux":
-        #     cam_props = {'focus_auto': 1}
+        if platform == "linux":
+            cam_props = {'focus_auto': 1}
 
-        #     for key in cam_props:
-        #         subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
-        #                     shell=True)
+            for key in cam_props:
+                subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
+                            shell=True)
 
-        # else:
-        #     # WINDOWS - does not work for the older version camera
-        #     # video.set(cv2.CAP_PROP_FOCUS, 200)
-        #     self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 1) # turn off auto focus
-        #     # focus = 255 # min: 0, max: 255, increment:5
-        #     # video.set(cv2.CAP_PROP_FOCUS, focus)
+        else:
+            # WINDOWS - does not work for the older version camera
+            # video.set(cv2.CAP_PROP_FOCUS, 200)
+            self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn off auto focus
+            focus = 15 # min: 0, max: 255, increment:5
+            self.stream.set(cv2.CAP_PROP_FOCUS, focus)
 
         (self.grabbed, self.frame) = self.stream.read()
         # initialize the variable used to indicate if the thread should

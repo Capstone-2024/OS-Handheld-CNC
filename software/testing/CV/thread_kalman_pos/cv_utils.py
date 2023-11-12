@@ -29,11 +29,9 @@ def analyze_stitched(img_path, marker_size):
 
     corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
-
     # Numpy array of markers
     world_markers_xy = np.zeros(shape=(len(ids), 2))
     image_markers_xy = np.zeros(shape=(len(ids), 2))
-
 
     # If markers are detected
     if len(ids) > 0:
@@ -52,8 +50,8 @@ def analyze_stitched(img_path, marker_size):
                 objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
 
             world_markers_xy[i] = [tvec[0][0], tvec[1][0]]
-            dict_xy = {ids[i]: [tvec[0][0], tvec[1][0]]}
-            # print(corners[i])
+
+            dict_xy[ids[i][0]] = world_markers_xy[i]
 
             (topLeft, _, bottomRight, _) = corners[i][0]
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
@@ -61,25 +59,24 @@ def analyze_stitched(img_path, marker_size):
 
             image_markers_xy[i] = [cX, cY]
 
-    else:
-        return None
-
     # Plots for visualization of the markers' coordinates in world and image frames
-    world_coord_data = world_markers_xy.T
-    image_coord_data = image_markers_xy.T
-    x1, y1 = world_coord_data
-    x2, y2 = image_coord_data
+    # world_coord_data = world_markers_xy.T
+    # image_coord_data = image_markers_xy.T
+    # x1, y1 = world_coord_data
+    # x2, y2 = image_coord_data
 
-    fig, (ax1, ax2) = plt.subplots(2)
-    ax1.scatter(x1, y1)
-    ax1.set_title("Pose Estimation Marker Center World Coordinates")
-    ax2.scatter(x2, y2)
-    ax2.set_title("Marker Center Image Coordinates")
-    plt.show()
+    # fig, (ax1, ax2) = plt.subplots(2)
+    # ax1.scatter(x1, y1)
+    # ax1.set_title("Pose Estimation Marker Center World Coordinates")
+    # ax2.scatter(x2, y2)
+    # ax2.set_title("Marker Center Image Coordinates")
+    # plt.show()
+
+
 
     # Sort markers and make rows, not doing this anymore
-    # sorted_xy = sort_centers(world_markers_xy, marker_size, ids)
-    # print(sorted_xy)
+    sorted_xy = sort_centers(world_markers_xy, marker_size)
+    print(sorted_xy)
 
     # df = pd.DataFrame(sorted_xy)
     # df.style \
@@ -87,11 +84,16 @@ def analyze_stitched(img_path, marker_size):
     #     .format_index(str.upper, axis=1)
     # print(df)
 
-    print(dict_xy)
-    return dict_xy
+    # Find Marker at the Bottom Left Corner and offset the entire matrix
+    offset_xy = {}
+    for id, value in dict_xy.items(): 
+        offset_xy[id] = [value[0] - sorted_xy[0][0][0], value[1] - sorted_xy[0][0][1]]
+
+    print(f'Final Markers Dict: {offset_xy}')
+    return offset_xy
 
 
-def pose_estimation(frame, marker_locations, current_pose, prev_pose):
+def pose_estimation(frame, marker_locations):
     # Pose Estimation Initialize 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
     matrix_coefficients = np.load("./calibration_matrix.npy")
@@ -100,25 +102,30 @@ def pose_estimation(frame, marker_locations, current_pose, prev_pose):
     # more processing can be done to the images
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+    # Marker Detection
     dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
     parameters = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
     corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
-    # Marker Detection and Pose Estimation
-    # Most computing heavy
+    ''' Pose Estimation (Most computing heavy) '''
     if len(corners) > 0:
 
         # Store Sum
         global_pos_sum = [0, 0]
 
-        i = 0
+        # Store all data
+        global_pos_data = {}
+
+        # Get an array of all available markers
+        available_ids = marker_locations.keys()
+
         # For each detected ID
         for i in range(0, len(ids)):
-
-            # If it is in the stitched images
-            if ids[i] in marker_locations.keys():
+            
+            # Check if the marker is in the stitched images
+            if ids[i][0] in available_ids:
 
                 # Size of the marker in real life in mmm
                 marker_size = 25  # mm
@@ -132,31 +139,31 @@ def pose_estimation(frame, marker_locations, current_pose, prev_pose):
                 ret, rvec, tvec = cv2.solvePnP(
                     objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
 
-                # USE TVEC, representing the relative position of each marker to the camera
+                # Use TVEC, representing the relative position of each marker to the camera
                 # then add by the global value to get the real value
-                global_pos = {ids[i]: tvec + marker_locations[ids[i]]}
-                global_pos_sum = [global_pos_sum[0] + tvec[0], global_pos_sum[1] + tvec[1]]
-                print(f'ID: {ids[i]}, xy: {global_pos}')
+                id_global_pos = [tvec[0] + marker_locations[ids[i][0]][0], tvec[1] + marker_locations[ids[i][0]][1]] # Global ID Position, 3D
 
+                global_pos_data = {ids[i][0]: tvec + marker_locations[ids[i][0]]} # Store position in dictionary (backup/visualize)
+                # print(f'xy: {global_pos_data}')
+                global_pos_sum = [global_pos_sum[0] + id_global_pos[0], global_pos_sum[1] + id_global_pos[1]] # Add new marker to sum
+                
                 # Draw Axis
-                cv2.drawFrameAxes(frame, matrix_coefficients,
-                                distortion_coefficients, rvec, tvec, 4, 1)
+                cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
+                
+                # Draw Border and center
+                aruco_display(corners, ids, rejected_img_points, frame)
 
-            
-                # increment counter
-                i += 1
+        # Calculate Average of all markers
+        avg_pos = [global_pos_sum[0]/len(available_ids), global_pos_sum[1]/len(available_ids)]
+        # print(avg_pos)
 
-                # aruco_display(corners, ids, rejected_img_points, frame)
-
-            return global_pos_sum/len(marker_locations.keys()), frame
-
-            # Return Change
-            # if cam_change:
-            # # Add Data Tag
-            #     # aruco_display(corners, ids, rejected_img_points, frame)
-            #     return [cam_change[0]/len(ids), cam_change[1]/len(ids)], frame
-            # else:
-            #     return [0, 0], frame
+        return avg_pos, frame
+    
+    else: 
+        # Trigger error
+        # Write error sequence 
+        print("Moving Too fast please slow down")
+        return [None, None], frame
 
 
 def plot_chart(time, raw_x, raw_y, x_data, y_data):
@@ -183,7 +190,7 @@ def plot_chart(time, raw_x, raw_y, x_data, y_data):
 # Repeat until there are no points left.
 
 # Sorting of an array of points
-def sort_centers(markers, marker_size, ids):
+def sort_centers(markers, marker_size):
     markers_xy = []
 
     # Deep copy of the markers coordinates
@@ -224,9 +231,9 @@ def sort_centers(markers, marker_size, ids):
         markers_xy.append(sorted(row, key=lambda h: h[0]))
         searching_markers = remaining_markers
 
+    return markers_xy
+
     
-
-
 
 
     # Find ID of each marker and put it in a matrix, this can be used to regenerate a perfect image, but we dont really need it...
@@ -246,8 +253,6 @@ def sort_centers(markers, marker_size, ids):
     #         # row.append({ids[(np.where(markers==markers_xy[i][j])[0][0])]: markers_xy[i][j]})
 
     #     final_markers.append(row)
-
-    # return final
 
 if __name__ == '__main__':
     # stream(
