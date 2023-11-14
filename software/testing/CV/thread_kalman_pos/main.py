@@ -80,15 +80,15 @@ def main(shape):
 
             ''' Transformation matrix, rotation about Z, rotate about the current location '''
             T = rotationMatrix2D([x_pos, y_pos], z_rotation)
-            local = T*pos_diff
+            local = np.matmul(T, np.array([pos_diff[0][0], pos_diff[1][0], 1]))
             print(f'Transformed')
             
             # Send to arduino 
             
 
             ''' Testing '''
-            print(f'Distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
-            print(f'Distance to local point {point_i} is X:{local[0]} and Y: {local[1]}')
+            print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
+            print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
             print(f'Current Global: {x_pos}, {y_pos}')
             print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 

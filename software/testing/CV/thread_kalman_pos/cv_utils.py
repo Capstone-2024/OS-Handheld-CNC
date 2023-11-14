@@ -38,7 +38,7 @@ def analyze_stitched(img_path, marker_size):
 
         for i in range(0, len(ids)):
             # Size of the marker in real life in mmm
-            marker_size = 25 # mm
+            marker_size = 25.41 # mm
 
             # Object points
             objp = np.array([[-marker_size / 2, marker_size / 2, 0],
@@ -49,7 +49,7 @@ def analyze_stitched(img_path, marker_size):
             ret, rvec, tvec = cv2.solvePnP(
                 objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
 
-            world_markers_xy[i] = [tvec[0][0], tvec[1][0]]
+            world_markers_xy[i] = [tvec[0][0], -1*tvec[1][0]] #-1 to change the position according for world coordinate
 
             dict_xy[ids[i][0]] = world_markers_xy[i]
 
@@ -82,13 +82,14 @@ def analyze_stitched(img_path, marker_size):
         .format(precision=3) \
         .format_index(str.upper, axis=1)
     print(df)
+    # df.to_csv("marker-loc.csv", index=False)
 
     # print(dict_xy)
 
     # Find Marker at the Bottom Left Corner and offset the entire matrix
     offset_xy = {}
     for id, value in dict_xy.items(): 
-        offset_xy[id] = [value[0] - sorted_xy[0][0][0], value[1] - sorted_xy[0][0][1]]
+        offset_xy[id] = [value[0] - sorted_xy[-1][0][0], value[1] - sorted_xy[-1][0][1]]
 
     print(f'Final Markers Dict: {offset_xy}')
     return offset_xy
@@ -130,7 +131,7 @@ def pose_estimation(frame, marker_locations):
             if ids[i][0] in available_ids:
 
                 # Size of the marker in real life in mmm
-                marker_size = 25  # mm
+                marker_size = 25.41  # mm
 
                 # Object points
                 objp = np.array([[-marker_size / 2, marker_size / 2, 0],
@@ -208,8 +209,8 @@ def sort_centers(markers, marker_size):
         top_left = sorted(searching_markers, key=lambda p: (p[0]) + (p[1]))[0]
         top_right = sorted(searching_markers, key=lambda p: (p[0]) - (p[1]))[-1]
 
-        tl_i = np.where(markers==top_left)[0][0]
-        tr_i = np.where(markers==top_right)[0][0]
+        # tl_i = np.where(markers==top_left)[0][0]
+        # tr_i = np.where(markers==top_right)[0][0]
 
         top_left = np.array([top_left[0], top_left[1], 0])
         top_right = np.array([top_right[0], top_right[1], 0])
