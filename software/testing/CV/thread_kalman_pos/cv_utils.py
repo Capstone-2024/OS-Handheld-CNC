@@ -48,8 +48,14 @@ def analyze_stitched(img_path, marker_size):
 
             ret, rvec, tvec = cv2.solvePnP(
                 objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+            
+            ''' Transform from Camera to World Coordinate '''
+            rot_M = cv2.Rodrigues(rvec)[0]
+            cameraPosition = -np.matrix(rot_M).T * np.matrix(tvec)
 
-            world_markers_xy[i] = [tvec[0][0], -1*tvec[1][0]] #-1 to change the position according for world coordinate
+            world_markers_xy[i] = [cameraPosition[0][0], (-1*cameraPosition[1])[0]]
+            
+            # world_markers_xy[i] = [tvec[0][0], -1*tvec[1][0]] #-1 to change the position according for world coordinate
 
             dict_xy[ids[i][0]] = world_markers_xy[i]
 
@@ -142,9 +148,14 @@ def pose_estimation(frame, marker_locations):
                 ret, rvec, tvec = cv2.solvePnP(
                     objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
 
+                ''' Transform from Camera to World Coordinate https://stackoverflow.com/questions/18637494/camera-position-in-world-coordinate-from-cvsolvepnp ''' 
+                rot_M = cv2.Rodrigues(rvec)[0]
+                cameraPosition = -np.matrix(rot_M).T * np.matrix(tvec)
+
+                ''' Then Transform to Global Coordinate '''
                 # Use TVEC, representing the relative position of each marker to the camera
                 # then add by the global value to get the real value
-                id_global_pos = [tvec[0] + marker_locations[ids[i][0]][0], tvec[1] + marker_locations[ids[i][0]][1]] # Global ID Position, 3D
+                id_global_pos = [cameraPosition[0] + marker_locations[ids[i][0]][0], cameraPosition[1] + marker_locations[ids[i][0]][1]] # Global ID Position, 3D
 
                 global_pos_data[ids[i][0]] = tvec + marker_locations[ids[i][0]] # Store position in dictionary (backup/visualize)
                 # print(f'xy: {global_pos_data}')
@@ -270,6 +281,23 @@ def rotationMatrix2D(center, theta):
     print(M)
     
     return M 
+
+
+def manual_analyze_stitched(): 
+    marker_size = 25.41 # mm
+    dict_xy = {}
+    columns = 7
+    rows = 5
+
+    ID = 0 
+
+    for j in range(0, columns): 
+        for i in range(0, rows): 
+            
+            ID += 1
+
+    return dict_xy
+
 
 if __name__ == '__main__':
     # stream(
