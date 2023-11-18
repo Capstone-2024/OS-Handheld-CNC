@@ -5,30 +5,54 @@ import subprocess
 
 import cv2, queue, threading, time
 
-# bufferless VideoCapture
-class VideoCapture:
-    def __init__(self, name):
-        self.cap = cv2.VideoCapture(name)
-        self.q = queue.Queue()
-        t = threading.Thread(target=self._reader)
-        t.daemon = True
-        t.start()
+class WebcamVideoStream:
+    def __init__(self, src=0):
+        # initialize the video camera stream and read the first frame
+        # from the stream
+        self.stream = cv2.VideoCapture(src)
 
-    # read frames as soon as they are available, keeping only most recent one
-    def _reader(self):
+        # Camera Settings
+        # LINUX
+        if platform == "linux":
+            cam_props = {'focus_auto': 1}
+
+            for key in cam_props:
+                subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
+                            shell=True)
+
+        else:
+            # WINDOWS - does not work for the older version camera
+            # video.set(cv2.CAP_PROP_FOCUS, 200)
+            self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn off auto focus
+            focus = 15 # min: 0, max: 255, increment:5
+            self.stream.set(cv2.CAP_PROP_FOCUS, focus)
+
+        (self.grabbed, self.frame) = self.stream.read()
+        # initialize the variable used to indicate if the thread should
+        # be stopped
+        self.stopped = False
+
+    def start(self):
+        # start the thread to read frames from the video stream
+        Thread(target=self.update, args=()).start()
+        return self
+
+    def update(self):
+        # keep looping infinitely until the thread is stopped
         while True:
-            ret, frame = self.cap.read()
-            if not ret:
-                break
-            if not self.q.empty():
-                try:
-                    self.q.get_nowait()  # discard previous (unprocessed) frame
-                except queue.Empty:
-                    pass
-            self.q.put(frame)
+            # if the thread indicator variable is set, stop the thread
+            if self.stopped:
+                return
+            # otherwise, read the next frame from the stream
+            (self.grabbed, self.frame) = self.stream.read()
 
     def read(self):
-        return self.q.get()
+        # return the frame most recently read
+        return self.frame
+
+    def stop(self):
+        # indicate that the thread should be stopped
+        self.stopped = True
 
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50,

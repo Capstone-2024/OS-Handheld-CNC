@@ -1,4 +1,4 @@
-from hack_sys_path import *
+from pytagmapper_tools.hack_sys_path import *
 import argparse
 import random
 from pytagmapper import data
@@ -64,6 +64,7 @@ def build_map(directory, output_dir, mode):
 
     output_dir = output_dir or directory
     scene_data = data.load_data(directory)
+    print(scene_data)
 
     viewpoints = scene_data['viewpoints']
     viewpoint_ids = list(viewpoints.keys())
@@ -86,7 +87,7 @@ def build_map(directory, output_dir, mode):
     map_builder = MapBuilder(scene_data['camera_matrix'],
                              scene_data['distortion_matrix'],
                              scene_data['tag_side_lengths'],
-                             args.mode)
+                             mode)
 
     map_builder.add_viewpoint(best_viewpoint,
                               scene_data['viewpoints'][best_viewpoint])

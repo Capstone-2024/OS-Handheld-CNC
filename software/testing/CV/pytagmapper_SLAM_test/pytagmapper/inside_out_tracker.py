@@ -56,11 +56,10 @@ INIT_TXS_WORLD_VIEWPOINT = [
 ]
 
 class InsideOutTracker:
-    def __init__(self, camera_matrix, distortion_matrix, map_data,
+    def __init__(self, camera_matrix, map_data,
                  tx_world_viewpoint = None, max_regularizer = 1e9):
         self.tag_locations = map_data['tag_locations']        
         self.camera_matrix = camera_matrix
-        self.distortion_matrix = distortion_matrix
         self.tag_side_lengths = map_data['tag_side_lengths']
         self.default_tag_side_length = self.tag_side_lengths['default']
         self.default_corners_mat = get_corners_mat(self.default_tag_side_length)

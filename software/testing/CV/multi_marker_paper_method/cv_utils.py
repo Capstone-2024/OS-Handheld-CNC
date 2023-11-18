@@ -151,14 +151,19 @@ def pose_estimation(frame, marker_locations):
                                 [marker_size / 2, -marker_size / 2, 0],
                                 [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
 
-                ret, rvec, tvec = cv2.solvePnP(
-                    objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+                # ret, rvec, tvec = cv2.solvePnP(objp, corners[i], matrix_coefficients, None, False, cv2.SOLVEPNP_IPPE_SQUARE)
+
+                mtx, roi = cv2.getOptimalNewCameraMatrix(matrix_coefficients, distortion_coefficients, (frame.shape[0], frame.shape[1]), 0.5, (frame.shape[0], frame.shape[1]))
+                ret, rvec, tvec = cv2.solvePnP(objp, corners[i], mtx, None, False)
 
                 ''' Transform from Camera to World Coordinate https://stackoverflow.com/questions/18637494/camera-position-in-world-coordinate-from-cvsolvepnp ''' 
+                # try to sum all transform matrices and find average to apply to all markers
                 rot_M = cv2.Rodrigues(rvec)[0]
                 cameraPosition = -np.matrix(rot_M).T * np.matrix(tvec)
-
-                # print(cameraPosition)
+                
+                print("Compare TVEC & Transformed: \n")
+                print(tvec[0], tvec[1])
+                print(cameraPosition)
 
                 ''' Then Transform to Global Coordinate '''
                 # Use TVEC, representing the relative position of each marker to the camera
@@ -167,13 +172,15 @@ def pose_estimation(frame, marker_locations):
 
                 # global_pos_data[ids[i][0]] = [cameraPosition[0] - marker_locations[ids[i][0]][0], cameraPosition[1] - marker_locations[ids[i][0]][1]] # Store position in dictionary (backup/visualize)
                 global_pos_data[ids[i][0]] = [cameraPosition[0], cameraPosition[1]] # Store position in dictionary (backup/visualize)
+                # global_pos_data[ids[i][0]] = [tvec[0], tvec[1]]
 
-                global_pos_sum = [global_pos_sum[0] + id_global_pos[0], global_pos_sum[1] + id_global_pos[1]] # Add new marker to sum
+                # global_pos_sum = [global_pos_sum[0] + id_global_pos[0], global_pos_sum[1] + id_global_pos[1]] # Add new marker to sum
+                global_pos_sum = [global_pos_sum[0] + cameraPosition[0], global_pos_sum[1] + cameraPosition[0]]
 
                 gloabl_z_rotation =+ rvec[2] # Add rotation about Z
                 
                 # Draw Axis
-                cv2.drawFrameAxes(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 4, 1)
+                cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
                 
                 # Draw Border and center
                 aruco_display(corners, ids, rejected_img_points, frame)
@@ -185,7 +192,10 @@ def pose_estimation(frame, marker_locations):
         x, y = zip(*xy)
         fig, ax = plt.subplots()
         ax.scatter(x, y)
-        ax.legend(l)
+
+        for i, txt in enumerate(l):
+            ax.annotate(txt, (x[i], y[i]))
+
         plt.show()
 
         # Calculate Average of all markers

@@ -79,12 +79,12 @@ def main(shape):
 
             ''' Calculate Local Machine Error Vector and Send to Arduino '''
             manual_offet = [0, 0] # Should only be in x or y
-            pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
+            # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
 
             ''' Transformation matrix, rotation about Z, rotate about the current location '''
-            T = rotationMatrix2D([x_pos, y_pos], z_rotation)
-            local = np.matmul(T, np.array([pos_diff[0].item(), pos_diff[1].item(), 1]))
+            # T = rotationMatrix2D([x_pos, y_pos], z_rotation)
+            # local = np.matmul(T, np.array([pos_diff[0].item(), pos_diff[1].item(), 1]))
             # print(f'Transformed: {local}')
             
             # Send to arduino 
@@ -96,8 +96,8 @@ def main(shape):
             # print(f'Current Global: {x_pos}, {y_pos}')
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
-            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
-                point_i += 1
+            # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+            #     point_i += 1
 
 
             ''' Project Shape with points on to the frame '''

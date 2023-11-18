@@ -11,7 +11,6 @@ from pytagmapper.rolling_mean_var import RollingMeanVar
 def main():
     parser = argparse.ArgumentParser(description='Demo inside out tracking on a map.')
     parser.add_argument('--camera-matrix-dir', type=str, help='directory containing calibration_matrix.npy', default='.')
-    parser.add_argument('--distortion-matrix-dir', type=str, help='directory containing distortion_matrix.npy', default='.')
     parser.add_argument('map_dir', type=str, help='map directory containing map.json')
     parser.add_argument('--width', type=int, help='camera stream width', default=0)
     parser.add_argument('--height', type=int, help='camera stream height', default=0)
@@ -21,7 +20,6 @@ def main():
     map_data = load_map(args.map_dir)
     map_type = map_data['map_type']
     camera_matrix = load_camera_matrix(args.camera_matrix_dir)
-    distortion_matrix = load_distortion_matrix(args.distortion_matrix_dir)
     aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_ARUCO_ORIGINAL)
     aruco_params = cv2.aruco.DetectorParameters_create()
 
@@ -92,7 +90,7 @@ def main():
         camera.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
 
     tracker_initted = False
-    tracker = InsideOutTracker(camera_matrix, distortion_matrix, map_data)
+    tracker = InsideOutTracker(camera_matrix, map_data)
 
     mv_x = RollingMeanVar(10)
     mv_y = RollingMeanVar(10)
