@@ -1,3 +1,5 @@
+# https://link.springer.com/chapter/10.1007/11941354_25
+
 from threading_utils import WebcamVideoStream, ARUCO_DICT
 from cv_utils import analyze_stitched, pose_estimation, rotationMatrix2D, plot_chart, manual_analyze_stitched
 import cv2

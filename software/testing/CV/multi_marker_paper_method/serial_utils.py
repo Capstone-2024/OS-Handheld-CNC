@@ -12,10 +12,14 @@ L1 - Arduino request for data
 L2 - 
 L3 - 
 
+Z Status
+Z0 - standby
+Z1 - Arduino request for data
+Z2 - 
+
 Safety Button Status 
-B0 - standby 
-B1 - OK
-B2 - Error
+B0 - 
+B1 -
 
 
 Accelerometer Status

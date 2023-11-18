@@ -33,7 +33,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # Estimate pose of each marker and return the camera's rotational and translational vectors
             
             # Size of the marker in real life in mmm
-            marker_size = 25 # mm
+            marker_size = 25.41 # mm
             
             # Object points
             objp = np.array([[-marker_size / 2, marker_size / 2, 0],
@@ -84,7 +84,7 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # increment counter
             i += 1
 
-            # aruco_display(corners, ids, rejected_img_points, frame)
+            aruco_display(corners, ids, rejected_img_points, frame)
 
             return [x_pos, y_pos], frame
     
@@ -123,7 +123,7 @@ def stream():
     y_data = []
     raw_x = []
     raw_y = []
-    num_data_p = 500
+    num_data_p = 1000
     
     # load numpy data files
     k = np.load("./calibration_matrix.npy")
@@ -152,7 +152,7 @@ def stream():
     R_y = np.array([0.5**2])
 
     # Q
-    Q = 0.5**2 # process variance
+    Q = 10**2 # process variance
 
     x = np.array([0., 0.])
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
@@ -218,7 +218,7 @@ def stream():
             fps = int(fps)
             fps = str(fps)
             font = cv2.FONT_HERSHEY_PLAIN
-            print(f'FPS: {fps}')
+            # print(f'FPS: {fps}')
 
             # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
 
