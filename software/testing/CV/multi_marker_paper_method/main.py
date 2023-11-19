@@ -123,9 +123,6 @@ def main(shape):
                 df = pd.DataFrame([x_data, y_data])
                 df.to_excel("output.xlsx")
                 break
-
-
-
             
 
             

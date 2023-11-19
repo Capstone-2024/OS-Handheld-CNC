@@ -39,8 +39,13 @@ def analyze_stitched(img_path, marker_size):
     world_markers_xy = np.zeros(shape=(len(ids), 2))
     image_markers_xy = np.zeros(shape=(len(ids), 2))
 
+
+
     # If markers are detected
     if len(ids) > 0:
+
+        ref_id = ids[0]
+        min_d = 10000 # arbitrarily large distance
 
         for i in range(0, len(ids)):
             # Size of the marker in real life in mmm
@@ -69,7 +74,16 @@ def analyze_stitched(img_path, marker_size):
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
+            # Distance to Center
+            d = math.sqrt(cX**2 + cY**2)
+
+            if min_d > d: 
+                min_d = d
+                ref_id = ids[i] # set ref ID as the ID with the minimum d value
+
             image_markers_xy[i] = [cX, cY]
+
+        
 
     # Plots for visualization of the markers' coordinates in world and image frames
     world_coord_data = world_markers_xy.T
@@ -161,6 +175,7 @@ def pose_estimation(frame, marker_locations):
                 rot_M = cv2.Rodrigues(rvec)[0]
                 cameraPosition = -np.matrix(rot_M).T * np.matrix(tvec)
                 
+
                 print("Compare TVEC & Transformed: \n")
                 print(tvec[0], tvec[1])
                 print(cameraPosition)
@@ -168,7 +183,7 @@ def pose_estimation(frame, marker_locations):
                 ''' Then Transform to Global Coordinate '''
                 # Use TVEC, representing the relative position of each marker to the camera
                 # then add by the global value to get the real value
-                id_global_pos = [cameraPosition[0] - marker_locations[ids[i][0]][0], cameraPosition[1] - marker_locations[ids[i][0]][1]] # Global ID Position, 3D
+                # id_global_pos = [cameraPosition[0] - marker_locations[ids[i][0]][0], cameraPosition[1] - marker_locations[ids[i][0]][1]] # Global ID Position, 3D
 
                 # global_pos_data[ids[i][0]] = [cameraPosition[0] - marker_locations[ids[i][0]][0], cameraPosition[1] - marker_locations[ids[i][0]][1]] # Store position in dictionary (backup/visualize)
                 global_pos_data[ids[i][0]] = [cameraPosition[0], cameraPosition[1]] # Store position in dictionary (backup/visualize)
@@ -178,12 +193,30 @@ def pose_estimation(frame, marker_locations):
                 global_pos_sum = [global_pos_sum[0] + cameraPosition[0], global_pos_sum[1] + cameraPosition[0]]
 
                 gloabl_z_rotation =+ rvec[2] # Add rotation about Z
+
+                # Find Marker Center
+                (topLeft, _, bottomRight, _) = corners[i][0]
+                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+
+                # Distance from Marker to Image Center
+                d = math.sqrt(cX**2 + cY**2)
                 
+                # Minimum Distance, choose reference marker
+                if min_d > d: 
+                    min_d = d
+                    ref_id = ids[i] # set ref ID as the ID with the minimum d value
+
+
                 # Draw Axis
                 cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
                 
                 # Draw Border and center
                 aruco_display(corners, ids, rejected_img_points, frame)
+        
+        # cv2.aruco.Board()
+        # cv2.aruco.estimatePoseBoard(corners[i], ids, board, mtx, None, False)
+                
         
         # Show Marker Pos
         # print(global_pos_data[4])
