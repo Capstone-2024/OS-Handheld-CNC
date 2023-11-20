@@ -119,9 +119,8 @@ def pose_estimation(frame, marker_locations):
         
         for i in range(0, len(ids)):
             # Transformation b/t Each Marker and the Reference
-
             t_diff_i = np.array(marker_locations[ref_id]) - np.array(marker_locations[ids[i].item()])
-            # print(t_diff_i)
+            print(f'Ref: {ref_id}, Current: {ids[i].item()}, Diff: {t_diff_i}')
 
             T_i = np.zeros([4,4])
             T_i[:3, :3] = rot_matrices[i]
@@ -302,7 +301,6 @@ def manual_analyze_stitched():
     print(dict_xy)
 
     return dict_xy
-
 
 if __name__ == '__main__':
     # analyze_stitched("result.jpg", 25.41)
