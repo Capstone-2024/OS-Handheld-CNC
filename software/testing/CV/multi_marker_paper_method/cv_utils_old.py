@@ -8,15 +8,119 @@ import math
 from sys import platform
 import subprocess
 
+# Generate a matrix of all the markers
+# def analyze_stitched(img_path, marker_size):
+#     # Dictionary for accessing the marker locations
+#     dict_xy = {}
+
+#     # Load Data
+#     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
+
+#     # Jig 
+#     matrix_coefficients = np.load("./calibration_matrix.npy")
+#     distortion_coefficients = np.load("./distortion_coefficients.npy")
+
+#     # New Camera
+#     # matrix_coefficients = np.load("./calibration_matrix_2.npy")
+#     # distortion_coefficients = np.load("./distortion_coefficients_2.npy")
+    
+#     # Find all the markers
+#     img = cv2.imread(img_path)
+
+#     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+#     dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
+#     parameters = cv2.aruco.DetectorParameters()
+#     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
+
+#     corners, ids, rejected_img_points = detector.detectMarkers(gray)
+
+#     # Numpy array of markers
+#     world_markers_xy = np.zeros(shape=(len(ids), 2))
+#     image_markers_xy = np.zeros(shape=(len(ids), 2))
+
+#     # If markers are detected
+#     if len(ids) > 0:
+
+#         for i in range(0, len(ids)):
+#             # Size of the marker in real life in mmm
+#             marker_size = 25.41 # mm
+
+#             # Object points
+#             objp = np.array([[-marker_size / 2, marker_size / 2, 0],
+#                              [marker_size / 2, marker_size / 2, 0],
+#                              [marker_size / 2, -marker_size / 2, 0],
+#                              [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
+
+#             ret, rvec, tvec = cv2.solvePnP(
+#                 objp, corners[i], matrix_coefficients, distortion_coefficients, False, cv2.SOLVEPNP_IPPE_SQUARE)
+            
+#             ''' Transform from Camera to World Coordinate '''
+#             rot_M = cv2.Rodrigues(rvec)[0]
+#             cameraPosition = -np.matrix(rot_M).T * np.matrix(tvec)
+
+#             world_markers_xy[i] = [cameraPosition[0].item(), -1*cameraPosition[1].item()]
+            
+#             # world_markers_xy[i] = [tvec[0][0], -1*tvec[1][0]] #-1 to change the position according for world coordinate
+
+#             dict_xy[ids[i][0]] = world_markers_xy[i]
+
+#             (topLeft, _, bottomRight, _) = corners[i][0]
+#             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+#             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+
+#             # Distance to Center
+#             d = math.sqrt(cX**2 + cY**2)
+
+#             image_markers_xy[i] = [cX, cY]
+
+        
+
+#     # Plots for visualization of the markers' coordinates in world and image frames
+#     world_coord_data = world_markers_xy.T
+#     image_coord_data = image_markers_xy.T
+#     x1, y1 = world_coord_data
+#     x2, y2 = image_coord_data
+
+#     fig, (ax1, ax2) = plt.subplots(2)
+#     ax1.scatter(x1, y1)
+#     ax1.set_title("Pose Estimation Marker Center World Coordinates")
+#     ax2.scatter(x2, y2)
+#     ax2.set_title("Marker Center Image Coordinates")
+#     plt.show()
+
+
+#     # Sort markers and make rows, not doing this anymore
+#     sorted_xy = sort_centers(world_markers_xy, marker_size)
+#     # print(sorted_xy)
+
+#     df = pd.DataFrame(sorted_xy)
+#     df.style \
+#         .format(precision=3) \
+#         .format_index(str.upper, axis=1)
+#     print(df)
+#     # df.to_csv("marker-loc.csv", index=False)
+
+#     # print(dict_xy)
+
+#     # Find Marker at the Bottom Left Corner and offset the entire matrix
+#     offset_xy = {}
+#     for id, value in dict_xy.items(): 
+#         offset_xy[id] = [value[0] - sorted_xy[-1][0][0], value[1] - sorted_xy[-1][0][1]]
+
+#     print(f'Final Markers Dict: {offset_xy}')
+#     return offset_xy
+
+
 def pose_estimation(frame, marker_locations):
     # Pose Estimation Initialize 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
-    # matrix_coefficients = np.load("./calibration_matrix.npy")
-    # distortion_coefficients = np.load("./distortion_coefficients.npy")
+    matrix_coefficients = np.load("./calibration_matrix.npy")
+    distortion_coefficients = np.load("./distortion_coefficients.npy")
 
     # New Camera
-    matrix_coefficients = np.load("./calibration_matrix_2.npy")
-    distortion_coefficients = np.load("./distortion_coefficients_2.npy")
+    # matrix_coefficients = np.load("./calibration_matrix_2.npy")
+    # distortion_coefficients = np.load("./distortion_coefficients_2.npy")
 
     # more processing can be done to the images
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -31,20 +135,24 @@ def pose_estimation(frame, marker_locations):
     ''' Pose Estimation (Most computing heavy) '''
     if len(corners) > 0:
 
+        # Store Sum
+        global_pos_sum = [0, 0]
+        gloabl_z_rotation = 0
+
+        # Store all data
+        global_pos_data = {}
+
         # Get an array of all available markers
         available_ids = marker_locations.keys()
-        
-        # Reference Marker Vars
+
         ref_id = ids[0]
         min_d = float('inf') # arbitrarily large distance
 
-        rot_matrices = []
+        rot_matrices = {}
         tvecs = []
 
         marker_distortions = []
-        total_distortion = 0 
         areas = []
-        total_area = 0 
 
         # For each detected ID
         for i in range(0, len(ids)):
@@ -60,13 +168,33 @@ def pose_estimation(frame, marker_locations):
                                 [marker_size / 2, marker_size / 2, 0],
                                 [marker_size / 2, -marker_size / 2, 0],
                                 [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
-                
+
+                # ret, rvec, tvec = cv2.solvePnP(objp, corners[i], matrix_coefficients, None, False, cv2.SOLVEPNP_IPPE_SQUARE)
+
                 mtx, roi = cv2.getOptimalNewCameraMatrix(matrix_coefficients, distortion_coefficients, (frame.shape[0], frame.shape[1]), 0.5, (frame.shape[0], frame.shape[1]))
                 ret, rvec, tvec = cv2.solvePnP(objp, corners[i], mtx, None, False)
 
-                # Add Rotation Matrix 
-                rot_matrices.append(cv2.Rodrigues(rvec)[0])
-                tvecs.append(tvec)
+                ''' Transform from Camera to World Coordinate https://stackoverflow.com/questions/18637494/camera-position-in-world-coordinate-from-cvsolvepnp ''' 
+                # try to sum all transform matrices and find average to apply to all markers
+                rot_M = cv2.Rodrigues(rvec)[0]
+                # cameraPosition = -np.matrix(rot_M).T * np.matrix(tvec)
+
+                rot_matrices[ids[i].item()] = rot_M
+                tvecs[i] = tvec
+
+                ''' Then Transform to Global Coordinate '''
+                # Use TVEC, representing the relative position of each marker to the camera
+                # then add by the global value to get the real value
+                # id_global_pos = [cameraPosition[0] - marker_locations[ids[i][0]][0], cameraPosition[1] - marker_locations[ids[i][0]][1]] # Global ID Position, 3D
+
+                # global_pos_data[ids[i][0]] = [cameraPosition[0] - marker_locations[ids[i][0]][0], cameraPosition[1] - marker_locations[ids[i][0]][1]] # Store position in dictionary (backup/visualize)
+                # global_pos_data[ids[i][0]] = [cameraPosition[0], cameraPosition[1]] # Store position in dictionary (backup/visualize)
+                # global_pos_data[ids[i][0]] = [tvec[0], tvec[1]]
+
+                # global_pos_sum = [global_pos_sum[0] + id_global_pos[0], global_pos_sum[1] + id_global_pos[1]] # Add new marker to sum
+                # global_pos_sum = [global_pos_sum[0] + cameraPosition[0], global_pos_sum[1] + cameraPosition[1]]
+
+                gloabl_z_rotation =+ rvec[2] # Add rotation about Z
 
                 # Find Marker Center
                 (topLeft, topRight, bottomRight, bottomLeft) = corners[i][0]
@@ -74,8 +202,8 @@ def pose_estimation(frame, marker_locations):
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
                 # Image Center
-                image_cX = int(frame.shape[0]/2.0)
-                image_cY = int(frame.shape[1]/2.0)
+                image_cX = frame.shape[0]/2
+                image_cY = frame.shape[1]/2
 
                 # Distance from Marker to Image Center
                 d = math.dist([image_cX, image_cY], [cX, cY])
@@ -85,19 +213,12 @@ def pose_estimation(frame, marker_locations):
                 d_i_2 = math.dist([topRight[0], topRight[1]], [cX, cY])
                 d_i_3 = math.dist([bottomRight[0], bottomRight[1]], [cX, cY])
                 d_i_4 = math.dist([bottomLeft[0], bottomLeft[1]], [cX, cY])
-                d_avg = np.average([d_i_1, d_i_2, d_i_3, d_i_4])
-                v_i = 1/4*((d_i_1-d_avg)**2 + (d_i_2-d_avg)**2 + (d_i_3-d_avg)**2 + (d_i_4-d_avg)**2)
-
+                d_avg = 1/4*sum([d_i_1, d_i_2, d_i_3, d_i_4])
+                v_i = 1/4*((d_i_1-d_avg)**2+(d_i_2-d_avg)**2+(d_i_3-d_avg)**2+(d_i_4-d_avg)**2)
                 marker_distortions.append(v_i)
-                total_distortion += v_i
 
-                d_i_k = abs(math.dist([cX, cY], [topLeft[0], topLeft[1]]))
-                # print(d_i_k)
-
-                # Find Pixel Area
                 a_i = cv2.contourArea(corners[i])
                 areas.append(a_i)
-                total_area += a_i
 
                 # Minimum Distance, choose reference marker
                 if min_d > d: 
@@ -110,76 +231,88 @@ def pose_estimation(frame, marker_locations):
                 # Draw Border and center
                 aruco_display(corners, ids, rejected_img_points, frame)
 
-        # print(f"Ref ID: {ref_id}")
+        print(f"Ref ID: {ref_id}")
 
         # Using Given Geometric Relationship as denoted by the map to calculate transformation between markers
-        total_weight = 0
+        # Transform all markers locations
+        total_distortion = sum(marker_distortions)
+        total_area = sum(areas)
         weights = []
-        transform_matrices = []
-        
+
         for i in range(0, len(ids)):
             # Transformation b/t Each Marker and the Reference
 
-            t_diff_i = np.array(marker_locations[ref_id]) - np.array(marker_locations[ids[i].item()])
-            # print(t_diff_i)
+            t_diff_i = np.array(marker_locations[ids[i].item()]) - np.array(marker_locations[ref_id])
+            print(t_diff_i)
 
             T_i = np.zeros([4,4])
-            T_i[:3, :3] = rot_matrices[i]
+            T_i[:3, :3] = rot_matrices[ids[i].item()]
             T_i[:3, 3:4] = tvecs[i]
             T_i[3, 3] = 1
-            print(f'T_i: {T_i}')
+            print(T_i)
 
             T_i_k = np.array([[1, 0, 0, t_diff_i[0]], 
-                              [0, 1, 0, t_diff_i[1]], 
-                              [0, 0, 1, 0], 
-                              [0, 0, 0, 1]])
-            print(f'T_i_k: {T_i_k}')
+                            [0, 1, 0, t_diff_i[1]], 
+                            [0, 0, 1, 0], 
+                            [0, 0, 0, 1]])
+            print(T_i_k)
+            
+            T_i_new = T_i * np.linalg.inv(T_i_k)
+            print(T_i_new)
 
-            # Multiply T_i by the relative matrix between current marker and the reference marker
-            T_i_new = T_i @ np.linalg.inv(T_i_k) 
-            print(f'T_i_new: {T_i_new}')
-            transform_matrices.append(T_i_new)
 
-            # Calculate Errors
+            # Find Marker Center
+            (topLeft, topRight, bottomRight, bottomLeft) = corners[i][0]
+            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+
+            d_i_k = abs(math.dist([cX, cY], ))
+
             v_i_weight = marker_distortions[i]/total_distortion
             a_i_weight = areas[i]/total_area
 
-            w_i = 0
-            if v_i != 0: 
-                w_i = a_i_weight/v_i_weight
-            else: 
-                w_i = a_i_weight
-
+            w_i = v_i_weight/a_i_weight
             weights.append(w_i)
-            total_weight += w_i
-        
-        # Calculate Final Transformation Errors
-        errors = []
-        T_final = np.zeros([4,4])
 
+            # cameraPosition = -np.matrix(rot_M).T * np.matrix(tvec)
+        total_weight = sum(w_i)
+        
+        errors = []
         for i in range(0, len(ids)):
-            error_i = weights[i]/total_weight
+            error_i = w_i/total_weight
             errors.append(error_i)
-            T_final += transform_matrices[i]*error_i
             
         # Calculate Final T''
-        T_final = T_final/len(ids)
-        print(f'Final: {T_final}')
-        # print(f'Errors: {errors}')
+        T_final = np.average(T, errors)
 
-        # Get Translation Vector
-        pos = T_final[:3, 3]
+        # end effector pos can be found from T_final
 
-        # Display Position on Screen
-        cv2.putText(frame, f"X: {round(pos[0], 2)}, Y:{round(pos[1], 2)}", (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA, False)
 
-        return [pos[0], pos[1]], frame
+        # Show Marker Pos
+        # print(global_pos_data[4])
+        # markers = global_pos_data.items() # sorted by key, return a list of tuples
+        # l, xy= zip(*markers) # unpack a list of pairs into two tuples
+        # x, y = zip(*xy)
+        # fig, ax = plt.subplots()
+        # ax.scatter(x, y)
+        # for i, txt in enumerate(l):
+        #     ax.annotate(txt, (x[i], y[i]))
+        # plt.show()
+
+        # Calculate Average of all markers
+        avg_pos = [global_pos_sum[0]/len(available_ids), global_pos_sum[1]/len(available_ids)]
+        # print(avg_pos)
+
+        avg_z_rotation = gloabl_z_rotation/len(available_ids)
+    
+
+        return avg_pos, avg_z_rotation, frame
     
     else: 
         # Trigger error
         # Write error sequence 
         print("Moving Too fast please slow down")
-        return [None, None], frame
+        return [None, None], None, frame
 
 
 def plot_chart(time, raw_x, raw_y, x_data, y_data):

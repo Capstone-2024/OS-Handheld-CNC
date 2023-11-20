@@ -21,9 +21,9 @@ class WebcamVideoStream:
         else:
             # WINDOWS - does not work for the older version camera
             # video.set(cv2.CAP_PROP_FOCUS, 200)
-            self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 0) # turn off auto focus
-            focus = 15 # min: 0, max: 255, increment:5
-            self.stream.set(cv2.CAP_PROP_FOCUS, focus)
+            self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 1) # auto focus
+            # focus = 15 # min: 0, max: 255, increment:5
+            # self.stream.set(cv2.CAP_PROP_FOCUS, focus)
 
         (self.grabbed, self.frame) = self.stream.read()
         # initialize the variable used to indicate if the thread should

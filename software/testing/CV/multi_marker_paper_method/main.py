@@ -1,7 +1,7 @@
 # https://link.springer.com/chapter/10.1007/11941354_25
 
 from threading_utils import WebcamVideoStream, ARUCO_DICT
-from cv_utils import analyze_stitched, pose_estimation, rotationMatrix2D, plot_chart, manual_analyze_stitched
+from cv_utils import pose_estimation, rotationMatrix2D, plot_chart, manual_analyze_stitched
 import cv2
 import numpy as np
 import time
@@ -25,7 +25,7 @@ def main(shape):
     y_data = []
     raw_x = []
     raw_y = []
-    num_data_p = 1000
+    num_data_p = 500
 
     # Start Camera Stream and FPS Counter
     vs = WebcamVideoStream(src=0).start()
@@ -64,18 +64,18 @@ def main(shape):
             # Handle whatever data says here
 
         ''' Calculate Position with Pose Estimation '''
-        (x_pos, y_pos), z_rotation, output = pose_estimation(frame, marker_locations)
+        (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
         
         if x_pos or y_pos != None: 
 
             # Kalman Filter Predict and Update
             kf_x.predict()
             kf_x.update(x_pos)
-            print(f"X: {kf_x.x}")
+            # print(f"X: {kf_x.x}")
 
             kf_y.predict()
             kf_y.update(y_pos)
-            print(f"Y: {kf_y.x}")
+            # print(f"Y: {kf_y.x}")
 
             ''' Calculate Local Machine Error Vector and Send to Arduino '''
             manual_offet = [0, 0] # Should only be in x or y
@@ -93,7 +93,7 @@ def main(shape):
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
             # print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
-            # print(f'Current Global: {x_pos}, {y_pos}')
+            print(f'Current Global: {x_pos}, {y_pos}')
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
             # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
