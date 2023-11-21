@@ -135,6 +135,7 @@ def pose_estimation(frame, marker_locations):
             T_i[:3, :3] = rot_matrices[i]
             T_i[:3, 3:4] = tvecs[i]
             # print(f'T_i: {T_i}')
+            global_pos_data[ids[i].item()] = [tvec[0], tvec[1]]
 
             T_i_k = np.array([[1, 0, 0, t_diff_i[0]], 
                               [0, 1, 0, t_diff_i[1]], 
