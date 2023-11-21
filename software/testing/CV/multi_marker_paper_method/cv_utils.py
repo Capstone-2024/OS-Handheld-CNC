@@ -1,4 +1,4 @@
-from threading_utils import ARUCO_DICT, aruco_display
+from threading_utils import WebcamVideoStream
 import cv2
 import numpy as np
 import time
@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import math
 from sys import platform
 import subprocess
+from pytagmapper_tools.make_aruco_tag_txts import *
+from pytagmapper_tools.build_map import *
+from pytagmapper_tools.show_map import *
 
 def pose_estimation(frame, marker_locations):
     # Pose Estimation Initialize 
@@ -37,6 +40,7 @@ def pose_estimation(frame, marker_locations):
         # Reference Marker Vars
         ref_id = ids[0]
         min_d = float('inf') # arbitrarily large distance
+        ref_corners = []
 
         rot_matrices = []
         tvecs = []
@@ -64,7 +68,7 @@ def pose_estimation(frame, marker_locations):
                 mtx, roi = cv2.getOptimalNewCameraMatrix(matrix_coefficients, distortion_coefficients, (frame.shape[0], frame.shape[1]), 0.5, (frame.shape[0], frame.shape[1]))
                 ret, rvec, tvec = cv2.solvePnP(objp, corners[i], mtx, None, False)
 
-                # Add Rotation Matrix 
+                # Add Rotation Matrix and Translation Vector
                 rot_matrices.append(cv2.Rodrigues(rvec)[0])
                 tvecs.append(tvec)
 
@@ -74,8 +78,8 @@ def pose_estimation(frame, marker_locations):
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
                 # Image Center
-                image_cX = int(frame.shape[0]/2.0)
-                image_cY = int(frame.shape[1]/2.0)
+                image_cX = int(frame.shape[1]/2.0)
+                image_cY = int(frame.shape[0]/2.0)
 
                 # Distance from Marker to Image Center
                 d = math.dist([image_cX, image_cY], [cX, cY])
@@ -103,6 +107,7 @@ def pose_estimation(frame, marker_locations):
                 if min_d > d: 
                     min_d = d
                     ref_id = ids[i][0] # set ref ID as the ID with the minimum d value
+                    ref_corners = corners[i][0]
 
                 # Draw Axis
                 cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
@@ -116,28 +121,38 @@ def pose_estimation(frame, marker_locations):
         total_weight = 0
         weights = []
         transform_matrices = []
+        global_pos_data = {}
         
         for i in range(0, len(ids)):
             # Transformation b/t Each Marker and the Reference
             t_diff_i = np.array(marker_locations[ref_id]) - np.array(marker_locations[ids[i].item()])
+            # h_matrix, _ = cv2.findHomography(corners[i][0], ref_corners)
+            # print(f'Homography Matrix: {h_matrix}')
+
             print(f'Ref: {ref_id}, Current: {ids[i].item()}, Diff: {t_diff_i}')
 
-            T_i = np.zeros([4,4])
+            T_i = np.eye(4)
             T_i[:3, :3] = rot_matrices[i]
             T_i[:3, 3:4] = tvecs[i]
-            T_i[3, 3] = 1
-            print(f'T_i: {T_i}')
+            # print(f'T_i: {T_i}')
 
             T_i_k = np.array([[1, 0, 0, t_diff_i[0]], 
                               [0, 1, 0, t_diff_i[1]], 
-                              [0, 0, 1, 0], 
+                              [0, 0, 1, t_diff_i[2]], 
                               [0, 0, 0, 1]])
-            print(f'T_i_k: {T_i_k}')
+            # print(f'T_i_k: {T_i_k}')
 
             # Multiply T_i by the relative matrix between current marker and the reference marker
-            T_i_new = T_i @ np.linalg.inv(T_i_k) 
-            print(f'T_i_new: {T_i_new}')
-            transform_matrices.append(T_i_new)
+            # Quick Inversion 
+            T_i_k_inv = np.eye(4)
+            T_i_k_inv[:3, :3] = T_i_k[:3, :3]
+            T_i_k_inv[:3, 3:4] = -T_i_k[:3, :3] @ T_i_k[:3, 3:4]
+
+            T_i_new = T_i @ T_i_k_inv
+            # T_i_new = T_i @ np.linalg.inv(T_i_k) 
+
+            print(f'ID: {ids[i].item()} \nT_i_new: {T_i_new}')
+            transform_matrices.append(np.linalg.inv(T_i_new))
 
             # Calculate Errors
             v_i_weight = marker_distortions[i]/total_distortion
@@ -147,22 +162,29 @@ def pose_estimation(frame, marker_locations):
             if v_i != 0: 
                 w_i = a_i_weight/v_i_weight
             else: 
-                w_i = a_i_weight
+                w_i = a_i_weight/0.00001
 
             weights.append(w_i)
             total_weight += w_i
+
+        # Plot all transformation matrices camera pos
+        # markers = global_pos_data.items() # sorted by key, return a list of tuples
+        # l, xy= zip(*markers) # unpack a list of pairs into two tuples
+        # x, y = zip(*xy)
+        # fig, ax = plt.subplots()
+        # ax.scatter(x, y)
+        # ax.legend(l)
+        # plt.show()
         
         # Calculate Final Transformation Errors
-        errors = []
         T_final = np.zeros([4,4])
 
         for i in range(0, len(ids)):
             error_i = weights[i]/total_weight
-            errors.append(error_i)
-            T_final += transform_matrices[i]*error_i
+            T_final = np.add(T_final, error_i*transform_matrices[i])
+            # print(f'ID: {ids[i].item()}, error: {error_i}')
             
         # Calculate Final T''
-        T_final = T_final/len(ids)
         print(f'Final: {T_final}')
         # print(f'Errors: {errors}')
 
@@ -194,77 +216,6 @@ def plot_chart(time, raw_x, raw_y, x_data, y_data):
 
     # display the plot
     plt.show()
-
-# Find the top left point: min(x+y)
-# Find the top right point: max(x-y)
-# Create a straight line from the points.
-# Calculate the distance of all points to the line
-# If it is smaller than the radius of the circle (or a threshold): point is in the top line.
-# Otherwise: point is in the rest of the block.
-# Sort points of the top line by x value and save.
-# Repeat until there are no points left.
-
-# Sorting of an array of points
-def sort_centers(markers, marker_size):
-    markers_xy = []
-
-    # Deep copy of the markers coordinates
-    # Array to subtract points from
-    searching_markers = markers[:]
-
-    while len(searching_markers) > 0:
-        # Find top left point
-        top_left = sorted(searching_markers, key=lambda p: (p[0]) + (p[1]))[0]
-        top_right = sorted(searching_markers, key=lambda p: (p[0]) - (p[1]))[-1]
-
-        # tl_i = np.where(markers==top_left)[0][0]
-        # tr_i = np.where(markers==top_right)[0][0]
-
-        top_left = np.array([top_left[0], top_left[1], 0])
-        top_right = np.array([top_right[0], top_right[1], 0])
-        # print(f"top left: {top_left}, index: {tl_i}")
-        # print(f"top right: {top_right}, index: {tr_i}")
-
-        row = []
-        remaining_markers = []
-
-        for k in searching_markers:
-            p = np.array([k[0], k[1], 0])
-            index = np.where(markers==k)[0][0]
-            d = marker_size  # diameter of the point of interest (threshold)
-            dist = np.linalg.norm(
-                np.cross(np.subtract(p, top_left), np.subtract(top_right, top_left))
-            ) / np.linalg.norm(
-                top_right
-            )  # distance between point of interest and line a->b
-            if d / 2 > (dist + 2):
-                row.append(k)
-            else:
-                remaining_markers.append(k)
-
-        # print(f"Row {row} \n")
-        markers_xy.insert(0, sorted(row, key=lambda h: h[0]))
-        searching_markers = remaining_markers
-
-    return markers_xy
-
-    # Find ID of each marker and put it in a matrix, this can be used to regenerate a perfect image, but we dont really need it...
-    # final = [[{ids[np.where(markers==markers_xy[i][j])[0][0]][0]: markers_xy[i][j]} for j in range(0, len(markers_xy[i]))] for i in range(0, len(markers_xy))] # LOOP THROUGH
-    # print(final)
-
-    # LONGER VERSION
-    # final_markers = []
-    # for i in range(0, len(markers_xy)): 
-    #     # print(i)
-    #     row = []
-    #     for j in range(0, len(markers_xy[i])): 
-    #         marker = markers_xy[i][j]
-    #         marker_id = ids[np.where(markers==marker)[0][0]]
-    #         obj = {marker_id[0]: marker}
-    #         row.append(obj)
-    #         # row.append({ids[(np.where(markers==markers_xy[i][j])[0][0])]: markers_xy[i][j]})
-
-    #     final_markers.append(row)
 
 # 2D Rotation Matrix
 def rotationMatrix2D(center, theta): 
@@ -301,6 +252,113 @@ def manual_analyze_stitched():
     print(dict_xy)
 
     return dict_xy
+
+def access_map(data_dir): 
+    if len(glob.glob("./data/*.png")) == 0:
+        # Image taking sequence
+        # Start Camera Stream and FPS Counter
+        vs = WebcamVideoStream(src=0).start()
+
+        i = 0
+        while True:
+            frame = vs.read()
+
+            cv2.imshow("frame", frame)
+
+            if chr(cv2.waitKey(1) & 255) == "c":  # capture key, change to button later
+                cv2.imwrite("./data/image_" + str(i) + ".png", frame)
+
+                i += 1
+                print("Photo saved... Press 'q' to exit or continue taking photos. \n")
+
+            elif chr(cv2.waitKey(1) & 255) == "q":  # Change to button click later
+                break
+
+        cv2.destroyAllWindows()
+        vs.stop()
+
+        print("Capture finished. Now building map ... Please wait. \n")
+
+    """ Build Map """
+    # Build Aruco Txt Data Files
+    # Fixed hard coded path
+    if len(glob.glob("./data/*.txt")) <= 1: 
+        aruco_tag_data(data_dir, False)
+
+    if len(glob.glob("./data/*.json")) == 0:
+        build_map(data_dir, data_dir, "2d")
+        # Display some stuff about the map - maybe size or whatever
+        print("Finished. \n")
+
+    show_map(data_dir)
+    
+    map_data = load_map("data")
+    
+    return map_data['tag_locations']
+
+ARUCO_DICT = {
+    "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+    "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+    "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+    "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+    "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+    "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+    "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+    "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+    "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+    "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+    "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+    "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+    "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+    "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+    "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+    "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+    "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+    "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+    "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+    "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
+    "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11,
+}
+
+def aruco_display(corners, ids, rejected, image, terminal_print=False):
+    if len(corners) > 0:
+        # flatten the ArUco IDs list
+        ids = ids.flatten()
+        # loop over the detected ArUCo corners
+        for markerCorner, markerID in zip(corners, ids):
+            # extract the marker corners (which are always returned in
+            # top-left, top-right, bottom-right, and bottom-left order)
+            corners = markerCorner.reshape((4, 2))
+            (topLeft, topRight, bottomRight, bottomLeft) = corners
+            # convert each of the (x, y)-coordinate pairs to integers
+            topRight = (int(topRight[0]), int(topRight[1]))
+            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+            topLeft = (int(topLeft[0]), int(topLeft[1]))
+
+            cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
+            cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
+            cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
+            cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
+            # compute and draw the center (x, y)-coordinates of the ArUco
+            # marker
+            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+            cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
+            # draw the ArUco marker ID on the image
+            cv2.putText(
+                image,
+                str(markerID),
+                (topLeft[0], topLeft[1] - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (0, 255, 0),
+                2,
+            )
+            if terminal_print:
+                print("[Inference] ArUco marker ID: {}".format(markerID))
+            # show the output image
+    return image
 
 if __name__ == '__main__':
     # analyze_stitched("result.jpg", 25.41)

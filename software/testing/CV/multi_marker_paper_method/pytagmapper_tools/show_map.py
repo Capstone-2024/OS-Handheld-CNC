@@ -1,4 +1,4 @@
-from hack_sys_path import *
+from pytagmapper_tools.hack_sys_path import *
 
 from pytagmapper.data import *
 from pytagmapper.geometry import *
@@ -8,12 +8,12 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-def main():
-    parser = argparse.ArgumentParser(description='Plot a tag map.')
-    parser.add_argument('map_dir', type=str, help='map directory')
-    args = parser.parse_args()
+def show_map(map_dir):
+    # parser = argparse.ArgumentParser(description='Plot a tag map.')
+    # parser.add_argument('map_dir', type=str, help='map directory')
+    # args = parser.parse_args()
 
-    map_data = load_map(args.map_dir)
+    map_data = load_map(map_dir)
     tag_side_lengths = map_data['tag_side_lengths']
 
     map_type = map_data['map_type']
@@ -79,6 +79,6 @@ def main():
     plt.axis('scaled')
     plt.show()
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
     
