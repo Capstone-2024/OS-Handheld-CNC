@@ -13,7 +13,7 @@ import math
 import os
 
 
-def main(shape):
+def vision_main(shape):
     # Analyze Stitched Image, establishing global coordinate system
     # marker_locations = manual_analyze_stitched()
 
@@ -154,4 +154,4 @@ def main(shape):
 
 
 if __name__ == "__main__":
-    main(None)
+    vision_main(None)

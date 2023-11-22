@@ -7,15 +7,21 @@ import qdarkstyle
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from ui.firstui import Ui_Form as FirstUi
-from ui.secondui import Ui_Form as SecondUi
-from ui.thirdui import Ui_Form as ThirdUi
-from ui.fourthui import Ui_Form as FourthUi
-from ui.stichingui import Ui_Form as StichingUi
-from ui.settingsui import Ui_Dialog as SettingsUi
-from ui.informationui import Ui_Dialog as InformationUi
-from ui.warningui import Ui_Dialog as WarningUi
-from settings import SettingsConfig
+from UI.ui.firstui import Ui_Form as FirstUi
+from UI.ui.secondui import Ui_Form as SecondUi
+from UI.ui.thirdui import Ui_Form as ThirdUi
+from UI.ui.fourthui import Ui_Form as FourthUi
+from UI.ui.stichingui import Ui_Form as StichingUi
+from UI.ui.settingsui import Ui_Dialog as SettingsUi
+from UI.ui.informationui import Ui_Dialog as InformationUi
+from UI.ui.warningui import Ui_Dialog as WarningUi
+from UI.settings import SettingsConfig
+
+# Import Vision Functions
+from main import vision_main
+from svg import svg_to_points
+
+import os
 
 # BG_COLOR = '#7CA7AE'
 SETTING_MANAGE = SettingsConfig()
@@ -241,6 +247,7 @@ class FourthWin(QWidget, FourthUi):
         self.start_btn.clicked.connect(self.enable_zoom)
         self.stop_btn.clicked.connect(self.enable_zoom)
         self.back_btn.clicked.connect(self.back_third)
+        self.start_btn.clicked.connect(self.vision)
 
     def scan_to(self):
         # 创建一个提示窗口
@@ -285,7 +292,14 @@ class FourthWin(QWidget, FourthUi):
             y = int(coordinates[1].strip())
             # 调用图形视图的方法实现缩放到指定坐标
             self.graphicsView.zoom_to_coordinate(x, y)
-    
+
+    # Pose Esimtation
+    def vision(self): 
+        px_to_mm = 300/100
+        shape = svg_to_points(self.third_win.img_path, px_to_mm)
+        vision_main(shape)
+
+
     # 创建第三个窗口的实例并显示，然后关闭当前窗口
     def back_third(self):
         self.third_win = ThirdWin()
