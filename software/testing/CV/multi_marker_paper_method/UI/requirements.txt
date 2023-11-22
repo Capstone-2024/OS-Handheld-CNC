@@ -1,0 +1,14 @@
+altgraph==0.17.3
+numpy==1.24.4
+opencv-python==4.8.1.78
+packaging==23.1
+pefile==2023.2.7
+pyinstaller==5.13.0
+pyinstaller-hooks-contrib==2023.5
+PyQt5==5.15.9
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.12.1
+PyQt5-stubs==5.15.6.0
+pywin32-ctypes==0.2.2
+QDarkStyle==3.1
+QtPy==2.3.1
