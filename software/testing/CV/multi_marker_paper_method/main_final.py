@@ -7,18 +7,18 @@ import qdarkstyle
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from UI.ui.firstui import Ui_Form as FirstUi
-from UI.ui.secondui import Ui_Form as SecondUi
-from UI.ui.thirdui import Ui_Form as ThirdUi
-from UI.ui.fourthui import Ui_Form as FourthUi
-from UI.ui.stichingui import Ui_Form as StichingUi
-from UI.ui.settingsui import Ui_Dialog as SettingsUi
-from UI.ui.informationui import Ui_Dialog as InformationUi
-from UI.ui.warningui import Ui_Dialog as WarningUi
-from UI.settings import SettingsConfig
+from ui.firstui import Ui_Form as FirstUi
+from ui.secondui import Ui_Form as SecondUi
+from ui.thirdui import Ui_Form as ThirdUi
+from ui.fourthui import Ui_Form as FourthUi
+from ui.stichingui import Ui_Form as StichingUi
+from ui.settingsui import Ui_Dialog as SettingsUi
+from ui.informationui import Ui_Dialog as InformationUi
+from ui.warningui import Ui_Dialog as WarningUi
+from settings import SettingsConfig
 
 # Import Vision Functions
-from main import vision_main
+from vision import vision_main
 from svg import svg_to_points
 
 import os
@@ -155,7 +155,8 @@ class SecondWin(QWidget, SecondUi):
         # 创建 ThirdWin
         self.third_win = ThirdWin()
         #  show the third UI
-        self.third_win.show()
+        # self.third_win.show()
+        self.third_win.showFullScreen()
         # close UI
         self.close()
 
@@ -211,7 +212,8 @@ class ThirdWin(QWidget, ThirdUi):
         # 如果已选择图片文件，创建 FourthWin 的实例，并传递选择的图片路径作为参数
         self.fourth_win = FourthWin(img_path=self.img_path)
         # 显示第四个窗口，然后关闭当前的第三个窗口
-        self.fourth_win.show()
+        # self.fourth_win.show()
+        self.fourth_win.showFullScreen()
         self.close()
 
 # fourth UI
@@ -244,10 +246,14 @@ class FourthWin(QWidget, FourthUi):
         #  当用户点击 reset_zoom_btn 按钮时，会触发 clicked 信号，连接到 reset_zoom 
         self.reset_zoom_btn.clicked.connect(self.graphicsView.reset_zoom)
         # 当用户点击 start_btn 或 stop_btn 按钮时，会触发 clicked 信号，连接到 enable_zoom
-        self.start_btn.clicked.connect(self.enable_zoom)
+        
+        # Zoom
+        # self.start_btn.clicked.connect(self.enable_zoom)
         self.stop_btn.clicked.connect(self.enable_zoom)
         self.back_btn.clicked.connect(self.back_third)
-        self.start_btn.clicked.connect(self.vision)
+
+        # Vision
+        self.start_btn.clicked.connect(lambda: self.vision(img_path))
 
     def scan_to(self):
         # 创建一个提示窗口
@@ -294,10 +300,12 @@ class FourthWin(QWidget, FourthUi):
             self.graphicsView.zoom_to_coordinate(x, y)
 
     # Pose Esimtation
-    def vision(self): 
+    def vision(self, img_path):
+        self.third_win = ThirdWin()
+
         px_to_mm = 300/100
-        shape = svg_to_points(self.third_win.img_path, px_to_mm)
-        vision_main(shape)
+        shape = svg_to_points(img_path, px_to_mm)
+        # vision_main(shape)
 
 
     # 创建第三个窗口的实例并显示，然后关闭当前窗口

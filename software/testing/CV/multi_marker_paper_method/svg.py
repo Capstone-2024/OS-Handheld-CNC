@@ -7,8 +7,9 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 
 def svg_to_points(svg_file, ratio, num_samples=5, view=False):
+    print("Converting to points.")
     # Convert SVG file to paths
-    paths, attributes = svg2paths(os.getcwd() + svg_file)
+    paths, attributes = svg2paths(svg_file)
 
     # Extract data points from paths
     x_coord = []
@@ -35,6 +36,8 @@ def svg_to_points(svg_file, ratio, num_samples=5, view=False):
     if view: 
         plt.scatter(x_final, y_final)
         plt.show()
+
+    print("DONE")
 
     return x_final, y_final
 
