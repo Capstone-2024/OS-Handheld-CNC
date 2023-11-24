@@ -18,6 +18,7 @@ from ui.settingsui import Ui_Dialog as SettingsUi
 from ui.informationui import Ui_Dialog as InformationUi
 from ui.warningui import Ui_Dialog as WarningUi
 from ui.settings import SettingsConfig
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 # Import Vision Functions
 from vision import vision_main
@@ -231,6 +232,18 @@ class FourthWin(QWidget, FourthUi):
             'start_btn': True,
             'stop_btn': False,
         }
+#定时器
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.show_viedo)
+        self.start_btn.clicked.connect(self.video_button)
+        #摄像头
+        self.cap_video=2
+        #记录定时器工作状态
+        self.flag = 0
+        #存放每一帧读取的图像
+        self.img = []
+
+        
         
         # 将 zoom_frame 控件设置为不可用状态
         self.zoom_frame.setEnabled(False)
@@ -238,25 +251,20 @@ class FourthWin(QWidget, FourthUi):
         self.speed_label.setText(SETTING_MANAGE.get_param('SPEED'))
         self.bits_label.setText(SETTING_MANAGE.get_param('BIT_TYPE'))
         #  调用 graphicsView 对象的 set_image 方法，可能用于设置图形视图的图像，其中参数 img_path 是从前一个窗口传递过来的图片路径
-        self.graphicsView.set_image(img_path)
+        # self.graphicsView.set_image(img_path)
 
         # 当用户在 coordinates_edit 文本框中输入完坐标并按下回车键时，会触发 returnPressed 信号，连接到 zoom_to_coordinate
-        self.coordinates_edit.returnPressed.connect(self.zoom_to_coordinate)
+        # self.coordinates_edit.returnPressed.connect(self.zoom_to_coordinate)
         # 当用户点击 scan_btn 按钮时，会触发 clicked 信号，连接到 scan_to
         self.scan_btn.clicked.connect(self.scan_to)
         # 当用户点击 confirm_btn 按钮时，会触发 clicked 信号，连接到 zoom_to_coordinate
-        self.confirm_btn.clicked.connect(self.zoom_to_coordinate)
+        # self.confirm_btn.clicked.connect(self.zoom_to_coordinate)
         #  当用户点击 reset_zoom_btn 按钮时，会触发 clicked 信号，连接到 reset_zoom 
-        self.reset_zoom_btn.clicked.connect(self.graphicsView.reset_zoom)
+        # self.reset_zoom_btn.clicked.connect(self.graphicsView.reset_zoom)
         # 当用户点击 start_btn 或 stop_btn 按钮时，会触发 clicked 信号，连接到 enable_zoom
-        
-        # Zoom
-        # self.start_btn.clicked.connect(self.enable_zoom)
+        self.start_btn.clicked.connect(self.enable_zoom)
         self.stop_btn.clicked.connect(self.enable_zoom)
         self.back_btn.clicked.connect(self.back_third)
-
-        # Vision
-        self.start_btn.clicked.connect(lambda: self.vision(img_path))
 
     def scan_to(self):
         # 创建一个提示窗口
@@ -301,22 +309,42 @@ class FourthWin(QWidget, FourthUi):
             y = int(coordinates[1].strip())
             # 调用图形视图的方法实现缩放到指定坐标
             self.graphicsView.zoom_to_coordinate(x, y)
-
-    # Pose Esimtation
-    def vision(self, img_path):
-        self.third_win = ThirdWin()
-
-        px_to_mm = 300/100
-        shape = svg_to_points(img_path, px_to_mm)
-        # vision_main(shape)
-
-
+    
     # 创建第三个窗口的实例并显示，然后关闭当前窗口
     def back_third(self):
         self.third_win = ThirdWin()
-        # self.third_win.show()
-        self.third_win.showFullScreen()
+        self.third_win.show()
         self.close()
+        
+    def video_button(self):
+        if (self.flag == 0):
+            self.cap_video = cv2.VideoCapture(1)
+            self.timer.start(50);
+            self.flag+=1
+            self.start_btn.setText("Close")
+        else:
+            self.timer.stop()
+            self.cap_video.release()
+            self.label_3.clear()
+            self.start_btn.setText("Open")
+            self.flag=0
+    
+    def show_viedo(self):
+        ret, self.img = self.cap_video.read()
+        if ret:
+            self.show_cv_img(self.img)
+    
+    def show_cv_img(self, img):
+        shrink = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        QtImg = QtGui.QImage(shrink.data,
+                            shrink.shape[1],
+                            shrink.shape[0],
+                            shrink.shape[1] * 3,
+                            QtGui.QImage.Format_RGB888)
+        aspect_ratio = 16 / 9  # Adjust the aspect ratio as needed
+        jpg_out = QtGui.QPixmap(QtImg).scaled(self.label.width(), int(self.label.width() / aspect_ratio), Qt.KeepAspectRatio)
+
+        self.label_3.setPixmap(jpg_out)
 
 # stitiching  UI
 class StichingWin(QWidget, StichingUi):
