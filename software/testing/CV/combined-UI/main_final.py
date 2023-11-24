@@ -71,7 +71,8 @@ class WarningWin(QDialog, WarningUi):
         # 创建 Second UI 对象
         self.second_win = SecondWin()
         # 显示 second UI
-        self.second_win.show()
+        # self.second_win.show()
+        self.second_win.showFullScreen()
         # 关闭当前窗口
         self.close()
 
@@ -147,7 +148,8 @@ class SecondWin(QWidget, SecondUi):
         # 创建 FirstWin
         self.first_win = FirstWin()
         # show the first UI
-        self.first_win.show()
+        # self.first_win.show()
+        self.first_win.showFullScreen()
         # close UI
         self.close()
 
@@ -181,7 +183,8 @@ class ThirdWin(QWidget, ThirdUi):
         # 创建 SecondWin
         self.second_win = SecondWin()
         #  show the second UI
-        self.second_win.show()
+        # self.second_win.show()
+        self.second_win.showFullScreen()
         # close UI
         self.close()
 
@@ -311,7 +314,8 @@ class FourthWin(QWidget, FourthUi):
     # 创建第三个窗口的实例并显示，然后关闭当前窗口
     def back_third(self):
         self.third_win = ThirdWin()
-        self.third_win.show()
+        # self.third_win.show()
+        self.third_win.showFullScreen()
         self.close()
 
 # stitiching  UI
@@ -424,5 +428,6 @@ if __name__ == '__main__':
     app.setStyle(QStyleFactory.create('Fusion'))
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     win = FirstWin()
-    win.show()
+    # win.show()
+    win.showFullScreen()
     sys.exit(app.exec_())
