@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>334</width>
-    <height>247</height>
+    <width>734</width>
+    <height>547</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>300</x>
      <y>40</y>
      <width>200</width>
      <height>41</height>
@@ -34,14 +34,14 @@
     <string>Name of Device</string>
    </property>
    <property name="alignment">
-    <set>Qt::AlignCenter</set>
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>110</y>
+     <x>260</x>
+     <y>120</y>
      <width>200</width>
      <height>41</height>
     </rect>
@@ -64,8 +64,8 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>180</y>
+     <x>260</x>
+     <y>340</y>
      <width>200</width>
      <height>41</height>
     </rect>
@@ -83,6 +83,35 @@
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>170</y>
+     <width>211</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Calibri</family>
+     <pointsize>11</pointsize>
+     <weight>75</weight>
+     <italic>false</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Emmanuel Marbina (251091271)
+
+Sirui Gao (251145429)
+
+Victor Zhang (251077855)
+
+Qiwen Xu (251118436)
+</string>
    </property>
   </widget>
  </widget>
