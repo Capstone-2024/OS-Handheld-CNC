@@ -12,7 +12,7 @@ class WebcamVideoStream:
         # Camera Settings
         # LINUX
         if platform == "linux":
-            cam_props = {'focus_auto': 1}
+            cam_props = {'focus_auto': 0, 'focus': 50}
 
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
@@ -21,9 +21,13 @@ class WebcamVideoStream:
         else:
             # WINDOWS - does not work for the older version camera
             # video.set(cv2.CAP_PROP_FOCUS, 200)
-            self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 0) # auto focus
-            focus = 35 # min: 0, max: 255, increment:5
-            self.stream.set(cv2.CAP_PROP_FOCUS, focus)
+            self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 1) # auto focus
+
+            self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
+            self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, 100)
+            
+            # focus = 200 # min: 0, max: 255, increment:5
+            # self.stream.set(cv2.CAP_PROP_FOCUS, focus)
 
         (self.grabbed, self.frame) = self.stream.read()
         # initialize the variable used to indicate if the thread should

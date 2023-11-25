@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 
 def solvePnPWrapper(obj_points, img_points, camera_matrix, distortion_matrix):
-    succ, rvec, tvec = cv2.solvePnP(obj_points, img_points, camera_matrix, distortion_matrix)
+    succ, rvec, tvec = cv2.solvePnP(obj_points, img_points, camera_matrix, distortion_matrix, flags=cv2.SOLVEPNP_IPPE_SQUARE)
     if not succ:
         raise RuntimeError("solvePnP failed")
     rot, _ = cv2.Rodrigues(rvec)

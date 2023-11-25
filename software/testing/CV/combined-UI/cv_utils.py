@@ -63,8 +63,9 @@ def pose_estimation(frame, marker_locations):
                                 [marker_size / 2, -marker_size / 2, 0],
                                 [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
                 
-                mtx, roi = cv2.getOptimalNewCameraMatrix(matrix_coefficients, distortion_coefficients, (frame.shape[0], frame.shape[1]), 0.5, (frame.shape[0], frame.shape[1]))
-                ret, rvec, tvec = cv2.solvePnP(objp, corners[i], mtx, None, False)
+                # mtx, roi = cv2.getOptimalNewCameraMatrix(matrix_coefficients, distortion_coefficients, (frame.shape[0], frame.shape[1]), 0.5, (frame.shape[0], frame.shape[1]))
+                # ret, rvec, tvec = cv2.solvePnP(objp, corners[i], mtx, None, flags=cv2.SOLVEPNP_IPPE_SQUARE)
+                ret, rvec, tvec = cv2.solvePnP(objp, corners[i], matrix_coefficients, distortion_coefficients, flags=cv2.SOLVEPNP_IPPE_SQUARE)
 
                 # Add Rotation Matrix and Translation Vector
                 rot_matrices.append(cv2.Rodrigues(rvec)[0])
@@ -108,7 +109,8 @@ def pose_estimation(frame, marker_locations):
                     ref_corners = corners[i][0]
 
                 # Draw Axis
-                cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
+                # cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
+                cv2.drawFrameAxes(frame, matrix_coefficients, None, rvec, tvec, 4, 1)
                 
                 # Draw Border and center
                 aruco_display(corners, ids, rejected_img_points, frame)
@@ -127,7 +129,7 @@ def pose_estimation(frame, marker_locations):
             # h_matrix, _ = cv2.findHomography(corners[i][0], ref_corners)
             # print(f'Homography Matrix: {h_matrix}')
 
-            print(f'Ref: {ref_id}, Current: {ids[i].item()}, Diff: {t_diff_i}')
+            # print(f'Ref: {ref_id}, Current: {ids[i].item()}, Diff: {t_diff_i}')
 
             T_i = np.eye(4)
             T_i[:3, :3] = rot_matrices[i]
@@ -150,7 +152,7 @@ def pose_estimation(frame, marker_locations):
             T_i_new = T_i @ T_i_k_inv
             # T_i_new = T_i @ np.linalg.inv(T_i_k) 
 
-            print(f'ID: {ids[i].item()} \nT_i_new: {T_i_new}')
+            # print(f'ID: {ids[i].item()} \nT_i_new: {T_i_new}')
             transform_matrices.append(np.linalg.inv(T_i_new))
 
             # Calculate Errors

@@ -39,15 +39,15 @@ def vision_main(shape):
     # Kalman Filter
     dt = 1 / 60  # 60 fps, i want to make this dynamic but idk if it works that way
     # P
-    P_x = np.diag([0.5**2.0, 5**2])  # covariance matrix
-    P_y = np.diag([0.5**2.0, 5**2])
+    P_x = np.diag([1**2.0, 10**2])  # covariance matrix
+    P_y = np.diag([1**2.0, 10**2])
 
     # R
-    R_x = np.array([0.5**2])
-    R_y = np.array([0.5**2])
+    R_x = np.array([1**2])
+    R_y = np.array([1**2])
 
     # Q
-    Q = 10**2  # process variance
+    Q = 20**2  # process variance
 
     x = np.array([0.0, 0.0])
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
@@ -130,14 +130,14 @@ def vision_main(shape):
 
             
             ''' Calculate FPS and Display ''' 
-            # new_frame_time = time.time()
-            # fps = 1 / (new_frame_time - prev_frame_time)
-            # prev_frame_time = new_frame_time
-            # fps = int(fps)
-            # fps = str(fps)
-            # font = cv2.FONT_HERSHEY_PLAIN
+            new_frame_time = time.time()
+            fps = 1 / (new_frame_time - prev_frame_time)
+            prev_frame_time = new_frame_time
+            fps = int(fps)
+            fps = str(fps)
+            font = cv2.FONT_HERSHEY_PLAIN
             
-            # print(f"FPS: {fps}")
+            print(f"FPS: {fps}")
             
             ''' Only display if we are using PC '''
             if platform != "linux":
