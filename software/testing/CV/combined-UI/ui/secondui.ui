@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>自动绘画UI</string>
+   <string>CNC_UI</string>
   </property>
   <widget class="QPushButton" name="add_btn">
    <property name="geometry">
