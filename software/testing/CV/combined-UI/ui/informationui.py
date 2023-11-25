@@ -16,7 +16,7 @@ class Ui_Dialog(object):
         Dialog.setObjectName("Dialog")
         Dialog.resize(734, 547)
         self.label = QtWidgets.QLabel(Dialog)
-        self.label.setGeometry(QtCore.QRect(300, 40, 200, 41))
+        self.label.setGeometry(QtCore.QRect(210, 70, 200, 41))
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -26,7 +26,7 @@ class Ui_Dialog(object):
         self.label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.label_2 = QtWidgets.QLabel(Dialog)
-        self.label_2.setGeometry(QtCore.QRect(260, 120, 200, 41))
+        self.label_2.setGeometry(QtCore.QRect(170, 210, 200, 41))
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -36,7 +36,7 @@ class Ui_Dialog(object):
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_2.setObjectName("label_2")
         self.label_3 = QtWidgets.QLabel(Dialog)
-        self.label_3.setGeometry(QtCore.QRect(260, 340, 200, 41))
+        self.label_3.setGeometry(QtCore.QRect(170, 360, 200, 41))
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -46,7 +46,7 @@ class Ui_Dialog(object):
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
         self.label_4 = QtWidgets.QLabel(Dialog)
-        self.label_4.setGeometry(QtCore.QRect(270, 170, 211, 151))
+        self.label_4.setGeometry(QtCore.QRect(400, 180, 211, 151))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -55,6 +55,15 @@ class Ui_Dialog(object):
         font.setWeight(75)
         self.label_4.setFont(font)
         self.label_4.setObjectName("label_4")
+        self.label_5 = QtWidgets.QLabel(Dialog)
+        self.label_5.setGeometry(QtCore.QRect(400, 70, 141, 31))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_5.setFont(font)
+        self.label_5.setObjectName("label_5")
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -73,6 +82,7 @@ class Ui_Dialog(object):
 "\n"
 "Qiwen Xu (251118436)\n"
 ""))
+        self.label_5.setText(_translate("Dialog", "OS-Handheld CNC"))
 
 
 if __name__ == "__main__":
