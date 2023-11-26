@@ -17,8 +17,9 @@ class WebcamVideoStream:
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
                             shell=True)
-            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            
+            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 2592)
+            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1944)
 
         else:
             # WINDOWS - does not work for the older version camera
