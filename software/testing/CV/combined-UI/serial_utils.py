@@ -38,8 +38,10 @@ class ArduinoComms:
 
         port = ''
         for device in serial.tools.list_ports.comports(): 
+            print(device.description)
             if 'CH340' in device.description: 
                 port = device.device
+                
 
         self.arduino = None
         try:
