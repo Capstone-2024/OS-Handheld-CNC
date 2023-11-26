@@ -12,7 +12,7 @@ class WebcamVideoStream:
         # Camera Settings
         # LINUX
         if platform == "linux":
-            self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            # self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
                             
             cam_props = {'focus_auto': 0, 'focus_absolute': 197}
             
