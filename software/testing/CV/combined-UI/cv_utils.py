@@ -26,17 +26,18 @@ def pose_estimation(frame, marker_locations):
     # Marker Detection
     corners = []
     ids = []
+    rejected_img_points= []
     
     if platform == "linux": # cv2 V4.5
         dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
         parameters = cv2.aruco.DetectorParameters_create()
-        corners, ids, _ = cv2.aruco.detectMarkers(gray, dictionary, parameters=parameters)
+        corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, dictionary, parameters=parameters)
     else:  # cv2 V4.7+
         dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
         parameters = cv2.aruco.DetectorParameters()
         detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
-        corners, ids, _ = detector.detectMarkers(gray)
+        corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
     ''' Pose Estimation (Most computing heavy) '''
     if len(corners) > 0:
