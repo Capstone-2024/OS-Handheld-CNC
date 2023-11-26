@@ -7,18 +7,20 @@ class WebcamVideoStream:
     def __init__(self, src=0):
         # initialize the video camera stream and read the first frame
         # from the stream
-        self.stream = cv2.VideoCapture(src)
+        self.stream = cv2.VideoCapture(src, cv2.CAP_V4L2)
 
         # Camera Settings
         # LINUX
         if platform == "linux":
+            self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+                            
             cam_props = {'focus_auto': 0, 'focus_absolute': 197}
-
+            
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
                             shell=True)
-            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
             
 
         else:
