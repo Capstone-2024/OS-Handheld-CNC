@@ -17,7 +17,6 @@ class WebcamVideoStream:
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
                             shell=True)
-            self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
             self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             
