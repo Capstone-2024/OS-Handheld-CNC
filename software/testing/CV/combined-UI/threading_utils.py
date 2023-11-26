@@ -12,7 +12,7 @@ class WebcamVideoStream:
         # Camera Settings
         # LINUX
         if platform == "linux":
-            cam_props = {'focus_auto': 0, 'focus': 50, 'width': 1920, 'height': 1080}
+            cam_props = {'focus_auto': 0, 'focus_absolute': 197, 'width': 1920, 'height': 1080, 'exposure_absolute': }
 
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
