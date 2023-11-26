@@ -12,11 +12,13 @@ class WebcamVideoStream:
         # Camera Settings
         # LINUX
         if platform == "linux":
-            cam_props = {'focus_auto': 0, 'focus_absolute': 197, 'width': 1920, 'height': 1080 }
+            cam_props = {'focus_auto': 0, 'focus_absolute': 197}
 
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
                             shell=True)
+            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
         else:
             # WINDOWS - does not work for the older version camera

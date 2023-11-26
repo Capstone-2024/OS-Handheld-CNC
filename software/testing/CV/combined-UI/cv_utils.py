@@ -5,6 +5,7 @@ import math
 from pytagmapper_tools.make_aruco_tag_txts import *
 from pytagmapper_tools.build_map import *
 from pytagmapper_tools.show_map import *
+from sys import platform
 
 from threading_utils import WebcamVideoStream
 from svgpathtools import svg2paths
@@ -23,11 +24,19 @@ def pose_estimation(frame, marker_locations):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Marker Detection
-    dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
-    parameters = cv2.aruco.DetectorParameters()
-    detector = cv2.aruco.ArucoDetector(dictionary, parameters)
+    corners = []
+    ids = []
+    
+    if platform == "linux": # cv2 V4.5
+        dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
+        parameters = cv2.aruco.DetectorParameters_create()
+        corners, ids, _ = cv2.aruco.detectMarkers(gray, dictionary, parameters=parameters)
+    else:  # cv2 V4.7+
+        dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
+        parameters = cv2.aruco.DetectorParameters()
+        detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
-    corners, ids, rejected_img_points = detector.detectMarkers(gray)
+        corners, ids, _ = detector.detectMarkers(gray)
 
     ''' Pose Estimation (Most computing heavy) '''
     if len(corners) > 0:
