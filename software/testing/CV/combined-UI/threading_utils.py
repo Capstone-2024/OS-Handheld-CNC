@@ -12,7 +12,7 @@ class WebcamVideoStream:
         # Camera Settings
         # LINUX
         if platform == "linux":
-            cam_props = {'focus_auto': 0, 'focus': 50}
+            cam_props = {'focus_auto': 0, 'focus': 50, 'width': 1920, 'height': 1080}
 
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
@@ -25,7 +25,9 @@ class WebcamVideoStream:
 
             self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
             self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, 100)
-            
+            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
             # focus = 200 # min: 0, max: 255, increment:5
             # self.stream.set(cv2.CAP_PROP_FOCUS, focus)
 

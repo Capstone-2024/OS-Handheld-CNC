@@ -1,7 +1,8 @@
 import serial.tools.list_ports
 import serial
+from threading import Thread
 
-'''
+"""
 ERROR and STATUS CODE
 
 STATUS CODES
@@ -29,48 +30,59 @@ A2 -
 -----------------------
 ERROR CODES
 
-'''
+"""
 
 
-def control_status(read_data, send_data): 
-    status = 1
+class ArduinoComms:
+    def __init__(self, baudrate=11520, timeout=1):
 
-    if read_data[1] == 0: 
-        status = 1 # Do nothing 
-    elif read_data[1]==1: 
-        ardu_write(read_data + send_data)
-    elif read_data[1] == 3: 
-        status = 0 
+        port = ''
+        for device in serial.tools.list_ports.comports(): 
+            if 'CH340' in device.description: 
+                port = device.device
 
-    return status
+        self.arduino = None
+        try:
+            self.arduino = serial.Serial(
+                port, baudrate, timeout=timeout
+            )
+            print(f"Connected to {port} at {baudrate} baud.")
+        except serial.SerialException as e:
+            print(f"Error: {e}")
 
-def retract_Z(): 
-    ardu_write("Z0")
+        self.data = self.ardu_read()
+        self.output = None
+        # # Sequential Status Check
+        # if self.data[1] == 0:
+        #     self.status = 1 # Do nothing
+        #     print(self.status)
+        # # elif self.data[1]==1:
+        # #     self.ardu_write(self.data + outbound_data)
+        # elif self.data[1] == 3:
+        #     self.status = 0
 
-def ardu_write(data):
-    # Find Arduino Device Port
-    port = None
+    def start_transmit(self):
+        Thread(target=self.ardu_write, args=())
+        return self
 
-    # Ensure that Arduino is read from /wrote to
-    for device in serial.tools.list_ports.comports(): 
-        if 'Arduino' in device.description: 
-            port = device.device
+    def ardu_write(self, output):
+        self.output = output
+        self.arduino.write(output)
 
-    arduino = serial.Serial(port)
-    arduino.write(data)
-    arduino.close()
+    def start_read(self):
+        Thread(target=self.ardu_read, args=())
+        return self
 
-def ardu_read():
-    port = None
+    def ardu_read(self):
+        self.data = self.arduino.read()
 
-    # Ensure that Arduino is read from /wrote to
-    for device in serial.tools.list_ports.comports(): 
-        if 'Arduino' in device.description: 
-            port = device.device
+    def close():
+        arduino.close()
 
-    arduino = serial.Serial(port)
-    data = arduino.read()
-    arduino.close()
 
-    # Read Arduino Outputs
-    return data
+if __name__ == "__main__":
+    arduino = ArduinoComms()
+    arduino.start_transmit()
+    arduino.ardu_write(100)
+    arduino.ardu_read()
+    print(arduino.data)

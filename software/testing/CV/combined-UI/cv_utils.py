@@ -126,9 +126,6 @@ def pose_estimation(frame, marker_locations):
         for i in range(0, len(ids)):
             # Transformation b/t Each Marker and the Reference
             t_diff_i = np.array(marker_locations[ref_id]) - np.array(marker_locations[ids[i].item()])
-            # h_matrix, _ = cv2.findHomography(corners[i][0], ref_corners)
-            # print(f'Homography Matrix: {h_matrix}')
-
             # print(f'Ref: {ref_id}, Current: {ids[i].item()}, Diff: {t_diff_i}')
 
             T_i = np.eye(4)
@@ -137,20 +134,23 @@ def pose_estimation(frame, marker_locations):
             # print(f'T_i: {T_i}')
             global_pos_data[ids[i].item()] = [tvec[0], tvec[1]]
 
+            # T_i_k = np.eye(4)
+            # T_i_k[:3, 3] = np.transpose(t_diff_i)
             T_i_k = np.array([[1, 0, 0, t_diff_i[0]], 
                               [0, 1, 0, t_diff_i[1]], 
-                              [0, 0, 1, t_diff_i[2]], 
+                              [0, 0, 1, 0], 
+                            #   [0, 0, 1, t_diff_i[2]], 
                               [0, 0, 0, 1]])
             # print(f'T_i_k: {T_i_k}')
 
             # Multiply T_i by the relative matrix between current marker and the reference marker
             # Quick Inversion 
-            T_i_k_inv = np.eye(4)
-            T_i_k_inv[:3, :3] = T_i_k[:3, :3]
-            T_i_k_inv[:3, 3:4] = -T_i_k[:3, :3] @ T_i_k[:3, 3:4]
+            # T_i_k_inv = np.eye(4)
+            # T_i_k_inv[:3, :3] = T_i_k[:3, :3]
+            # T_i_k_inv[:3, 3:4] = -T_i_k[:3, :3] @ T_i_k[:3, 3:4]
 
-            T_i_new = T_i @ T_i_k_inv
-            # T_i_new = T_i @ np.linalg.inv(T_i_k) 
+            # T_i_new = T_i @ T_i_k_inv
+            T_i_new = T_i @ np.linalg.inv(T_i_k) 
 
             # print(f'ID: {ids[i].item()} \nT_i_new: {T_i_new}')
             transform_matrices.append(np.linalg.inv(T_i_new))

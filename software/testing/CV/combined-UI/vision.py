@@ -6,17 +6,18 @@ import time
 import pandas as pd
 from kalman_utils import PE_filter
 from sys import platform
-from serial_utils import ardu_write, ardu_read
+# from serial_utils import ardu_write, ardu_read
+from serial_utils import ArduinoComms
 import math
 import os
 
 
 def vision_main(shape):
     # Analyze Stitched Image, establishing global coordinate system
-    # marker_locations = manual_analyze_stitched()
+    marker_locations = manual_analyze_stitched()
 
-    data_dir = os.path.abspath("./data")
-    marker_locations = access_map(data_dir)
+    # data_dir = os.path.abspath("./data")
+    # marker_locations = access_map(data_dir)
 
     ''' SET UP '''
     # Target Point vars
@@ -47,23 +48,18 @@ def vision_main(shape):
     R_y = np.array([1**2])
 
     # Q
-    Q = 20**2  # process variance
+    Q = 10**2  # process variance
 
     x = np.array([0.0, 0.0])
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
+    # Initialize Communication with Arduino
+    # arduino = ArduinoComms()
+
     # Main Loop
     while True:
         frame = vs.read()
-
-        ''' Read Arduino for safety checks or status updates '''
-        # data = ardu_read()
-        # if data != 0: 
-        #     # do something
-        #     print(data)
-
-            # Handle whatever data says here
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
@@ -83,20 +79,16 @@ def vision_main(shape):
             manual_offet = [0, 0] # Should only be in x or y
             # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
-
-            ''' Transformation matrix, rotation about Z, rotate about the current location '''
-            ''' Is this needed? '''
-            # T = rotationMatrix2D([x_pos, y_pos], z_rotation)
-            # local = np.matmul(T, np.array([pos_diff[0].item(), pos_diff[1].item(), 1]))
-            # print(f'Transformed: {local}')
             
             # Send to arduino 
-            
+            # arduino.start_transmit()
+            # arduino.ardu_write(str(kf_x.x) + ',' + str(kf_y.x))
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
             # print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
             print(f'Current Global: {x_pos}, {y_pos} \n')
+            
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
             # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
@@ -153,4 +145,5 @@ def vision_main(shape):
 
 
 if __name__ == "__main__":
+
     vision_main(None)

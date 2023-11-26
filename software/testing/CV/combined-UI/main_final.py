@@ -20,10 +20,6 @@ from ui.warningui import Ui_Dialog as WarningUi
 from ui.settings import SettingsConfig
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-# Import Vision Functions
-from vision import vision_main
-from cv_utils import svg_to_points
-
 # BG_COLOR = '#7CA7AE'
 SETTING_MANAGE = SettingsConfig()
 
@@ -232,12 +228,13 @@ class FourthWin(QWidget, FourthUi):
             'start_btn': True,
             'stop_btn': False,
         }
-#定时器
+        #定时器
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.show_viedo)
         self.start_btn.clicked.connect(self.video_button)
+
         #摄像头
-        self.cap_video=2
+        self.cap_video=0
         #记录定时器工作状态
         self.flag = 0
         #存放每一帧读取的图像
@@ -345,6 +342,7 @@ class FourthWin(QWidget, FourthUi):
         jpg_out = QtGui.QPixmap(QtImg).scaled(self.label.width(), int(self.label.width() / aspect_ratio), Qt.KeepAspectRatio)
 
         self.label_3.setPixmap(jpg_out)
+
 
 # stitiching  UI
 class StichingWin(QWidget, StichingUi):
