@@ -64,7 +64,7 @@ def vision_main(shape):
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
 
-        print(f'Frame Size: {frame.shape[0], frame.shape[0]}')
+        print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
         
         if x_pos or y_pos != None: 
 
