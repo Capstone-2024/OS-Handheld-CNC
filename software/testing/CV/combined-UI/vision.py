@@ -63,6 +63,8 @@ def vision_main(shape):
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
+
+        print(f'Frame Size: {frame.shape[0], frame.shape[0]}')
         
         if x_pos or y_pos != None: 
 
@@ -88,6 +90,7 @@ def vision_main(shape):
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
             # print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
             print(f'Current Global: {x_pos}, {y_pos} \n')
+            print(f'Filtered Global: {kf_x.x}, {kf_y.x} \n')
             
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
