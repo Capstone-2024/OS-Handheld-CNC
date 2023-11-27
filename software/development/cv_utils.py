@@ -193,7 +193,7 @@ def pose_estimation(frame, marker_locations):
 
         for i in range(0, len(ids)):
             error_i = weights[i]/total_weight
-            T_final = np.add(T_final, error_i*transform_matrices[i])
+            T_final = np.add(T_final, np.linalg.inv(error_i*transform_matrices[i]))
             # print(f'ID: {ids[i].item()}, error: {error_i}')
             
         # Calculate Final T''
