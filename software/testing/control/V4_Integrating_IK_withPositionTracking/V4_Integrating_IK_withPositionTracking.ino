@@ -126,7 +126,7 @@ void rightInterrupt() {
 
 void setup() {
 
-  Serial.begin(11520)
+  Serial.begin(11520);
   
   pinMode(EN_PIN, OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
@@ -260,7 +260,7 @@ void setup() {
     if (incomingByte() = 1) {
       homingSequence();
     }
-
+  }
   zHomingSequence();
   
   //homingSequence();
