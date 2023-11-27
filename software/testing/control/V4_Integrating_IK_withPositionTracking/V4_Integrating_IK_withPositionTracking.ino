@@ -125,6 +125,8 @@ void rightInterrupt() {
 }
 
 void setup() {
+
+  Serial.begin(11520)
   
   pinMode(EN_PIN, OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
@@ -251,7 +253,13 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), leftInterrupt, RISING);
   attachInterrupt(digitalPinToInterrupt(RightbuttonPin), rightInterrupt, RISING);
 
-  startupSequence();
+  int incomingByte = 0; 
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    incomingByte = Serial.read();
+    if (incomingByte() = 1) {
+      homingSequence();
+    }
 
   zHomingSequence();
   
