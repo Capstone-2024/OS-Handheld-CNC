@@ -257,7 +257,7 @@ void setup() {
   if (Serial.available() > 0) {
     // read the incoming byte:
     incomingByte = Serial.read();
-    if (incomingByte() = 1) {
+    if (incomingByte == 1) {
       homingSequence();
     }
   }
