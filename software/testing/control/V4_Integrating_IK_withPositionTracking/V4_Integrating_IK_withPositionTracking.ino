@@ -258,6 +258,7 @@ void setup() {
     // read the incoming byte:
     incomingByte = Serial.read();
     if (incomingByte == 1) {
+      Serial.write("HI");
       homingSequence();
     }
   }
