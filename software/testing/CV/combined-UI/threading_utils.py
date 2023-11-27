@@ -19,8 +19,8 @@ class WebcamVideoStream:
             for key in cam_props:
                 subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
                             shell=True)
-            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             # self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             # self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             
@@ -32,8 +32,6 @@ class WebcamVideoStream:
 
             self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
             self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, 100)
-            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
             # focus = 200 # min: 0, max: 255, increment:5
             # self.stream.set(cv2.CAP_PROP_FOCUS, focus)
