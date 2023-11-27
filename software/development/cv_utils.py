@@ -163,7 +163,8 @@ def pose_estimation(frame, marker_locations):
             T_i_new = T_i @ np.linalg.inv(T_i_k) 
 
             # print(f'ID: {ids[i].item()} \nT_i_new: {T_i_new}')
-            transform_matrices.append(np.linalg.inv(T_i_new))
+            # transform_matrices.append(np.linalg.inv(T_i_new))
+            transform_matrices.append(T_i_new)
 
             # Calculate Errors
             v_i_weight = marker_distortions[i]/total_distortion
