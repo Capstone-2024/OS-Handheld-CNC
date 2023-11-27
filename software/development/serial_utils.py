@@ -41,6 +41,7 @@ class ArduinoComms:
             print(device.description)
             if 'USB Serial' in device.description: 
                 port = device.device
+                
 
         self.arduino = None
         try:
