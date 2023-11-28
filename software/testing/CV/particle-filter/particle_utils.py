@@ -6,9 +6,9 @@ from scipy.optimize import minimize
 from cv_utils import manual_analyze_stitched
 
 # Define the cost function
-def cost_function(params, initial_poses, observed_positions):
+def cost_function(params, size, observed_positions):
     # Reshape the flattened parameters back into the original structure
-    reshaped_params = params.reshape((len(initial_poses), -1))
+    reshaped_params = params.reshape((size, -1))
     
     # Calculate the difference between predicted and observed marker positions
     residuals = np.concatenate([predicted_positions - observed_positions[i] for i, predicted_positions in enumerate(reshaped_params)])
@@ -17,7 +17,9 @@ def cost_function(params, initial_poses, observed_positions):
     return np.sum(residuals ** 2)
 
 # Main particle filter function with Aruco marker detection
-def pose_estimation(cap, marker_locations):
+def pose_estimation(marker_locations):
+    cap = cv2.VideoCapture(0)
+
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
 
     matrix_coefficients = np.load("./calibration_matrix.npy")
@@ -27,10 +29,6 @@ def pose_estimation(cap, marker_locations):
     img_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     while True:
-        initial_poses = [0, 0]
-        initial_poses_flat = np.concatenate(initial_poses)
-        observed_positions = []
-        
         ret, frame = cap.read()
         if not ret:
             break
@@ -72,11 +70,11 @@ def pose_estimation(cap, marker_locations):
                 rot_M = cv2.Rodrigues(rvec)[0]
                 pos = -rot_M.T @ tvec
 
-                print('World Position', marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][1]][0]-pos[1])
+                print('World Position', marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][0]][1]-pos[1])
                 x.append(marker_locations[ids[i][0]][0]-pos[0])
-                y.append(marker_locations[ids[i][1]][0]-pos[1])
+                y.append(marker_locations[ids[i][0]][1]-pos[1])
                 
-                camera_poses.append([marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][1]][0]-pos[1]])
+                camera_poses.append([marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][0]][1]-pos[1]])
 
                 i += 1
 
@@ -86,8 +84,8 @@ def pose_estimation(cap, marker_locations):
                 observed_positions = camera_poses
 
                 initial_poses_flat = initial_poses.flatten()
-                result = minimize(cost_function, initial_poses_flat, args=(observed_positions), method='L-BFGS-B')
-            print(result)
+                result = minimize(cost_function, initial_poses_flat, args=(i, observed_positions), method='L-BFGS-B')
+            # print(result)
 
             # Check Standard Deviation
             # print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
@@ -97,9 +95,9 @@ def pose_estimation(cap, marker_locations):
 
         # Retrieve refined camera poses
         refined_poses_flat = result.x
-        refined_poses = refined_poses_flat.reshape((len(initial_poses), -1))
+        refined_poses = refined_poses_flat.reshape((i, -1))
 
-        print(refined_poses)
+        # print(refined_poses[0])
         
         cv2.imshow('Frame',frame)
         
@@ -142,9 +140,7 @@ ARUCO_DICT = {
 # Example usage
 if __name__ == "__main__":
     # Replace the following parameters with your actual camera calibration data
-    cap = cv2.VideoCapture(0)
-
     marker_locations = manual_analyze_stitched()
 
     # Run the particle filter with Aruco marker detection
-    pose_estimation(cap, marker_locations)
+    pose_estimation(marker_locations)
