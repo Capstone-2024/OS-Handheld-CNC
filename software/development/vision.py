@@ -58,6 +58,7 @@ def vision_main(shape):
     arduino = ArduinoComms()
     arduino.start_transmit()
     arduino.ardu_write('H'.encode())
+    time.sleep(2)
     
     # Main Loop
     while True:
@@ -97,8 +98,8 @@ def vision_main(shape):
             print(f'Vector: {pos_diff[0], pos_diff[1]}')
             
             # Send to arduino 
-            
-            arduino.ardu_write(('I' + str(pos_diff) + ',' + str(pos_diff)).encode())
+            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+                arduino.ardu_write(('I' + str(pos_diff) + ',' + str(pos_diff)).encode())
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
