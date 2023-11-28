@@ -68,6 +68,10 @@ def vision_main(shape):
         
         if x_pos or y_pos != None: 
 
+            manual_offet = [marker_locations[17][0], -marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
+            x_pos = x_pos + manual_offet[0]
+            y_pos = y_pos + manual_offet[1]
+
             # Kalman Filter Predict and Update
             kf_x.predict()
             kf_x.update(x_pos)
@@ -78,7 +82,7 @@ def vision_main(shape):
             # print(f"Y: {kf_y.x}")
 
             ''' Calculate Local Machine Error Vector and Send to Arduino '''
-            manual_offet = [0, 0] # Should only be in x or y
+            
             # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
             
@@ -137,6 +141,8 @@ def vision_main(shape):
             ''' Only display if we are using PC '''
             if platform != "linux":
                 # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+                # imS = cv2.resize(output, (640, 480))  
+                # cv2.imshow("Output Result", imS)
                 cv2.imshow("Output Result", output)
 
             key = cv2.waitKey(1) & 0xFF

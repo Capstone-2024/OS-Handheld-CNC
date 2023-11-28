@@ -3,7 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sys import platform
 from scipy.optimize import minimize
-from cv_utils import manual_analyze_stitched
+import os
+from cv_utils import pose_estimation, plot_chart, manual_analyze_stitched, access_map
+from sklearn.ensemble import IsolationForest
 
 # Define the cost function
 def cost_function(params, size, observed_positions):
@@ -19,6 +21,8 @@ def cost_function(params, size, observed_positions):
 # Main particle filter function with Aruco marker detection
 def pose_estimation(marker_locations):
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
 
@@ -49,8 +53,8 @@ def pose_estimation(marker_locations):
         if len(corners) > 0:
             i = 0
 
-            x = []
-            y = []
+            x = np.zeros(len(corners))
+            y = np.zeros(len(corners))
 
             camera_poses = []
 
@@ -68,13 +72,30 @@ def pose_estimation(marker_locations):
                 ret, rvec, tvec = cv2.solvePnP(objp, corner, mtx, None, False, cv2.SOLVEPNP_IPPE_SQUARE)
                 # ret, rvec, tvec = cv2.solvePnP(objp, corner, matrix_coefficients, distortion_coefficients, flags=cv2.SOLVEPNP_IPPE_SQUARE)
                 rot_M = cv2.Rodrigues(rvec)[0]
-                pos = -rot_M.T @ tvec
+                # pos = -rot_M.T @ tvec
 
-                print('World Position', marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][0]][1]-pos[1])
-                x.append(marker_locations[ids[i][0]][0]-pos[0])
-                y.append(marker_locations[ids[i][0]][1]-pos[1])
+                G_t = np.eye(4)
+                G_t[:3, :3] = rot_M
+                G_t[:3, 3:4] = tvec
+
+                G_M = np.array([[1, 0, 0, marker_locations[ids[i][0]][0]], 
+                              [0, 1, 0, marker_locations[ids[i][0]][1]], 
+                              [0, 0, 1, 0], 
+                            #   [0, 0, 1, t_diff_i[2]], 
+                              [0, 0, 0, 1]])
                 
-                camera_poses.append([marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][0]][1]-pos[1]])
+                G_t_C = G_t @ G_M
+
+                position_W = np.linalg.inv(G_t_C)[:3, 3:4]
+
+                # Add to Array
+                x[i] = (position_W[0])
+                y[i] = (position_W[1])
+                
+                # print(position_W[0], position_W[1])
+                
+                # camera_poses.append([marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][0]][1]-pos[1]])
+                camera_poses.append([position_W[0], position_W[1]])
 
                 i += 1
 
@@ -87,11 +108,18 @@ def pose_estimation(marker_locations):
                 result = minimize(cost_function, initial_poses_flat, args=(i, observed_positions), method='L-BFGS-B')
             # print(result)
 
+            plt.scatter(x, y)
+
+            x, y = reject_outliers(x, y)
+            
+
+            print(f'X: {np.average(x)}, Y: {np.average(y)}')
+
             # Check Standard Deviation
             # print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
 
-            # plt.scatter(x, y)
-            # plt.show()
+            plt.scatter(x, y)
+            plt.show()
 
         # Retrieve refined camera poses
         refined_poses_flat = result.x
@@ -112,6 +140,21 @@ def pose_estimation(marker_locations):
 def draw_estimated_pose(frame, pose):
     pose_int = tuple(map(int, pose))
     cv2.circle(frame, pose_int, 10, (0, 255, 0), -1)
+
+def reject_outliers(x, y, contamination=0.2, random_state=None):
+    # Combine x and y into a 2D array
+    data = np.column_stack((x, y))
+
+    # Fit Isolation Forest model
+    model = IsolationForest(contamination=contamination, random_state=random_state)
+    outliers = model.fit_predict(data)
+
+    # Filter out outliers
+    filtered_x = x[outliers == 1]
+    filtered_y = y[outliers == 1]
+
+    return filtered_x, filtered_y
+    
 
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -139,8 +182,8 @@ ARUCO_DICT = {
 
 # Example usage
 if __name__ == "__main__":
-    # Replace the following parameters with your actual camera calibration data
     marker_locations = manual_analyze_stitched()
-
+    # data_dir = os.path.abspath("./data")
+    # marker_locations = access_map(data_dir)
     # Run the particle filter with Aruco marker detection
     pose_estimation(marker_locations)

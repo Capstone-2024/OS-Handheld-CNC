@@ -30,10 +30,10 @@ class WebcamVideoStream:
             # video.set(cv2.CAP_PROP_FOCUS, 200)
             self.stream.set(cv2.CAP_PROP_AUTOFOCUS, 1) # auto focus
 
-            self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
-            self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, 100)
-            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            # self.stream.set(cv2.CAP_PROP_EXPOSURE, 0)
+            # self.stream.set(cv2.CAP_PROP_AUTO_EXPOSURE, 100)
+            self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
             # focus = 200 # min: 0, max: 255, increment:5
             # self.stream.set(cv2.CAP_PROP_FOCUS, focus)
