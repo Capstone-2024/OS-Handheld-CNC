@@ -92,7 +92,8 @@ def vision_main(shape):
             # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
 
-            pos_diff = [shape[0][point_i] - kf_x.x[0][0], shape[1][point_i] - kf_y.x[0][0]]
+            pos_diff = [shape[0][point_i] - kf_x.x[0], shape[1][point_i] - kf_y.x[0]]
+            print(f'Vector: {pos_diff[0], pos_diff[1]}')
             
             # Send to arduino 
             
