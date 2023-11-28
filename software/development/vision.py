@@ -56,8 +56,9 @@ def vision_main(shape):
 
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
+    arduino.start_transmit()
     arduino.ardu_write('H')
-
+    
     # Main Loop
     while True:
         frame = vs.read()
@@ -73,9 +74,9 @@ def vision_main(shape):
         
         if x_pos or y_pos != None: 
 
-            manual_offet = [marker_locations[17][0],-marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
-            x_pos = x_pos + manual_offet[0]
-            y_pos = y_pos + manual_offet[1]
+            # manual_offet = [marker_locations[17][0],-marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
+            # x_pos = x_pos + manual_offet[0]
+            # y_pos = y_pos + manual_offet[1]
 
             # Kalman Filter Predict and Update
             kf_x.predict()
@@ -90,10 +91,12 @@ def vision_main(shape):
             
             # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
+
+            pos_diff = [shape[0][point_i] - kf_x.x[0][0], shape[1][point_i] - kf_y.x[0][0]]
             
             # Send to arduino 
-            # arduino.start_transmit()
-            # arduino.ardu_write(str(kf_x.x) + ',' + str(kf_y.x))
+            
+            arduino.ardu_write('I' + str(pos_diff) + ',' + str(pos_diff))
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
@@ -103,8 +106,8 @@ def vision_main(shape):
             
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
-            # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
-            #     point_i += 1
+            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+                point_i += 1
 
 
             ''' Testing Pose Estimation and Plotting for Kalman Filter '''
