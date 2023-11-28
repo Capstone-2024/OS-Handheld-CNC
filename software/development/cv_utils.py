@@ -11,13 +11,21 @@ from threading_utils import WebcamVideoStream
 from svgpathtools import svg2paths
 from sklearn.ensemble import IsolationForest
 
+from pyod.models.hbos import HBOS
+
 def pose_estimation(frame, marker_locations):
     # Pose Estimation Initialize 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
+
+    # Old Camera
     # matrix_coefficients = np.load("./calibration_matrix.npy")
     # distortion_coefficients = np.load("./distortion_coefficients.npy")
 
-    # New Camera
+    # Test Jig
+    # matrix_coefficients = np.load("./calibration_matrix_3.npy")
+    # distortion_coefficients = np.load("./distortion_coefficients_3.npy")
+
+    # On Machine
     matrix_coefficients = np.load("./calibration_matrix_2.npy")
     distortion_coefficients = np.load("./distortion_coefficients_2.npy")
 
@@ -82,10 +90,13 @@ def pose_estimation(frame, marker_locations):
                               [0, 0, 1, 0], 
                             #   [0, 0, 1, t_diff_i[2]], 
                               [0, 0, 0, 1]])
+                # print(G_M)
                 
                 G_t_C = G_t @ G_M
+                # G_t_C = G_M @ G_t
 
                 position_W = np.linalg.inv(G_t_C)[:3, 3:4]
+                # position_W = G_t_C[:3, 3:4]
 
                 # Add to Array
                 x[i] = (position_W[0])
@@ -108,13 +119,17 @@ def pose_estimation(frame, marker_locations):
         # plt.show()
 
         # plt.scatter(x, y)
-
+        
+        # Check Standard Deviation
+        print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
+        
         # x, y = reject_outliers(x, y)
+        # print(f'Before Filter: {len(x)}')
+        x, y = HBOS_outliers(x, y)
+        # print(f'After Filter: {len(x)}')
         
         pos = [np.average(x), np.average(y)]
 
-        # Check Standard Deviation
-        # print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
 
         # plt.scatter(x, y)
         # plt.show()
@@ -130,6 +145,32 @@ def pose_estimation(frame, marker_locations):
         print("Moving Too fast please slow down")
         return [None, None], frame
     
+
+def HBOS_outliers(x, y, contamination=0.2): 
+    # Combine x and y into a 2D array
+    data = np.column_stack((x, y))
+
+    # Initialize HBOS model
+    hbos_model = HBOS(contamination=contamination)
+
+    # Fit the model
+    hbos_model.fit(data)
+
+    # Obtain outlier scores
+    outlier_scores = hbos_model.decision_function(data)
+
+    # Identify inliers and outliers
+    inliers = outlier_scores < hbos_model.threshold_
+
+    # Filter the data based on inliers
+    filtered_data = data[inliers]
+
+    # Separate filtered x and y coordinates
+    filtered_x, filtered_y = filtered_data[:, 0], filtered_data[:, 1]
+
+    return filtered_x, filtered_y
+
+
 def reject_outliers(x, y, contamination=0.2, random_state=None):
     # Combine x and y into a 2D array
     data = np.column_stack((x, y))
@@ -138,7 +179,6 @@ def reject_outliers(x, y, contamination=0.2, random_state=None):
     model = IsolationForest(contamination=contamination, random_state=random_state)
     outliers = model.fit_predict(data)
 
-    # Filter out outliers
     filtered_x = x[outliers == 1]
     filtered_y = y[outliers == 1]
 

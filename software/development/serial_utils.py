@@ -32,7 +32,6 @@ ERROR CODES
 
 """
 
-
 class ArduinoComms:
     def __init__(self, baudrate=11520, timeout=1):
 

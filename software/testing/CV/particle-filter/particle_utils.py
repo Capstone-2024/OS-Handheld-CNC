@@ -26,8 +26,8 @@ def pose_estimation(marker_locations):
 
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
 
-    matrix_coefficients = np.load("./calibration_matrix.npy")
-    distortion_coefficients = np.load("./distortion_coefficients.npy")
+    matrix_coefficients = np.load("./calibration_matrix_3.npy")
+    distortion_coefficients = np.load("./distortion_coefficients_3.npy")
 
     img_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     img_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -87,6 +87,7 @@ def pose_estimation(marker_locations):
                 G_t_C = G_t @ G_M
 
                 position_W = np.linalg.inv(G_t_C)[:3, 3:4]
+                # position_W = G_t_C[:3, 3:4]
 
                 # Add to Array
                 x[i] = (position_W[0])
@@ -99,13 +100,13 @@ def pose_estimation(marker_locations):
 
                 i += 1
 
-            result = []
-            if len(corners) > 2: 
-                initial_poses = np.concatenate(camera_poses, axis=1)
-                observed_positions = camera_poses
+            # result = []
+            # if len(corners) > 2: 
+            #     initial_poses = np.concatenate(camera_poses, axis=1)
+            #     observed_positions = camera_poses
 
-                initial_poses_flat = initial_poses.flatten()
-                result = minimize(cost_function, initial_poses_flat, args=(i, observed_positions), method='L-BFGS-B')
+            #     initial_poses_flat = initial_poses.flatten()
+            #     result = minimize(cost_function, initial_poses_flat, args=(i, observed_positions), method='L-BFGS-B')
             # print(result)
 
             plt.scatter(x, y)
@@ -122,8 +123,8 @@ def pose_estimation(marker_locations):
             plt.show()
 
         # Retrieve refined camera poses
-        refined_poses_flat = result.x
-        refined_poses = refined_poses_flat.reshape((i, -1))
+        # refined_poses_flat = result.x
+        # refined_poses = refined_poses_flat.reshape((i, -1))
 
         # print(refined_poses[0])
         

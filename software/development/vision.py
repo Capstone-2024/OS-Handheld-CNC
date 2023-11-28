@@ -61,6 +61,9 @@ def vision_main(shape):
     while True:
         frame = vs.read()
 
+        # arduino.ardu_write('A')
+        # accelerometer_data = arduino.data
+
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
 
@@ -68,7 +71,7 @@ def vision_main(shape):
         
         if x_pos or y_pos != None: 
 
-            manual_offet = [marker_locations[17][0], -marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
+            manual_offet = [marker_locations[17][0],-marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
             x_pos = x_pos + manual_offet[0]
             y_pos = y_pos + manual_offet[1]
 
@@ -102,11 +105,6 @@ def vision_main(shape):
             #     point_i += 1
 
 
-            ''' Project Shape with points on to the frame '''
-            # Use the RVEC from the pose estimation and the Z value to tranform the points to the image space
-
-
-
             ''' Testing Pose Estimation and Plotting for Kalman Filter '''
             ''' Collect Data for Plotting '''
             raw_x.append(float(x_pos))
@@ -116,27 +114,27 @@ def vision_main(shape):
             y_data.append(kf_y.x[0])
 
             ''' Plot '''
-            if len(x_data) >= num_data_p:
-                # print(record_data)
-                # print(raw_x)
-                plot_chart(
-                    [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
-                )
-                df = pd.DataFrame([x_data, y_data])
-                df.to_excel("output.xlsx")
-                break
+            # if len(x_data) >= num_data_p:
+            #     # print(record_data)
+            #     # print(raw_x)
+            #     plot_chart(
+            #         [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
+            #     )
+            #     df = pd.DataFrame([x_data, y_data])
+            #     df.to_excel("output.xlsx")
+            #     break
             
 
             
             ''' Calculate FPS and Display ''' 
-            new_frame_time = time.time()
-            fps = 1 / (new_frame_time - prev_frame_time)
-            prev_frame_time = new_frame_time
-            fps = int(fps)
-            fps = str(fps)
-            font = cv2.FONT_HERSHEY_PLAIN
+            # new_frame_time = time.time()
+            # fps = 1 / (new_frame_time - prev_frame_time)
+            # prev_frame_time = new_frame_time
+            # fps = int(fps)
+            # fps = str(fps)
+            # font = cv2.FONT_HERSHEY_PLAIN
             
-            print(f"FPS: {fps}")
+            # print(f"FPS: {fps}")
             
             ''' Only display if we are using PC '''
             if platform != "linux":

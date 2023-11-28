@@ -1,6 +1,6 @@
 # Source: https://github.com/GSNCodes/ArUCo-Markers-Pose-Estimation-Generation-Python/tree/main
 # Command: py calibration.py --dir checkerboard/ --square_size 0.018
-# New Camera Command: py calibration.py --dir checkerboard/new_2/ --square_size 0.0244 --height 9 --width 6 --visualize True
+# New Camera Command: py calibration.py --dir checkerboard/new_3/ --square_size 0.0244 --height 9 --width 6 --visualize True
 
 
 import numpy as np
@@ -85,5 +85,5 @@ if __name__ == '__main__':
     print(mtx)
     print(dist)
 
-    np.save("calibration_matrix_2", mtx)
-    np.save("distortion_coefficients_2", dist)
+    np.save("calibration_matrix_3", mtx)
+    np.save("distortion_coefficients_3", dist)
