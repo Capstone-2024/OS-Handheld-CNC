@@ -10,6 +10,7 @@ from sys import platform
 from serial_utils import ArduinoComms
 import math
 import os
+from svg import svg_to_points
 
 
 def vision_main(shape):
@@ -157,5 +158,6 @@ def vision_main(shape):
 
 
 if __name__ == "__main__":
-
-    vision_main(None)
+    px_to_mm = 300/100
+    circle = svg_to_points('./svg_files/circle.svg', px_to_mm)
+    vision_main(circle)
