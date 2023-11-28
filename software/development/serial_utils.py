@@ -68,7 +68,7 @@ class ArduinoComms:
 
     def ardu_write(self, output):
         self.output = output
-        self.arduino.write(output.encode())
+        self.arduino.write(output)
 
     def start_read(self):
         Thread(target=self.ardu_read, args=())
