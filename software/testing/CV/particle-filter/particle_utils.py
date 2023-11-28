@@ -2,37 +2,22 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from sys import platform
+from scipy.optimize import minimize
+from cv_utils import manual_analyze_stitched
 
-# Function to generate initial set of particles
-def generate_particles(num_particles, img_width, img_height):
-    particles = np.random.rand(num_particles, 3)
-    particles[:, 0] *= img_width  # x-coordinate
-    particles[:, 1] *= img_height  # y-coordinate
-    particles[:, 2] = np.random.uniform(0, 2 * np.pi, num_particles)  # orientation
-    return particles
-
-# Function to update particles based on motion model (e.g., constant velocity)
-def update_particles(particles, motion_model_params):
-    particles[:, 0] += motion_model_params[0] * np.cos(particles[:, 2])  # update x
-    particles[:, 1] += motion_model_params[0] * np.sin(particles[:, 2])  # update y
-    particles[:, 2] += motion_model_params[1]  # update orientation
-    return particles
-
-# Function to compute particle weights based on observation model (e.g., using image features)
-def compute_weights(particles, observation_model_params, observed_features):
-    # Compute weights based on the difference between observed and predicted features
-    predicted_features = np.mean(particles[:, :2], axis=0)  # Use the mean position of particles as the predicted feature
-    weights = np.exp(-np.sum((observed_features - predicted_features)**2, axis=0) / (2 * observation_model_params[2]**2))
-    return weights / np.sum(weights)
-
-# Function to resample particles based on their weights
-def resample_particles(particles, weights):
-    num_particles = len(particles)
-    indices = np.random.choice(num_particles, num_particles, p=weights/np.sum(weights))  # Normalize weights before resampling
-    return particles[indices]
+# Define the cost function
+def cost_function(params, initial_poses, observed_positions):
+    # Reshape the flattened parameters back into the original structure
+    reshaped_params = params.reshape((len(initial_poses), -1))
+    
+    # Calculate the difference between predicted and observed marker positions
+    residuals = np.concatenate([predicted_positions - observed_positions[i] for i, predicted_positions in enumerate(reshaped_params)])
+    
+    # Return the sum of squared residuals
+    return np.sum(residuals ** 2)
 
 # Main particle filter function with Aruco marker detection
-def particle_filter_with_aruco(cap, num_particles, motion_model_params, observation_model_params):
+def pose_estimation(cap, marker_locations):
     aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
 
     matrix_coefficients = np.load("./calibration_matrix.npy")
@@ -42,6 +27,9 @@ def particle_filter_with_aruco(cap, num_particles, motion_model_params, observat
     img_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     while True:
+        initial_poses = [0, 0]
+        initial_poses_flat = np.concatenate(initial_poses)
+        observed_positions = []
         
         ret, frame = cap.read()
         if not ret:
@@ -61,9 +49,12 @@ def particle_filter_with_aruco(cap, num_particles, motion_model_params, observat
         corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
         if len(corners) > 0:
+            i = 0
 
             x = []
             y = []
+
+            camera_poses = []
 
             marker_size = 25.41  # mm
             
@@ -81,23 +72,41 @@ def particle_filter_with_aruco(cap, num_particles, motion_model_params, observat
                 rot_M = cv2.Rodrigues(rvec)[0]
                 pos = -rot_M.T @ tvec
 
-                print('World Posiion', pos[0], pos[1])
-                x.append(pos[0])
-                y.append(pos[1])
-                # x.append(tvec[0])
-                # y.append(tvec[1])
+                print('World Position', marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][1]][0]-pos[1])
+                x.append(marker_locations[ids[i][0]][0]-pos[0])
+                y.append(marker_locations[ids[i][1]][0]-pos[1])
+                
+                camera_poses.append([marker_locations[ids[i][0]][0]-pos[0], marker_locations[ids[i][1]][0]-pos[1]])
+
+                i += 1
+
+            result = []
+            if len(corners) > 2: 
+                initial_poses = np.concatenate(camera_poses, axis=1)
+                observed_positions = camera_poses
+
+                initial_poses_flat = initial_poses.flatten()
+                result = minimize(cost_function, initial_poses_flat, args=(observed_positions), method='L-BFGS-B')
+            print(result)
 
             # Check Standard Deviation
-            print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
+            # print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
 
-            plt.scatter(x, y)
-            plt.show()
+            # plt.scatter(x, y)
+            # plt.show()
+
+        # Retrieve refined camera poses
+        refined_poses_flat = result.x
+        refined_poses = refined_poses_flat.reshape((len(initial_poses), -1))
+
+        print(refined_poses)
         
         cv2.imshow('Frame',frame)
         
         # Exit on 'q' key press
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
     cap.release()
     cv2.destroyAllWindows()
 
@@ -133,15 +142,9 @@ ARUCO_DICT = {
 # Example usage
 if __name__ == "__main__":
     # Replace the following parameters with your actual camera calibration data
-    camera_matrix = np.load("./calibration_matrix_2.npy")
-    dist_coeff = np.load("./distortion_coefficients_2.npy")
-
-    # Replace the following parameters with your actual values
-    num_particles = 200
-    motion_model_params = [1.0, 0.1]  # [velocity, angular velocity]
-    observation_model_params = np.array([[1, 0], [0, 1], [0.1, 0.1]])  # [a, b, sigma]
-    
     cap = cv2.VideoCapture(0)
 
+    marker_locations = manual_analyze_stitched()
+
     # Run the particle filter with Aruco marker detection
-    particle_filter_with_aruco(cap, num_particles, motion_model_params, observation_model_params)
+    pose_estimation(cap, marker_locations)
