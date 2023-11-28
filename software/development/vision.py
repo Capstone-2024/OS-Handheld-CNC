@@ -55,14 +55,16 @@ def vision_main(shape):
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
     # Initialize Communication with Arduino
-    # arduino = ArduinoComms()
+    arduino = ArduinoComms()
+    arduino.ardu_write('H')
 
     # Main Loop
     while True:
         frame = vs.read()
 
-        # arduino.ardu_write('A')
-        # accelerometer_data = arduino.data
+        arduino.ardu_write('A')
+        accelerometer_data = arduino.data
+        print(accelerometer_data)
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
