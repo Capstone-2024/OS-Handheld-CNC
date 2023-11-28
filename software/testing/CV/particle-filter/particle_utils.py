@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from sys import platform
 
 # Function to generate initial set of particles
 def generate_particles(num_particles, img_width, img_height):
@@ -19,30 +21,25 @@ def update_particles(particles, motion_model_params):
 # Function to compute particle weights based on observation model (e.g., using image features)
 def compute_weights(particles, observation_model_params, observed_features):
     # Compute weights based on the difference between observed and predicted features
-    predicted_features = observation_model_params.dot(particles[:, :2].T)
+    predicted_features = np.mean(particles[:, :2], axis=0)  # Use the mean position of particles as the predicted feature
     weights = np.exp(-np.sum((observed_features - predicted_features)**2, axis=0) / (2 * observation_model_params[2]**2))
     return weights / np.sum(weights)
 
 # Function to resample particles based on their weights
 def resample_particles(particles, weights):
-    indices = np.random.choice(len(particles), len(particles), p=weights)
+    num_particles = len(particles)
+    indices = np.random.choice(num_particles, num_particles, p=weights/np.sum(weights))  # Normalize weights before resampling
     return particles[indices]
-
-# Function to detect Aruco markers and their poses in the image
-def detect_markers(img, dictionary, parameters, camera_matrix, dist_coeff):
-    corners, ids, _ = cv2.aruco.detectMarkers(img, dictionary, parameters=parameters)
-    if ids is not None:
-        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, 1.0, camera_matrix, dist_coeff)
-        return ids, rvecs, tvecs
-    else:
-        return None, None, None
 
 # Main particle filter function with Aruco marker detection
 def particle_filter_with_aruco(cap, num_particles, motion_model_params, observation_model_params):
+    aruco_dict_type = ARUCO_DICT["DICT_6X6_250"]
+
+    matrix_coefficients = np.load("./calibration_matrix.npy")
+    distortion_coefficients = np.load("./distortion_coefficients.npy")
+
     img_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     img_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-    particles = generate_particles(num_particles, img_width, img_height)
 
     while True:
         
@@ -50,34 +47,57 @@ def particle_filter_with_aruco(cap, num_particles, motion_model_params, observat
         if not ret:
             break
 
-        # Detect Aruco markers and estimate poses
-        ids, rvecs, tvecs = detect_markers(frame, aruco_dict, aruco_params, camera_matrix, dist_coeff)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        if ids is not None:
-            observed_features = tvecs[0][0]  # Using the position of the first detected marker as the observed feature
+        if platform == "linux": # cv2 V4.5
+            dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
+            parameters = cv2.aruco.DetectorParameters_create()
+            corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, dictionary, parameters=parameters)
+        else:  # cv2 V4.7+
+            dictionary = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
+            parameters = cv2.aruco.DetectorParameters()
+            detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
-            # Update particles based on motion model
-            particles = update_particles(particles, motion_model_params)
+        corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
-            # Compute weights based on observation model
-            weights = compute_weights(particles, observation_model_params, observed_features)
+        if len(corners) > 0:
 
-            # Resample particles
-            particles = resample_particles(particles, weights)
+            x = []
+            y = []
 
-            # Compute final estimated pose based on particle distribution
-            estimated_pose = np.mean(particles, axis=0)[:2]
+            marker_size = 25.41  # mm
+            
+            # Object points
+            objp = np.array([[-marker_size / 2, marker_size / 2, 0],
+                                        [marker_size / 2, marker_size / 2, 0],
+                                        [marker_size / 2, -marker_size / 2, 0],
+                                        [-marker_size / 2, -marker_size / 2, 0]], dtype=np.float32)
 
-            # Draw the estimated pose on the frame
-            draw_estimated_pose(frame, estimated_pose)
+            for corner in corners:
 
-            # Display the frame
-            cv2.imshow("Particle Filter with Aruco", frame)
+                mtx, roi = cv2.getOptimalNewCameraMatrix(matrix_coefficients, distortion_coefficients, (frame.shape[0], frame.shape[1]), 0.5, (frame.shape[0], frame.shape[1]))
+                ret, rvec, tvec = cv2.solvePnP(objp, corner, mtx, None, False, cv2.SOLVEPNP_IPPE_SQUARE)
+                # ret, rvec, tvec = cv2.solvePnP(objp, corner, matrix_coefficients, distortion_coefficients, flags=cv2.SOLVEPNP_IPPE_SQUARE)
+                rot_M = cv2.Rodrigues(rvec)[0]
+                pos = -rot_M.T @ tvec
 
-            # Exit on 'q' key press
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                print('World Posiion', pos[0], pos[1])
+                x.append(pos[0])
+                y.append(pos[1])
+                # x.append(tvec[0])
+                # y.append(tvec[1])
 
+            # Check Standard Deviation
+            print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
+
+            plt.scatter(x, y)
+            plt.show()
+        
+        cv2.imshow('Frame',frame)
+        
+        # Exit on 'q' key press
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
     cap.release()
     cv2.destroyAllWindows()
 
@@ -86,24 +106,42 @@ def draw_estimated_pose(frame, pose):
     pose_int = tuple(map(int, pose))
     cv2.circle(frame, pose_int, 10, (0, 255, 0), -1)
 
-# Replace the following parameters with your actual camera calibration data
-camera_matrix = np.load("./calibration_matrix_2.npy")
-dist_coeff = np.load("./distortion_coefficients_2.npy")
-
-# Replace the following line with the path to your Aruco marker dictionary file
-aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
-aruco_params = cv2.aruco.DetectorParameters_create()
+ARUCO_DICT = {
+    "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+    "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+    "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+    "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+    "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+    "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+    "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+    "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+    "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+    "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+    "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+    "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+    "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+    "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+    "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+    "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+    "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+    "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+    "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+    "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
+    "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11,
+}
 
 # Example usage
 if __name__ == "__main__":
-    # Replace the following parameters with your actual camera index or video file path
-    camera_index = 0
-    cap = cv2.VideoCapture(camera_index)
+    # Replace the following parameters with your actual camera calibration data
+    camera_matrix = np.load("./calibration_matrix_2.npy")
+    dist_coeff = np.load("./distortion_coefficients_2.npy")
 
     # Replace the following parameters with your actual values
     num_particles = 200
     motion_model_params = [1.0, 0.1]  # [velocity, angular velocity]
     observation_model_params = np.array([[1, 0], [0, 1], [0.1, 0.1]])  # [a, b, sigma]
+    
+    cap = cv2.VideoCapture(0)
 
     # Run the particle filter with Aruco marker detection
     particle_filter_with_aruco(cap, num_particles, motion_model_params, observation_model_params)
