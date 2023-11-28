@@ -1,5 +1,5 @@
 from threading_utils import WebcamVideoStream
-from cv_utils import pose_estimation, plot_chart, manual_analyze_stitched, access_map
+from cv_utils import pose_estimation, plot_chart, manual_analyze_stitched, access_map, svg_to_points
 import cv2
 import numpy as np
 import time
@@ -10,7 +10,6 @@ from sys import platform
 from serial_utils import ArduinoComms
 import math
 import os
-from svg import svg_to_points
 
 
 def vision_main(shape):
