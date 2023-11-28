@@ -74,9 +74,9 @@ def vision_main(shape):
         
         if x_pos or y_pos != None: 
 
-            # manual_offet = [marker_locations[17][0],-marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
-            # x_pos = x_pos + manual_offet[0]
-            # y_pos = y_pos + manual_offet[1]
+            manual_offet = [-marker_locations[17][0],-marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
+            x_pos = x_pos + manual_offet[0]
+            y_pos = y_pos + manual_offet[1]
 
             # Kalman Filter Predict and Update
             kf_x.predict()
