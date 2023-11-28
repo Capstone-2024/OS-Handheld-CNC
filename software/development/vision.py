@@ -57,13 +57,13 @@ def vision_main(shape):
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
     arduino.start_transmit()
-    arduino.ardu_write('H'.encode('ascii'))
+    arduino.ardu_write('H'.encode())
     
     # Main Loop
     while True:
         frame = vs.read()
 
-        arduino.ardu_write('A'.encode('ascii'))
+        # arduino.ardu_write('A'.encode())
         accelerometer_data = arduino.data
         print(accelerometer_data)
 
@@ -98,7 +98,7 @@ def vision_main(shape):
             
             # Send to arduino 
             
-            arduino.ardu_write(('I' + str(pos_diff) + ',' + str(pos_diff)).encode('ascii'))
+            arduino.ardu_write(('I' + str(pos_diff) + ',' + str(pos_diff)).encode())
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
@@ -108,7 +108,7 @@ def vision_main(shape):
             
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
-            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+            if abs(pos_diff[0]) < 2 and abs(pos_diff[1]) < 5: 
                 point_i += 1
 
 
