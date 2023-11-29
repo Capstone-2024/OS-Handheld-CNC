@@ -58,6 +58,7 @@ def vision_main(shape):
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
     arduino.start_transmit()
+    arduino.start_read()
     arduino.ardu_write(b'H')
     time.sleep(3)
     
@@ -66,7 +67,7 @@ def vision_main(shape):
         frame = vs.read()
 
         arduino.ardu_write(b'A')
-        accelerometer_data = arduino.data
+        accelerometer_data = arduino.ardu_read()
         print(accelerometer_data)
 
         ''' Calculate Position with Pose Estimation '''
