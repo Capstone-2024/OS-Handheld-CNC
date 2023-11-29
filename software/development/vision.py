@@ -61,15 +61,15 @@ def vision_main(shape):
     arduino.start_read()
     # arduino.ardu_write('H'.encode('ascii'))
     arduino.ardu_write('A'.encode('ascii'))
-    arduino.ardu_read()
-    print(arduino.data)
+    # arduino.ardu_read()
+    # print(arduino.data)
     time.sleep(3)
     
     # Main Loop
     while True:
         frame = vs.read()
 
-        arduino.ardu_write(b'A')
+        arduino.ardu_write('A'.encode('ascii'))
         arduino.ardu_read()
         print(arduino.data)
 
