@@ -96,21 +96,22 @@ def vision_main(shape):
 
             ''' Calculate Local Machine Error Vector and Send to Arduino '''
             
-            # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
 
-            pos_diff = [shape[0][point_i] - kf_x.x[0], shape[1][point_i] - kf_y.x[0]]
+             # pos_diff = [shape[0][point_i] - kf_x.x[0], shape[1][point_i] - kf_y.x[0]]
+
+            ''' Fixed At One Point '''
+            test_point = [0, 0]
+           
+            pos_diff = [test_point[0] - kf_x.x[0], test_point[1] - kf_y.x]
             print(f'Vector: {pos_diff[0], pos_diff[1]}')
             
             # Send to arduino 
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')
-                # arduino.ardu_write('A'.encode('ascii'))
                 write_data = 'I' + (str(round(float(pos_diff[0]), 3))) + ',' + (str(round(float(pos_diff[1]), 3)))
-                # arduino.ardu_write(struct.pack('>B', write_data))
                 arduino.ardu_write(write_data.encode())
                 print(f'Data Sent: {write_data}')
-                # arduino.ardu_write(write_data.encode('ascii'))
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
