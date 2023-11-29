@@ -80,7 +80,7 @@ class ArduinoComms:
         return self
 
     def ardu_read(self, size):
-        self.data = self.arduino.read(size).decode()
+        self.data = self.arduino.read(size).decode('uint_8')
 
     # def ardu_read(self, size): 
     #     data = self.arduino.read(size)
