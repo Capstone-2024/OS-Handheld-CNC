@@ -59,8 +59,9 @@ def vision_main(shape):
     arduino = ArduinoComms()
     # arduino.start_transmit()
     # arduino.start_read()
-    arduino.ardu_write(b'H')
-    accelerometer_data = arduino.ardu_read()
+    arduino.ardu_write('H'.encode('ascii'))
+    arduino.ardu_write('A'.encode('ascii'))
+    arduino.ardu_read()
     time.sleep(3)
     
     # Main Loop
@@ -68,8 +69,8 @@ def vision_main(shape):
         frame = vs.read()
 
         arduino.ardu_write(b'A')
-        accelerometer_data = arduino.ardu_read()
-        print(accelerometer_data)
+        arduino.ardu_read()
+        print(arduino.data)
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
