@@ -123,9 +123,9 @@ def pose_estimation(frame, marker_locations):
         # Check Standard Deviation
         print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
         
-        # x, y = reject_outliers(x, y)
+        x, y = reject_outliers(x, y)
         # print(f'Before Filter: {len(x)}')
-        x, y = HBOS_outliers(x, y)
+        # x, y = HBOS_outliers(x, y)
         # print(f'After Filter: {len(x)}')
         
         pos = [np.average(x), np.average(y)]

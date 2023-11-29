@@ -57,10 +57,8 @@ def vision_main(shape):
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
     arduino.start_transmit()
-    arduino.ardu_write(b'A')
-    time.sleep(5)
     arduino.ardu_write(b'H')
-    time.sleep(5)
+    time.sleep(3)
     
     # Main Loop
     while True:
@@ -138,14 +136,14 @@ def vision_main(shape):
 
             
             ''' Calculate FPS and Display ''' 
-            # new_frame_time = time.time()
-            # fps = 1 / (new_frame_time - prev_frame_time)
-            # prev_frame_time = new_frame_time
-            # fps = int(fps)
-            # fps = str(fps)
-            # font = cv2.FONT_HERSHEY_PLAIN
+            new_frame_time = time.time()
+            fps = 1 / (new_frame_time - prev_frame_time)
+            prev_frame_time = new_frame_time
+            fps = int(fps)
+            fps = str(fps)
+            font = cv2.FONT_HERSHEY_PLAIN
             
-            # print(f"FPS: {fps}")
+            print(f"FPS: {fps}")
             
             ''' Only display if we are using PC '''
             if platform != "linux":
