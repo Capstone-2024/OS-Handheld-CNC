@@ -57,6 +57,8 @@ def vision_main(shape):
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
     arduino.start_transmit()
+    arduino.ardu_write(b'A')
+    time.sleep(5)
     arduino.ardu_write(b'H')
     time.sleep(5)
     
