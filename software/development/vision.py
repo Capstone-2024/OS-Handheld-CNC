@@ -65,7 +65,7 @@ def vision_main(shape):
     while True:
         frame = vs.read()
 
-        # arduino.ardu_write(b'A')
+        arduino.ardu_write(b'A')
         accelerometer_data = arduino.data
         print(accelerometer_data)
 
