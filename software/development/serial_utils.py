@@ -52,7 +52,7 @@ class ArduinoComms:
         except serial.SerialException as e:
             print(f"Error: {e}")
 
-        self.data = self.ardu_read(4)
+        self.data = None
         self.output = None
         # # Sequential Status Check
         # if self.data[1] == 0:
@@ -75,12 +75,12 @@ class ArduinoComms:
         Thread(target=self.ardu_read, args=())
         return self
 
-    def ardu_read(self, size):
-        # self.data = self.arduino.read(size).decode()
-        self.data = struct.unpack('f', self.arduino.read(4))[0]
+    # def ardu_read(self, size):
+    #     # self.data = self.arduino.read(size).decode()
+    #     self.data = struct.unpack('f', self.arduino.read(4))[0]
 
     def ardu_read(self, size): 
-        self.data = struct.unpack('ff', self.arduino.read(8))
+        self.data = struct.unpack('ff', self.arduino.read(size))
 
     def close():
         arduino.close()
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     arduino = ArduinoComms()
     arduino.start_transmit()
     arduino.ardu_write('A'.encode('ascii'))
-    arduino.ardu_read(4)
+    arduino.ardu_read(8)
     print(arduino.data)
     # arduino.ardu_read(4)
     # print(arduino.data)
