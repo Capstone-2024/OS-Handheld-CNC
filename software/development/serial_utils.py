@@ -76,7 +76,8 @@ class ArduinoComms:
         return self
 
     def ardu_read(self, size):
-        self.data = self.arduino.read(size).decode()
+        # self.data = self.arduino.read(size).decode()
+        self.data = struct.unpack('f', self.arduino.read(9))[0]
 
     def close():
         arduino.close()
