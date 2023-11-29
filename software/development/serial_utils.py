@@ -1,6 +1,7 @@
 import serial.tools.list_ports
 import serial
 from threading import Thread
+import struct 
 
 """
 ERROR and STATUS CODE
@@ -75,7 +76,8 @@ class ArduinoComms:
         return self
 
     def ardu_read(self):
-        self.data = self.arduino.readline().decode().strip()
+        # self.arduino.readline().decode()
+        self.data = struct.unpack('f', self.arduino.read(4))
 
     def close():
         arduino.close()
@@ -85,5 +87,7 @@ if __name__ == "__main__":
     arduino = ArduinoComms()
     arduino.start_transmit()
     arduino.ardu_write('A'.encode('ascii'))
+    arduino.ardu_read()
+    print(arduino.data)
     arduino.ardu_read()
     print(arduino.data)
