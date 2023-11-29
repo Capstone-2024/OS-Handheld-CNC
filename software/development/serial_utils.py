@@ -52,7 +52,7 @@ class ArduinoComms:
             print(f"Connected to {port} at {baudrate} baud.")
             self.arduino.flushInput()
             self.arduino.flushOutput()
-            
+
         except serial.SerialException as e:
             print(f"Error: {e}")
 
@@ -85,10 +85,9 @@ class ArduinoComms:
 
     def ardu_read(self, size): 
         data = self.arduino.read(size)
-        print(sys.getsizeof(data))
+        print(data)
         self.data = struct.unpack('ff', data)
         
-
     def close():
         arduino.close()
 
