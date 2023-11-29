@@ -105,6 +105,7 @@ def vision_main(shape):
                 write_data = 'I' + (str(float(pos_diff[0]))) + ',' + (str(float(pos_diff[1])))
                 # arduino.ardu_write(struct.pack('>B', write_data))
                 arduino.ardu_write(write_data.encode())
+                print(f'Data Sent: {write_data}')
                 # arduino.ardu_write(write_data.encode('ascii'))
 
             ''' Testing '''
