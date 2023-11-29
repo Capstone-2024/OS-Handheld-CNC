@@ -50,6 +50,9 @@ class ArduinoComms:
                 port, baudrate, timeout=timeout
             )
             print(f"Connected to {port} at {baudrate} baud.")
+            self.arduino.flushInput()
+            self.arduino.flushOutput()
+            
         except serial.SerialException as e:
             print(f"Error: {e}")
 
