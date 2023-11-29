@@ -34,7 +34,7 @@ ERROR CODES
 """
 
 class ArduinoComms:
-    def __init__(self, baudrate=115200, timeout=1):
+    def __init__(self, baudrate=115200, timeout=0):
 
         port = ''
         for device in serial.tools.list_ports.comports(): 
