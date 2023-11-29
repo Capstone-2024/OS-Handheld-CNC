@@ -59,9 +59,10 @@ def vision_main(shape):
     arduino = ArduinoComms()
     arduino.start_transmit()
     arduino.start_read()
-    arduino.ardu_write('H'.encode('ascii'))
+    # arduino.ardu_write('H'.encode('ascii'))
     arduino.ardu_write('A'.encode('ascii'))
     arduino.ardu_read()
+    print(arduino.data)
     time.sleep(3)
     
     # Main Loop
