@@ -57,8 +57,8 @@ def vision_main(shape):
 
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
-    # arduino.start_transmit()
-    # arduino.start_read()
+    arduino.start_transmit()
+    arduino.start_read()
     arduino.ardu_write('H'.encode('ascii'))
     arduino.ardu_write('A'.encode('ascii'))
     arduino.ardu_read()
