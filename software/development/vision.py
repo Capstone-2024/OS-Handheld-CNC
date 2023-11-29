@@ -57,14 +57,14 @@ def vision_main(shape):
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
     arduino.start_transmit()
-    arduino.ardu_write('H'.encode())
+    arduino.ardu_write(b'H')
     time.sleep(5)
     
     # Main Loop
     while True:
         frame = vs.read()
 
-        # arduino.ardu_write('A'.encode())
+        # arduino.ardu_write(b'A')
         accelerometer_data = arduino.data
         print(accelerometer_data)
 
