@@ -103,8 +103,8 @@ def vision_main(shape):
                 print('Sending to Arduino...')
                 # arduino.ardu_write('A'.encode('ascii'))
                 write_data = 'I' + (str(pos_diff)) + ',' + (str(pos_diff))
-                arduino.ardu_write(struct.pack('>B', write_data))
-                # arduino.ardu_write(write_data.encode())
+                # arduino.ardu_write(struct.pack('>B', write_data))
+                arduino.ardu_write(write_data.encode())
                 # arduino.ardu_write(write_data.encode('ascii'))
 
             ''' Testing '''
