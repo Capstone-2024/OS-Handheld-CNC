@@ -52,7 +52,7 @@ class ArduinoComms:
         except serial.SerialException as e:
             print(f"Error: {e}")
 
-        self.data = self.ardu_read()
+        self.data = self.ardu_read(4)
         self.output = None
         # # Sequential Status Check
         # if self.data[1] == 0:
