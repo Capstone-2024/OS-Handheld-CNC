@@ -102,7 +102,7 @@ def vision_main(shape):
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')
                 # arduino.ardu_write('A'.encode('ascii'))
-                write_data = 'I' + (str(float(pos_diff[0]))) + ',' + (str(float(pos_diff[1])))
+                write_data = 'I' + (str(round(float(pos_diff[0]), 3))) + ',' + (str(round(float(pos_diff[1]), 3)))
                 # arduino.ardu_write(struct.pack('>B', write_data))
                 arduino.ardu_write(write_data.encode())
                 print(f'Data Sent: {write_data}')
