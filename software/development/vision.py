@@ -10,6 +10,7 @@ from sys import platform
 from serial_utils import ArduinoComms
 import math
 import os
+import struct
 
 
 def vision_main(shape):
@@ -101,8 +102,10 @@ def vision_main(shape):
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')
                 # arduino.ardu_write('A'.encode('ascii'))
-                write_data = 'I' + (str(pos_diff))+ ',' + (str(pos_diff))
-                arduino.ardu_write(write_data.encode('ascii'))
+                write_data = 'I' + (str(pos_diff)) + ',' + (str(pos_diff))
+                arduino.ardu_write(struct.pack('>B', write_data))
+                # arduino.ardu_write(write_data.encode())
+                # arduino.ardu_write(write_data.encode('ascii'))
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
