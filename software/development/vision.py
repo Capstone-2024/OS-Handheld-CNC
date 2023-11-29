@@ -118,7 +118,7 @@ def vision_main(shape):
 
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 point_i += 1
-                print(f'Step: {point_i}')
+            print(f'Step: {point_i}')
 
 
             ''' Testing Pose Estimation and Plotting for Kalman Filter '''
