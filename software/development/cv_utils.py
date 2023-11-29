@@ -36,6 +36,8 @@ def pose_estimation(frame, marker_locations):
     corners = []
     ids = []
     rejected_img_points= []
+
+    rot_M = None
     
     if platform == "linux": # cv2 V4.5
         dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
@@ -121,7 +123,7 @@ def pose_estimation(frame, marker_locations):
         # plt.scatter(x, y)
         
         # Check Standard Deviation
-        print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
+        # print(f'Std - X:{np.std(x)}, Y:{np.std(y)}')
         
         # x, y = reject_outliers(x, y)
         # print(f'Before Filter: {len(x)}')
@@ -130,14 +132,13 @@ def pose_estimation(frame, marker_locations):
         
         pos = [np.average(x), np.average(y)]
 
-
         # plt.scatter(x, y)
         # plt.show()
 
         # Display Position on Screen
         cv2.putText(frame, f"X: {round(pos[0], 2)}, Y:{round(pos[1], 2)}", (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA, False)
 
-        return [pos[0], pos[1]], frame
+        return [pos[0], pos[1]], rot_M, frame
     
     else: 
         # Trigger error

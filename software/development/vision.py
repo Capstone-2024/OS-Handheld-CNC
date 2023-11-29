@@ -74,7 +74,7 @@ def vision_main(shape):
         print(arduino.data)
 
         ''' Calculate Position with Pose Estimation '''
-        (x_pos, y_pos), output = pose_estimation(frame, marker_locations)
+        (x_pos, y_pos), rot_M, output = pose_estimation(frame, marker_locations)
 
         print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
         
@@ -103,8 +103,11 @@ def vision_main(shape):
             ''' Fixed At One Point '''
             test_point = [0, 0]
            
-            pos_diff = [test_point[0] - kf_x.x[0], test_point[1] - kf_y.x]
-            print(f'Vector: {pos_diff[0], pos_diff[1]}')
+            pos_diff = [test_point[0] - kf_x.x[0], test_point[1] - kf_y.x[0]]
+            print(f'Global Vector: {pos_diff[0], pos_diff[1]}')
+            loc_diff = rot_M * np.array([[pos_diff[0]],[pos_diff[1]],[0]])
+            print(f'Global Vector: {loc_diff[0], loc_diff[1]}')
+
             
             # Send to arduino 
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 

@@ -84,6 +84,6 @@ class ArduinoComms:
 if __name__ == "__main__":
     arduino = ArduinoComms()
     arduino.start_transmit()
-    arduino.ardu_write(1)
+    arduino.ardu_write('A'.encode('ascii'))
     arduino.ardu_read()
     print(arduino.data)
