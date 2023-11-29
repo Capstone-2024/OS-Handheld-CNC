@@ -75,7 +75,7 @@ class ArduinoComms:
         return self
 
     def ardu_read(self):
-        self.data = self.arduino.read().decode()
+        self.data = self.arduino.readline().decode()
 
     def close():
         arduino.close()
