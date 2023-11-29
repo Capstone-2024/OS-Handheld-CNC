@@ -58,7 +58,7 @@ def vision_main(shape):
     arduino = ArduinoComms()
     arduino.start_transmit()
     arduino.ardu_write('H'.encode())
-    time.sleep(2)
+    time.sleep(5)
     
     # Main Loop
     while True:
