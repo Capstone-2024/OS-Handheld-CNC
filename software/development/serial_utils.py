@@ -79,14 +79,13 @@ class ArduinoComms:
         Thread(target=self.ardu_read, args=())
         return self
 
-    # def ardu_read(self, size):
-    #     # self.data = self.arduino.read(size).decode()
-    #     self.data = struct.unpack('f', self.arduino.read(4))[0]
+    def ardu_read(self, size):
+        self.data = self.arduino.read(size).decode()
 
-    def ardu_read(self, size): 
-        data = self.arduino.read(size)
-        print(data)
-        self.data = struct.unpack('ff', data)
+    # def ardu_read(self, size): 
+    #     data = self.arduino.read(size)
+    #     print(data)
+    #     self.data = struct.unpack('ff', data)
         
     def close():
         arduino.close()
