@@ -116,8 +116,9 @@ def vision_main(shape):
             
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
-            if abs(pos_diff[0]) < 2 and abs(pos_diff[1]) < 5: 
+            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 point_i += 1
+                print(f'Step: {point_i}')
 
 
             ''' Testing Pose Estimation and Plotting for Kalman Filter '''
