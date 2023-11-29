@@ -102,7 +102,7 @@ def vision_main(shape):
             # Send to arduino 
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')
-                arduino.ardu_write(('I' + str(pos_diff) + ',' + str(pos_diff)).encode())
+                arduino.ardu_write(('I' + str(pos_diff) + ',' + str(pos_diff)).encode('ascii'))
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
