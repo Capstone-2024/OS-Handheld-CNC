@@ -107,8 +107,8 @@ if __name__ == "__main__":
         arduino.flushInput()
         arduino.flushOutput()
 
-        arduino.write('H'.encode('ascii'))
-        arduino.write(b'A')
+        # arduino.write('H'.encode('ascii'))
+        arduino.write('A'.encode('ascii'))
         time.sleep(1)
         data = arduino.readline()
         data1, data2 = struct.unpack('ff', data)
