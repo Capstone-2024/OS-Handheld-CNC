@@ -122,6 +122,7 @@ if __name__ == "__main__":
     arduino.ardu_write('A'.encode('ascii'))
     arduino.start_read()
     arduino.ardu_read(10)
+    print(arduino.arduino.readline())
     print(arduino.data)
 
     # arduino.ardu_read(4)
