@@ -103,7 +103,7 @@ if __name__ == "__main__":
         time.sleep(1)
         # data = arduino.readline()
     
-        data = arduino.readlines()
+        data = arduino.readline()
         print(data)
 
         arduino.close()
