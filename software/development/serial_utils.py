@@ -59,14 +59,6 @@ class ArduinoComms:
 
         self.data = None
         self.output = None
-        # # Sequential Status Check
-        # if self.data[1] == 0:
-        #     self.status = 1 # Do nothing
-        #     print(self.status)
-        # # elif self.data[1]==1:
-        # #     self.ardu_write(self.data + outbound_data)
-        # elif self.data[1] == 3:
-        #     self.status = 0
 
     def start_transmit(self):
         Thread(target=self.ardu_write, args=())
@@ -128,7 +120,8 @@ if __name__ == "__main__":
     arduino = ArduinoComms()
     arduino.start_transmit()
     arduino.ardu_write('A'.encode('ascii'))
-    arduino.ardu_read(4)
+    arduino.start_read()
+    arduino.ardu_read(8)
     print(arduino.data)
 
     # arduino.ardu_read(4)
