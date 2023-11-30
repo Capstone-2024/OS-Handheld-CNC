@@ -108,7 +108,7 @@ if __name__ == "__main__":
         arduino.flushOutput()
 
         # arduino.write('H'.encode('ascii'))
-        arduino.write('A'.encode('ascii'))
+        arduino.write('A'.encode())
         time.sleep(1)
         # data = arduino.readline()
     
