@@ -51,7 +51,7 @@ def vision_main(shape):
     # Q
     Q = 10**2  # process variance
 
-    x = np.array([0.0, 0.0])
+    x = np.array([0.0, 0.0, 0.0])
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 

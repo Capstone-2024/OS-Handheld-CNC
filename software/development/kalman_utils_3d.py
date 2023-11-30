@@ -17,12 +17,12 @@ def PE_filter(x, P, R, Q, dt):
     """ Returns a KalmanFilter which implements a
     constant acceleration model for a state [x dx].T
     """
-    kf = KalmanFilter(dim_x=3, dim_z=1)
+    kf = KalmanFilter(dim_x=3, dim_z=2)
     kf.x = np.array([x[0], x[1], x[2]]) # position, velocity, acceleration
     kf.F = np.array([[1., dt, 1/2*(dt**2)], 
                      [0., 1., dt], 
                      [0., 0., 1.]]) # state transition matrix
-    kf.H = np.array([[1., 0, 0]]) # Measurement function
+    kf.H = np.array([[1., 0, 0.]]) # Measurement function
     kf.R *= R # measurement uncertainty
 
     if np.isscalar(P):

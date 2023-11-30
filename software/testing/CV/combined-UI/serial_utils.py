@@ -2,37 +2,6 @@ import serial.tools.list_ports
 import serial
 from threading import Thread
 
-"""
-ERROR and STATUS CODE
-
-STATUS CODES
------------------------
-Link Status
-L0 - standby
-L1 - Arduino request for data
-L2 - 
-L3 - 
-
-Z Status
-Z0 - standby
-Z1 - Arduino request for data
-Z2 - 
-
-Safety Button Status 
-B0 - 
-B1 -
-
-
-Accelerometer Status
-A0 - standby
-A2 - 
-
------------------------
-ERROR CODES
-
-"""
-
-
 class ArduinoComms:
     def __init__(self, baudrate=11520, timeout=1):
 
