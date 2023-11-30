@@ -79,13 +79,13 @@ class ArduinoComms:
         Thread(target=self.ardu_read, args=())
         return self
 
-    # def ardu_read(self, size):
-    #     self.data = self.arduino.read(size).decode('uint_8')
+    def ardu_read(self, size):
+        self.data = self.arduino.read(size).decode()
 
-    def ardu_read(self, size): 
-        data = self.arduino.read(size)
-        print(data)
-        self.data = struct.unpack('ff', data)
+    # def ardu_read(self, size): 
+    #     data = self.arduino.read(size)
+    #     print(data)
+    #     self.data = struct.unpack('ff', data)
         
     def close():
         arduino.close()
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     arduino = ArduinoComms()
     arduino.start_transmit()
     arduino.ardu_write('A'.encode('ascii'))
-    arduino.ardu_read(8)
+    arduino.ardu_read(4)
     print(arduino.data)
     # arduino.ardu_read(4)
     # print(arduino.data)
