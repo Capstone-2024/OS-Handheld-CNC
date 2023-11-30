@@ -110,12 +110,12 @@ if __name__ == "__main__":
         # arduino.write('H'.encode('ascii'))
         arduino.write('A'.encode('ascii'))
         time.sleep(1)
-        data = arduino.readline()
-        data1, data2 = struct.unpack('ff', data)
-        # if arduino.in_waiting:
-        #     # data = arduino.readline().decode()
-        #     data = arduino.read(8)
-        #     data1, data2 = struct.unpack('ff', data)
+        # data = arduino.readline()
+        # data1, data2 = struct.unpack('ff', data)
+        while arduino.in_waiting:
+            # data = arduino.readline().decode()
+            data = arduino.read(8)
+            data1, data2 = struct.unpack('ff', data)
             
         #     print(data)
         # else: 
