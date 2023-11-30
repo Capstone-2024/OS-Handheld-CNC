@@ -57,10 +57,10 @@ def vision_main(shape):
 
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
-    arduino.start_transmit()
-    arduino.start_read()
+    # arduino.start_transmit()
+    # arduino.start_read()
     # arduino.ardu_write('H'.encode('ascii'))
-    arduino.ardu_write('A'.encode('ascii'))
+    # arduino.ardu_write('A'.encode('ascii'))
     # arduino.ardu_read()
     # print(arduino.data)
     time.sleep(3)
@@ -127,7 +127,6 @@ def vision_main(shape):
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 point_i += 1
             print(f'Step: {point_i}')
-
 
             ''' Testing Pose Estimation and Plotting for Kalman Filter '''
             ''' Collect Data for Plotting '''
