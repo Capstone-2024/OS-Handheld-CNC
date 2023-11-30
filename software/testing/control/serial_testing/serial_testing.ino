@@ -677,9 +677,9 @@ void sampleAccelerometer()
   float y_accel = event.acceleration.y;
   // float accel = sqrt(sq(z_accel) + sq(y_accel));
 
-  Serial.write(z_accel);
+  Serial.print(z_accel);
   Serial.print(',');
-  Serial.write(y_accel);
+  Serial.print(y_accel);
   Serial.print('\r\n');
 
   return;
