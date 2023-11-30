@@ -3,6 +3,7 @@ import serial
 from threading import Thread
 import struct 
 import sys
+import time
 
 """
 ERROR and STATUS CODE
@@ -107,6 +108,7 @@ if __name__ == "__main__":
         arduino.flushOutput()
 
         arduino.write('A'.encode('ascii'))
+        time.sleep(1)
         if arduino.in_waiting:
             # data = arduino.readline().decode()
             data = arduino.read(8)
