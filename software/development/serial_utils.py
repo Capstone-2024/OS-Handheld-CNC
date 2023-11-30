@@ -107,8 +107,14 @@ if __name__ == "__main__":
         arduino.flushOutput()
 
         arduino.write('A'.encode('ascii'))
-        data = arduino.read(4).decode()
-        print(data)
+        if arduino.in_waiting:
+            # data = arduino.readline().decode()
+            data = arduino.read(8)
+            data1, data2 = struct.unpack('ff', data)
+            
+            print(data)
+        else: 
+            print("No Data")
 
     except serial.SerialException as e:
         print(f"Error: {e}")
