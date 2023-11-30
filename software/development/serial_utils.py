@@ -107,6 +107,7 @@ if __name__ == "__main__":
         arduino.flushInput()
         arduino.flushOutput()
 
+        arduino.write(b'H')
         arduino.write(b'A')
         time.sleep(1)
         data = arduino.readline()
