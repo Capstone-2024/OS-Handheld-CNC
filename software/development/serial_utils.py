@@ -112,14 +112,10 @@ if __name__ == "__main__":
         time.sleep(1)
         # data = arduino.readline()
     
-        data = arduino.readline()
+        data = arduino.readline().decode()
         print(data)
-        data1, data2 = struct.unpack('ff', data)
 
-        while arduino.in_waiting:
-            # data = arduino.readline().decode()
-            
-            data1, data2 = struct.unpack('ff', data)
+        arduino.close()
             
         #     print(data)
         # else: 
