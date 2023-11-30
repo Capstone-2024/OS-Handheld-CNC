@@ -121,7 +121,7 @@ if __name__ == "__main__":
     arduino.start_transmit()
     arduino.ardu_write('A'.encode('ascii'))
     arduino.start_read()
-    arduino.ardu_read(8)
+    arduino.ardu_read(10)
     print(arduino.data)
 
     # arduino.ardu_read(4)
