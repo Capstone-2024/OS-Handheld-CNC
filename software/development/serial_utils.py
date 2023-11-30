@@ -113,6 +113,7 @@ if __name__ == "__main__":
         # data = arduino.readline()
     
         data = arduino.readline()
+        print(data)
         data1, data2 = struct.unpack('ff', data)
 
         while arduino.in_waiting:
