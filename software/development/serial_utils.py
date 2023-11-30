@@ -87,15 +87,38 @@ class ArduinoComms:
     #     print(data)
     #     self.data = struct.unpack('ff', data)
         
-    def close():
-        arduino.close()
+    def close(self):
+        self.arduino.close()
 
 
 if __name__ == "__main__":
-    arduino = ArduinoComms()
-    arduino.start_transmit()
-    arduino.ardu_write('A'.encode('ascii'))
-    arduino.ardu_read(4)
-    print(arduino.data)
+    port = ''
+
+    for device in serial.tools.list_ports.comports(): 
+        print(device.description)
+        if 'USB Serial' in device.description: 
+            port = device.device
+            
+    try:
+        arduino = serial.Serial(
+            port, 115200, timeout=1
+        )
+        arduino.flushInput()
+        arduino.flushOutput()
+
+        arduino.write('A'.encode('ascii'))
+        data = arduino.read(4).decode()
+        print(data)
+
+    except serial.SerialException as e:
+        print(f"Error: {e}")
+
+
+    # arduino = ArduinoComms()
+    # arduino.start_transmit()
+    # arduino.ardu_write('A'.encode('ascii'))
+    # arduino.ardu_read(4)
+    # print(arduino.data)
+
     # arduino.ardu_read(4)
     # print(arduino.data)
