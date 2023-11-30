@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
         arduino.write('A'.encode('ascii'))
         time.sleep(1)
-        data = arduino.read(8)
+        data = arduino.readline()
         data1, data2 = struct.unpack('ff', data)
         # if arduino.in_waiting:
         #     # data = arduino.readline().decode()
