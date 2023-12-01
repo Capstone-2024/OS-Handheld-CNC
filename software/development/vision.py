@@ -67,31 +67,33 @@ def vision_main(shape):
     # # print(arduino.data)
     # time.sleep(3)
 
-    port = ''
+    # port = ''
 
-    for device in serial.tools.list_ports.comports(): 
-        print(device.description)
-        if 'USB Serial' in device.description: 
-            port = device.device
+    # for device in serial.tools.list_ports.comports(): 
+    #     print(device.description)
+    #     if 'USB Serial' in device.description: 
+    #         port = device.device
             
-    try:
-        arduino = serial.Serial(
-            port, baudrate=115200
-        )
+    # try:
+    #     arduino = serial.Serial(
+    #         port, baudrate=115200
+    #     )
         
-        arduino.write('H'.encode('ascii'))
-        arduino.write('S'.encode('ascii'))
-        # arduino.write('A'.encode('ascii'))
-        time.sleep(1)
-        # data = arduino.readline()
+    #     arduino.write('H'.encode('ascii'))
+    #     arduino.write('S'.encode('ascii'))
+    #     # arduino.write('A'.encode('ascii'))
+    #     time.sleep(1)
+    #     # data = arduino.readline()
     
-        # data = arduino.readline()
-        # print(data)
+    #     # data = arduino.readline()
+    #     # print(data)
 
-        arduino.close()
+    #     arduino.close()
 
-    except serial.SerialException as e:
-        print(f"Error: {e}")
+    # except serial.SerialException as e:
+    #     print(f"Error: {e}")
+
+
     
     # Main Loop
     while True:
@@ -122,11 +124,12 @@ def vision_main(shape):
             kf_y.update(y_pos)
             # print(f"Y: {kf_y.x}")
 
+
             ''' Calculate Local Machine Error Vector and Send to Arduino '''
-            
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
 
-             # pos_diff = [shape[0][point_i] - kf_x.x[0], shape[1][point_i] - kf_y.x[0]]
+            # pos_diff = [shape[0][point_i] - kf_x.x[0], shape[1][point_i] - kf_y.x[0]]
+
 
             ''' Fixed At One Point '''
             test_point = [0, 0]
@@ -140,7 +143,7 @@ def vision_main(shape):
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')
                 write_data = 'I' + (str(round(float(pos_diff[0]), 3))) + ',' + (str(round(float(pos_diff[1]), 3)))
-                arduino.ardu_write(write_data.encode())
+                # arduino.ardu_write(write_data.encode())
                 print(f'Data Sent: {write_data}')
 
             ''' Testing '''

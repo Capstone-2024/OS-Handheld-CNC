@@ -21,13 +21,12 @@ class ArduinoComms:
                 port, baudrate, timeout=timeout
             )
             print(f"Connected to {port} at {baudrate} baud.")
-            # self.arduino.flushInput()
-            # self.arduino.flushOutput()
 
         except serial.SerialException as e:
             print(f"Error: {e}")
 
         self.data = None
+        self.ardu_read(8)
         self.output = None
 
     def start_transmit(self):
@@ -44,35 +43,29 @@ class ArduinoComms:
 
     def ardu_read(self, size):
         self.data = self.arduino.read(size).decode()
-
-    # def ardu_read(self, size): 
-    #     data = self.arduino.read(size)
-    #     print(data)
-    #     self.data = struct.unpack('ff', data)
         
     def close(self):
         self.arduino.close()
 
 
 if __name__ == "__main__":
-    port = ''
+    # port = ''
 
-    for device in serial.tools.list_ports.comports(): 
-        print(device.description)
-        if 'USB Serial' in device.description: 
-            port = device.device
+    # for device in serial.tools.list_ports.comports(): 
+    #     print(device.description)
+    #     if 'USB Serial' in device.description: 
+    #         port = device.device
             
-    arduino = serial.Serial(
-        port, baudrate=115200
-    )
+    # arduino = serial.Serial(port, baudrate=115200)
+    # arduino.write('H'.encode('ascii'))
+    # time.sleep(0.5)
+    # arduino.write('S'.encode('ascii'))
 
-    arduino.write('H'.encode('ascii'))
-    arduino.write('S'.encode('ascii'))
 
-    # arduino = ArduinoComms()
-    # # arduino.start_transmit()
+    arduino = ArduinoComms()
+    arduino.start_transmit()
     # arduino.ardu_write('A'.encode('ascii'))
     # # arduino.start_read()
-    # arduino.ardu_read(10)
+    arduino.ardu_read(8)
     # print(arduino.arduino.readline())
     # print(arduino.data)
