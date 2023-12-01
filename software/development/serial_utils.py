@@ -66,15 +66,15 @@ if __name__ == "__main__":
         arduino = serial.Serial(
             port, baudrate=115200
         )
-        arduino.flush()
+        # arduino.flush()
 
-        # arduino.write('H'.encode('ascii'))
-        arduino.write('A'.encode())
+        arduino.write('H'.encode('ascii'))
+        arduino.write('S'.encode('ascii'))
         time.sleep(1)
         # data = arduino.readline()
     
-        data = arduino.readline()
-        print(data)
+        # data = arduino.readline()
+        # print(data)
 
         arduino.close()
 

@@ -78,9 +78,7 @@ def vision_main(shape):
         arduino = serial.Serial(
             port, baudrate=115200
         )
-        arduino.flush()
-
-        # arduino.write('H'.encode('ascii'))
+        
         arduino.write('H'.encode('ascii'))
         arduino.write('S'.encode('ascii'))
         # arduino.write('A'.encode('ascii'))
