@@ -18,7 +18,7 @@ class ArduinoComms:
         self.arduino = None
         try:
             self.arduino = serial.Serial(
-                port, baudrate, timeout=timeout
+                port, baudrate
             )
             print(f"Connected to {port} at {baudrate} baud.")
 
