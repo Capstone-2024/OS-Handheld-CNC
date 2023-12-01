@@ -89,8 +89,8 @@ float currentTheta4;
 
 float penPoints[400][3];
 
-const float homedTheta1 = 130.44;
-const float homedTheta4 = 128.69;
+const float homedTheta1 = 105.872;
+const float homedTheta4 = 235.145;
 
 int cycle = 1;
 
@@ -192,33 +192,33 @@ void setup() {
       float r2 = sqrt(pow(xd, 2) + pow(yd, 2));
 
       float theta2_1 = acos((pow(l2, 2) + pow(r1, 2) - pow(l3, 2)) / (2*l2*r1));
-      float theta2_2 = acos((pow(l1, 2) + pow(r1, 1) - pow(r2, 2)) / (2*l1*r1));
+      float theta2_2 = acos((pow(l1, 2) + pow(r1, 2) - pow(r2, 2)) / (2*l1*r1));
 
-      float xc, yc; 
+      float xc;
+      float yc; 
 
-      if (theta1 >= 0 && theta1 < PI / 2) {
+      if (theta1 >= 0 && (theta1 < (PI/2))) {
         float theta2in = theta2_1 + theta2_2;
         float theta2 = theta2in - PI;
         xc = xb + l2*cos(theta1+theta2);
         yc = yb + l2*sin(theta1+theta2);
-      } else if (theta1 >= PI / 2 && theta1 < PI) {
+      } else if ((theta1 >= (PI/2)) && (theta1 < PI)) {
+        float theta2in = theta2_1 + theta2_2;
+        float theta2 = PI - theta2in;
+        xc = xb + l2*cos(theta1-theta2);
+        yc = yb + l2*sin(theta1-theta2);
+      } else if ((theta1 >= PI) && (theta1 < (3*PI/2))) {
         float theta2in = theta2_1 - theta2_2;
         float theta2 = PI - theta2in;
         xc = xb + l2*cos(theta1-theta2);
         yc = yb + l2*sin(theta1-theta2);
-      } else if (theta1 >= PI && theta1 < 3 * PI / 2) {
-        float theta2in = theta2_1 + theta2_2;
-        float theta2 = theta2in - PI;
-        xc = xb + l2*cos(theta1+theta2);
-        yc = yb + l2*sin(theta1+theta2);
-      } else if (theta1 >= 3 * PI / 2 && theta1 <= 2 * PI) {
+      } else if ((theta1 >= (3*PI/2)) && (theta1 <= (2*PI))) {
         float theta2in = theta2_2 - theta2_1;
         float theta2 = PI - theta2in;
         xc = xb + l2*cos(theta1+theta2);
         yc = yb + l2*sin(theta1+theta2);
       }
-     
-
+      
       float thetaPen = asin((xc-xb)/l2) + DEG_TO_RAD*(29.1+90);
       float thetaPenInv = PI - thetaPen;
       penPoints[count][0] = xc - 45.011*sin(thetaPenInv);
@@ -304,7 +304,7 @@ void loop()
   char instruction = Serial.read();
   // 2 Packet sizes, either 1 byte for simple instruction, or 9 bytes for complex instruction
 
-  if((int) instruction == 73)
+  if((int)instruction == 73)
   {
       float xPacket = Serial.parseFloat();
       char comma = Serial.read(); // Read and discard comma delimiter
@@ -334,8 +334,9 @@ void loop()
   }
   else if((int)instruction == 83)
   {
-    float poses[4][2]={{-5,0},{0,5},{5,0},{0,-5}};
-    for(int i = 0; i<4; i++)
+    int via = 3;
+    float poses[via][2]={{7,-7},{7,7},{-14,0}};
+    for(int i = 0; i<via; i++)
     {
       autoCorrection(poses[i][0], poses[i][1]);
     }
@@ -402,11 +403,11 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   
   if(desiredSteps[0] > 0)
   {
-    driver.shaft(false);
+    driver.shaft(true);
   }
   else
   {
-    driver.shaft(true);
+    driver.shaft(false);
   }
 
   if(desiredSteps[1] > 0)
@@ -452,10 +453,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
   float x = currentPosX + desiredDeltaX;
   float y = currentPosY + desiredDeltaY;
 
-//  Serial.print("Pen X: ");
-//  Serial.println(x);
-//  Serial.print("Pen Y: ");
-//  Serial.println(y);
+  Serial.print("Pen X: ");
+  Serial.println(x);
+  Serial.print("Pen Y: ");
+  Serial.println(y);
 
   float minDiff = 1000;
   int minIndex = 0;
@@ -475,16 +476,16 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
 
   float thetaPenCurr = penPoints[minIndex][2];
 
-//  Serial.print("Theta Pen: ");
-//  Serial.println(RAD_TO_DEG*thetaPenCurr);
+  Serial.print("Theta Pen: ");
+  Serial.println(RAD_TO_DEG*thetaPenCurr);
 
   x = x + 45.011*sin(thetaPenCurr);
   y = y - 45.011*cos(thetaPenCurr);
 
-//  Serial.print("End Effector X: ");
-//  Serial.println(x);
-//  Serial.print("End Effector Y: ");
-//  Serial.println(y);
+  Serial.print("End Effector X: ");
+  Serial.println(x);
+  Serial.print("End Effector Y: ");
+  Serial.println(y);
 
   float w = l5;
 
@@ -582,10 +583,11 @@ void startupSequence()
 
 void homingSequence()
 {
-    shaftVal = true;
     int flagLeft = 0;
     int flagRight = 0;
 
+    driver.shaft(true);
+    driver2.shaft(true);
 
     while(flagLeft*flagRight != 1)
     {
@@ -611,6 +613,8 @@ void homingSequence()
 
     currentPosX = penOriginX;
     currentPosY = penOriginY;
+    currentTheta1 = homedTheta1;
+    currentTheta4 = homedTheta4;
 
 //    pixels.clear();
 //    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
