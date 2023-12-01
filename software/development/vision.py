@@ -71,7 +71,7 @@ def vision_main(shape):
         frame = vs.read()
 
         arduino.ardu_write('A'.encode('ascii'))
-        arduino.ardu_read()
+        arduino.ardu_read(8)
         print(arduino.data)
 
         ''' Calculate Position with Pose Estimation '''
