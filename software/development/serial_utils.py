@@ -2,6 +2,7 @@ import time
 import platform
 from pySerialTransfer import pySerialTransfer as txfer
 import serial.tools.list_ports
+from sys import platform
 
 
 class ArduinoComms:
@@ -16,7 +17,7 @@ class ArduinoComms:
         port = ""
         for device in serial.tools.list_ports.comports():
             print(device)
-            if platform.system() == "Linux":
+            if platform == "Linux":
                 port = '/dev/ttyUSB0'
             else:
                 port = 'COM7'
