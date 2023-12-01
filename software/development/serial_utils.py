@@ -1,42 +1,39 @@
 import time
-from sys import platform
+import platform
 from pySerialTransfer import pySerialTransfer as txfer
 import serial.tools.list_ports
 
+
 class ArduinoComms:
-    '''
+    """
     Initialzes the Arduino Serial communication. Uses the pySerialTransfer library.
-    '''
+    """
+
     def __init__(self, baudrate=115200):
         self.link = self.start_arduino_comms(baudrate)
 
     def start_arduino_comms(self, baudrate):
-        port = '/dev/ttyUSB0'
-
-        if platform != 'linux': 
-            for device in serial.tools.list_ports.comports():
-                    if "Arduino" in device.description:
-                        port = device.device
-
+        port = "COM7"
+        # for device in serial.tools.list_ports.comports():
+        #     print(device)
+        #     if platform.system() == "Linux":
+        #         port = '/dev/ttyUSB0'
+        #     else:
+        #         port = 'COM7'
         link = txfer.SerialTransfer(port, baud=baudrate)
-
         link.open()
         time.sleep(2)  # allow some time for the Arduino to completely reset
-
         return link
 
     def read_accel(self):
         # try:
         # Keep track of packet size
         send_size = 0
-
         # Send 'A' to start transfer
         str_ = "A"
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
-
         self.link.send(send_size)
-
         """ Wait for a response and report any errors while receiving packets """
         while not self.link.available():
             if self.link.status < 0:
@@ -48,25 +45,24 @@ class ArduinoComms:
                     print("ERROR: STOP_BYTE_ERROR")
                 else:
                     print("ERROR: {}".format(self.link.status))
-
         # Parse response list
         rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4)
-
         rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=(4))
-
-        # print("SENT: {}".format(str_))
-        # print("RCVD: {} {}".format(rec_float_, rec_float_2_))
+        print("SENT: {}".format(str_))
+        print("RCVD: {} {}".format(rec_float_, rec_float_2_))
         # print(" ")
         return rec_float_, rec_float_2_
 
     def send_error(self, x, y):
-        '''
+        """
         Sends the appropriate error vector for each time cycle.
-        '''
+        """
         # Keep track of packet size
         send_size = 0
-
         # Send Error Vector
+        str_ = "I"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
         x_size = self.link.tx_obj(x, send_size) - send_size
         send_size += x_size
         y_size = self.link.tx_obj(y, send_size) - send_size
@@ -76,13 +72,12 @@ class ArduinoComms:
     def home(self):
         # Keep track of packet size
         send_size = 0
-
-        # Send 'A' to start transfer
-        str_ = "A"
+        # Send 'H' to home
+        str_ = "H"
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
-
         self.link.send(send_size)
+
 
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
@@ -90,4 +85,5 @@ if __name__ == "__main__":
 
     while True:
         arduino_communicator.read_accel()
-        arduino_communicator.send_error(0.0, 1.1)
+        arduino_communicator.send_error(0.2, 0.0)
+        arduino_communicator.send_error(-0.2, 0.0)

@@ -105,11 +105,11 @@ void leftInterrupt()
   int breakTime = millis();
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
     if ((millis() - breakTime) >= 5000)
     {
@@ -124,11 +124,11 @@ void rightInterrupt()
   int breakTime = millis();
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
     if ((millis() - breakTime) >= 5000)
     {
@@ -169,10 +169,10 @@ void setup()
   }
   pixels.show(); // Send the updated pixel colors to the hardware.
 
-  //  if(!accel.begin()) {
-  //    Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-  //    while(1);
-  //  }
+   if(!accel.begin()) {
+     Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
+     while(1);
+   }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
   currentPosX = penOriginX;
@@ -369,7 +369,7 @@ void loop()
 
     if (int(instruction) == 73)
     {
-      uint16_t recSize = 0;
+      uint16_t recSize = 1; // Start after the character byte
       float xPacket;
       float yPacket;
 

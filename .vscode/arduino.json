@@ -1,6 +1,7 @@
 {
-    "board": "arduino:avr:uno",
+    "board": "arduino:avr:mega",
     "programmer": "avrisp",
-    "sketch": "software\\testing\\control\\serial_uno_test\\serial_uno_test.ino",
-    "port": "COM8"
+    "sketch": "software\\testing\\control\\Nov29_WorkingAutoCorrect\\Nov29_WorkingAutoCorrect.ino",
+    "port": "COM7",
+    "configuration": "cpu=atmega2560"
 }
