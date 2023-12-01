@@ -26,7 +26,7 @@ class ArduinoComms:
             print(f"Error: {e}")
 
         self.data = None
-        self.ardu_read(8)
+        self.lineData = None
         self.output = None
 
     def start_transmit(self):
@@ -43,6 +43,9 @@ class ArduinoComms:
 
     def ardu_read(self, size):
         self.data = self.arduino.read(size).decode()
+
+    def ardu_readline(self): 
+        self.lineData = self.arduino.readline()
         
     def close(self):
         self.arduino.close()
@@ -68,7 +71,7 @@ if __name__ == "__main__":
     arduino.ardu_write('H'.encode('ascii'))
     time.sleep(1)
     arduino.ardu_write('A'.encode('ascii'))
-    # arduino.start_read()
-    arduino.ardu_read(8)
-    print(arduino.arduino.readline().decode())
-    print(arduino.data)
+    arduino.start_read()
+    # arduino.ardu_read(8)
+    print(arduino.readline())
+    # print(arduino.data)
