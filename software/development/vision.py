@@ -57,9 +57,10 @@ def vision_main(shape):
 
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
-    # arduino.start_transmit()
+    arduino.start_transmit()
     # arduino.start_read()
-    # arduino.ardu_write('H'.encode('ascii'))
+    arduino.ardu_write('H'.encode('ascii'))
+    arduino.ardu_write('S'.encode('ascii'))
     # arduino.ardu_write('A'.encode('ascii'))
     # arduino.ardu_read()
     # print(arduino.data)
@@ -108,7 +109,6 @@ def vision_main(shape):
             loc_diff = rot_M * np.array([[pos_diff[0]],[pos_diff[1]],[0]])
             print(f'Global Vector: {loc_diff[0], loc_diff[1]}')
 
-            
             # Send to arduino 
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')
@@ -146,8 +146,6 @@ def vision_main(shape):
             #     df = pd.DataFrame([x_data, y_data])
             #     df.to_excel("output.xlsx")
             #     break
-            
-
             
             ''' Calculate FPS and Display ''' 
             new_frame_time = time.time()
