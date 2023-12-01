@@ -11,8 +11,8 @@ class ArduinoComms:
         self.link = self.start_arduino_comms(baudrate)
 
     def start_arduino_comms(self, baudrate):
-        port =' /dev/ttyUSB0'
-        
+        port = '/dev/ttyUSB0'
+
         if platform != 'linux': 
             for device in serial.tools.list_ports.comports():
                     if "Arduino" in device.description:
