@@ -57,21 +57,14 @@ def vision_main(shape):
 
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
-    # arduino.start_transmit()
-    # arduino.start_read()
-    # arduino.ardu_write('H'.encode('ascii'))
-    # arduino.ardu_write('A'.encode('ascii'))
-    # arduino.ardu_read()
-    # print(arduino.data)
-    time.sleep(3)
+    arduino.home()
     
     # Main Loop
     while True:
         frame = vs.read()
 
-        arduino.ardu_write('A'.encode('ascii'))
-        arduino.ardu_read()
-        print(arduino.data)
+        accel_x, accel_y = arduino.read_accel()
+        print(accel_x, accel_y)
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), rot_M, output = pose_estimation(frame, marker_locations)
@@ -108,7 +101,6 @@ def vision_main(shape):
             loc_diff = rot_M * np.array([[pos_diff[0]],[pos_diff[1]],[0]])
             print(f'Global Vector: {loc_diff[0], loc_diff[1]}')
 
-            
             # Send to arduino 
             if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')

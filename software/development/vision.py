@@ -57,51 +57,15 @@ def vision_main(shape):
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
     # Initialize Communication with Arduino
-    # arduino = ArduinoComms()
-    # arduino.start_transmit()
-    # # arduino.start_read()
-    # arduino.ardu_write('H'.encode('ascii'))
-    # arduino.ardu_write('S'.encode('ascii'))
-    # # arduino.ardu_write('A'.encode('ascii'))
-    # # arduino.ardu_read()
-    # # print(arduino.data)
-    # time.sleep(3)
+    arduino = ArduinoComms()
+    arduino.home()
 
-    # port = ''
-
-    # for device in serial.tools.list_ports.comports(): 
-    #     print(device.description)
-    #     if 'USB Serial' in device.description: 
-    #         port = device.device
-            
-    # try:
-    #     arduino = serial.Serial(
-    #         port, baudrate=115200
-    #     )
-        
-    #     arduino.write('H'.encode('ascii'))
-    #     arduino.write('S'.encode('ascii'))
-    #     # arduino.write('A'.encode('ascii'))
-    #     time.sleep(1)
-    #     # data = arduino.readline()
-    
-    #     # data = arduino.readline()
-    #     # print(data)
-
-    #     arduino.close()
-
-    # except serial.SerialException as e:
-    #     print(f"Error: {e}")
-
-
-    
     # Main Loop
     while True:
         frame = vs.read()
 
-        # arduino.ardu_write('A'.encode('ascii'))
-        # arduino.ardu_read(8)
-        # print(arduino.data)
+        accel_x, accel_y = arduino.read_accel()
+        print(accel_x, accel_y)
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), rot_M, output = pose_estimation(frame, marker_locations)

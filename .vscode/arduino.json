@@ -1,7 +1,6 @@
 {
-    "configuration": "cpu=atmega2560",
-    "board": "arduino:avr:mega",
+    "board": "arduino:avr:uno",
     "programmer": "avrisp",
-    "sketch": "software\\testing\\control\\MPU6050\\MPU6050.ino",
+    "sketch": "software\\testing\\control\\serial_uno_test\\serial_uno_test.ino",
     "port": "COM8"
 }

@@ -1,148 +1,96 @@
-import serial.tools.list_ports
-import serial
-from threading import Thread
-import struct 
-import sys
 import time
+import platform
+from pySerialTransfer import pySerialTransfer as txfer
+import serial.tools.list_ports
 
 class ArduinoComms:
-    def __init__(self, baudrate=115200, timeout=1):
+    '''
+    Initialzes the Arduino Serial communication. Uses the pySerialTransfer library.
+    '''
+    def __init__(self, baudrate=115200):
+        self.link = self.start_arduino_comms(baudrate)
 
-        port = ''
-        for device in serial.tools.list_ports.comports(): 
-            print(device.description)
-            if 'USB Serial' in device.description: 
-                port = device.device
-                
+    def start_arduino_comms(self, baudrate):
+        port = ""
 
-        self.arduino = None
-        try:
-            self.arduino = serial.Serial(
-                port, baudrate, timeout=timeout
-            )
-            print(f"Connected to {port} at {baudrate} baud.")
+        for device in serial.tools.list_ports.comports():
+            if platform.system() == "Linux":
+                if "USB Serial" in device.description:
+                    port = device.device
+            else:
+                if "Arduino" in device.description:
+                    port = device.device
 
-        except serial.SerialException as e:
-            print(f"Error: {e}")
+        link = txfer.SerialTransfer(port, baud=baudrate)
 
-        self.data = None
-        self.lineData = None
-        self.output = None
+        link.open()
+        time.sleep(2)  # allow some time for the Arduino to completely reset
 
-    def start_transmit(self):
-        Thread(target=self.ardu_write, args=())
-        return self
+        return link
 
-    def ardu_write(self, output):
-        self.output = output
-        self.arduino.write(output)
+    def read_accel(self):
+        # try:
+        # Keep track of packet size
+        send_size = 0
 
-    def thread_read(self):
-        Thread(target=self.ardu_read, args=()).start()
-        return self
-    
-    def thread_readline(self): 
-        Thread(target=self.ardu_readline, args=()).start()
-        return self
+        # Send 'A' to start transfer
+        str_ = "A"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
 
-    def ardu_read(self, size):
-        self.data = self.arduino.read(size).decode()
+        self.link.send(send_size)
 
-    def ardu_readline(self): 
-        self.lineData = self.arduino.readline()
-        
-    def close(self):
-        self.arduino.close()
+        """ Wait for a response and report any errors while receiving packets """
+        while not self.link.available():
+            if self.link.status < 0:
+                if self.link.status == txfer.CRC_ERROR:
+                    print("ERROR: CRC_ERROR")
+                elif self.link.status == txfer.PAYLOAD_ERROR:
+                    print("ERROR: PAYLOAD_ERROR")
+                elif self.link.status == txfer.STOP_BYTE_ERROR:
+                    print("ERROR: STOP_BYTE_ERROR")
+                else:
+                    print("ERROR: {}".format(self.link.status))
 
-# import serial.tools.list_ports
-# import serial
-# from threading import Thread
-# import struct
-# import sys
-# import time
+        # Parse response list
+        rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4)
 
-# class ArduinoComms:
-#     def __init__(self, baudrate=115200, timeout=1):
-#         port = ''
-#         for device in serial.tools.list_ports.comports():
-#             print(device.description)
-#             if 'USB Serial' in device.description:
-#                 port = device.device
+        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=(4))
 
-#         self.arduino = None
-#         try:
-#             self.arduino = serial.Serial(
-#                 port, baudrate, timeout=timeout
-#             )
-#             print(f"Connected to {port} at {baudrate} baud.")
+        # print("SENT: {}".format(str_))
+        # print("RCVD: {} {}".format(rec_float_, rec_float_2_))
+        # print(" ")
+        return rec_float_, rec_float_2_
 
-#         except serial.SerialException as e:
-#             print(f"Error: {e}")
+    def send_error(self, x, y):
+        '''
+        Sends the appropriate error vector for each time cycle.
+        '''
+        # Keep track of packet size
+        send_size = 0
 
-#         self.data = None
-#         self.lineData = None
-#         self.output = None
+        # Send Error Vector
+        x_size = self.link.tx_obj(x, send_size) - send_size
+        send_size += x_size
+        y_size = self.link.tx_obj(y, send_size) - send_size
+        send_size += y_size
+        self.link.send(send_size)
 
-#     def start_transmit(self):
-#         Thread(target=self.ardu_write, args=(self.output,)).start()
-#         return self
+    def home(self):
+        # Keep track of packet size
+        send_size = 0
 
-#     def ardu_write(self, output):
-#         self.output = output
-#         self.arduino.write(output)
+        # Send 'A' to start transfer
+        str_ = "A"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
 
-#     def start_read(self, size):
-#         Thread(target=self.ardu_read, args=(size,)).start()
-#         return self
-
-#     def start_readline(self):
-#         Thread(target=self.ardu_readline).start()
-#         return self
-
-#     def ardu_read(self, size):
-#         self.data = self.arduino.read(size)
-
-#     def ardu_readline(self):
-#         self.lineData = self.arduino.readline().decode()
-
-#     def close(self):
-#         self.arduino.close()
-
-
-# if __name__ == "__main__":
-#     arduino = ArduinoComms()
-#     arduino.start_transmit()
-#     time.sleep(1)
-#     arduino.ardu_write('A'.encode('ascii'))  # Send 'A' to Arduino
-#     time.sleep(2)  # Wait for Arduino to send data
-#     arduino.start_read(8)  # Read 8 bytes of binary data
-#     time.sleep(1)  # Wait for the read thread to finish
-#     z_accel, y_accel = struct.unpack('ff', arduino.data)
-#     print(f"Z Acceleration: {z_accel}, Y Acceleration: {y_accel}")
-
+        self.link.send(send_size)
 
 if __name__ == "__main__":
-    # port = ''
+    arduino_communicator = ArduinoComms()
+    arduino_communicator.home()
 
-    # for device in serial.tools.list_ports.comports(): 
-    #     print(device.description)
-    #     if 'USB Serial' in device.description: 
-    #         port = device.device
-            
-    # arduino = serial.Serial(port, baudrate=115200)
-    # arduino.write('H'.encode('ascii'))
-    # time.sleep(0.5)
-    # arduino.write('S'.encode('ascii'))
-
-
-    arduino = ArduinoComms()
-    arduino.start_transmit()
-    # arduino.ardu_write('A'.encode('ascii'))
-    arduino.ardu_write('H'.encode('ascii'))
-    time.sleep(1)
-    arduino.ardu_write('A'.encode('ascii'))
-    time.sleep(1)
-    arduino.thread_readline()
-    # arduino.ardu_read(8)
-    print(arduino.ardu_readline())
-    # print(arduino.data)
+    while True:
+        arduino_communicator.read_accel()
+        arduino_communicator.send_error(0.0, 1.1)
