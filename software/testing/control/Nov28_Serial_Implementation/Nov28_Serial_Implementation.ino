@@ -157,10 +157,10 @@ void setup() {
   }
   pixels.show();   // Send the updated pixel colors to the hardware.
 
-  if(!accel.begin()) {
-    Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-    while(1);
-  }
+//  if(!accel.begin()) {
+//    Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
+//    while(1);
+//  }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
   currentPosX = penOriginX;
