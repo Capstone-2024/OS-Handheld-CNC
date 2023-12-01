@@ -1,5 +1,5 @@
 import time
-import platform
+from sys import platform
 from pySerialTransfer import pySerialTransfer as txfer
 import serial.tools.list_ports
 
@@ -14,7 +14,7 @@ class ArduinoComms:
         port = ""
 
         for device in serial.tools.list_ports.comports():
-            if platform.system() == "Linux":
+            if platform == "Linux":
                 if "USB Serial" in device.description:
                     port = device.device
             else:
