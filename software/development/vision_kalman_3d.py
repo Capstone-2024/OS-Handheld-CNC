@@ -64,12 +64,12 @@ def vision_main(shape):
         frame = vs.read()
 
         accel_x, accel_y = arduino.read_accel()
-        print(accel_x, accel_y)
+        # print(accel_x, accel_y)
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), rot_M, output = pose_estimation(frame, marker_locations)
 
-        print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
+        # print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
         
         if x_pos or y_pos != None: 
 
@@ -98,15 +98,14 @@ def vision_main(shape):
            
             pos_diff = [test_point[0] - kf_x.x[0], test_point[1] - kf_y.x[0]]
             print(f'Global Vector: {pos_diff[0], pos_diff[1]}')
-            loc_diff = rot_M * np.array([[pos_diff[0]],[pos_diff[1]],[0]])
+            loc_diff = rot_M @ np.array([[pos_diff[0]],[pos_diff[1]],[0]])
             print(f'Global Vector: {loc_diff[0], loc_diff[1]}')
 
             # Send to arduino 
-            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+            if abs(loc_diff[0]) < 5 and abs(loc_diff[1]) < 5: 
                 print('Sending to Arduino...')
-                write_data = 'I' + (str(round(float(pos_diff[0]), 3))) + ',' + (str(round(float(pos_diff[1]), 3)))
-                arduino.ardu_write(write_data.encode())
-                print(f'Data Sent: {write_data}')
+                arduino.send_error(loc_diff[0], loc_diff[1])
+                print(f'Data Sent: {loc_diff[0]}, {loc_diff[1]}')
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
@@ -116,9 +115,9 @@ def vision_main(shape):
             
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
-            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
-                point_i += 1
-            print(f'Step: {point_i}')
+            # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+            #     point_i += 1
+            # print(f'Step: {point_i}')
 
             ''' Testing Pose Estimation and Plotting for Kalman Filter '''
             ''' Collect Data for Plotting '''
@@ -129,15 +128,15 @@ def vision_main(shape):
             y_data.append(kf_y.x[0])
 
             ''' Plot '''
-            # if len(x_data) >= num_data_p:
-            #     # print(record_data)
-            #     # print(raw_x)
-            #     plot_chart(
-            #         [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
-            #     )
-            #     df = pd.DataFrame([x_data, y_data])
-            #     df.to_excel("output.xlsx")
-            #     break
+            if len(x_data) >= num_data_p:
+                # print(record_data)
+                # print(raw_x)
+                plot_chart(
+                    [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
+                )
+                df = pd.DataFrame([x_data, y_data])
+                df.to_excel("output.xlsx")
+                break
             
 
             
