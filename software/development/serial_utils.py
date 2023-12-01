@@ -62,25 +62,12 @@ if __name__ == "__main__":
         if 'USB Serial' in device.description: 
             port = device.device
             
-    try:
-        arduino = serial.Serial(
-            port, baudrate=115200
-        )
-        # arduino.flush()
+    arduino = serial.Serial(
+        port, baudrate=115200
+    )
 
-        arduino.write('H'.encode('ascii'))
-        arduino.write('S'.encode('ascii'))
-        time.sleep(1)
-        # data = arduino.readline()
-    
-        # data = arduino.readline()
-        # print(data)
-
-        arduino.close()
-
-    except serial.SerialException as e:
-        print(f"Error: {e}")
-
+    arduino.write('H'.encode('ascii'))
+    arduino.write('S'.encode('ascii'))
 
     # arduino = ArduinoComms()
     # # arduino.start_transmit()
