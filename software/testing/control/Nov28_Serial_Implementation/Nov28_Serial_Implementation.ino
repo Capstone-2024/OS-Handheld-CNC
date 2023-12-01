@@ -710,6 +710,6 @@ void sampleAccelerometer()
   Serial.print((char)z_accel);
   Serial.print(',');
   Serial.print((char)y_accel);
-  Serial.print('\n'); 
+  Serial.println(); 
   return;
 }
