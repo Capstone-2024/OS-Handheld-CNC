@@ -17,7 +17,7 @@ class ArduinoComms:
             if platform == "linux":
                 if "CH340" in device.description:
                     port = device.device
-                    print(port)
+                    print(device.description)
             else:
                 if "Arduino" in device.description:
                     port = device.device
