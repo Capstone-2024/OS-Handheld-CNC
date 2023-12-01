@@ -63,8 +63,10 @@ def vision_main(shape):
     while True:
         frame = vs.read()
 
+        # Read Acceleromete
         accel_x, accel_y = arduino.read_accel()
-        # print(accel_x, accel_y)
+        accel_x_mm = accel_x*1000
+        accel_y_mm = accel_y*1000
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), rot_M, output = pose_estimation(frame, marker_locations)
@@ -80,11 +82,11 @@ def vision_main(shape):
 
             # Kalman Filter Predict and Update
             kf_x.predict()
-            kf_x.update([x_pos, accel_x])
+            kf_x.update([x_pos, accel_x_mm])
             # print(f"X: {kf_x.x}")
 
             kf_y.predict()
-            kf_y.update([y_pos, accel_y])
+            kf_y.update([y_pos, accel_y_mm])
             # print(f"Y: {kf_y.x}")
 
             ''' Calculate Local Machine Error Vector and Send to Arduino '''
