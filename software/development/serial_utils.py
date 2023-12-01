@@ -11,16 +11,12 @@ class ArduinoComms:
         self.link = self.start_arduino_comms(baudrate)
 
     def start_arduino_comms(self, baudrate):
-        port = ""
-
-        for device in serial.tools.list_ports.comports():
-            if platform == "linux":
-                if "CH340" in device.description:
-                    port = device.device
-                    print(device.description)
-            else:
-                if "Arduino" in device.description:
-                    port = device.device
+        port =' /dev/ttyUSB0'
+        
+        if platform != 'linux': 
+            for device in serial.tools.list_ports.comports():
+                    if "Arduino" in device.description:
+                        port = device.device
 
         link = txfer.SerialTransfer(port, baud=baudrate)
 
