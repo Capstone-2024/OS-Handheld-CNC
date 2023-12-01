@@ -40,6 +40,10 @@ class ArduinoComms:
     def start_read(self):
         Thread(target=self.ardu_read, args=())
         return self
+    
+    def start_readline(self): 
+        Thread(target=self.ardu_readline, args=())
+        return self
 
     def ardu_read(self, size):
         self.data = self.arduino.read(size).decode()
@@ -70,9 +74,9 @@ if __name__ == "__main__":
     # arduino.ardu_write('A'.encode('ascii'))
     arduino.ardu_write('H'.encode('ascii'))
     time.sleep(1)
-    # arduino.ardu_write('A'.encode('ascii'))
-    # time.sleep(1)
-    # arduino.start_read()
+    arduino.ardu_write('A'.encode('ascii'))
+    time.sleep(1)
+    arduino.start_readine()
     # arduino.ardu_read(8)
     print(arduino.ardu_readline())
     # print(arduino.data)
