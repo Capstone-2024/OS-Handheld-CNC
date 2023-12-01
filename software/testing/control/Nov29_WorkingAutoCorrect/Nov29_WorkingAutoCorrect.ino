@@ -632,13 +632,13 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
   {
     if (greater == 1)
     {
-      motorLeft(stepRatio + randomArray[i], 600);
-      motorRight(1, 600);
+      motorLeft(stepRatio + randomArray[i], 100);
+      motorRight(1, 100);
     }
     else
     {
-      motorLeft(1, 600);
-      motorRight(stepRatio + randomArray[i], 600);
+      motorLeft(1, 100);
+      motorRight(stepRatio + randomArray[i], 100);
     }
   }
 }

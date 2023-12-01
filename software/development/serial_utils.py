@@ -13,13 +13,13 @@ class ArduinoComms:
         self.link = self.start_arduino_comms(baudrate)
 
     def start_arduino_comms(self, baudrate):
-        port = "COM7"
-        # for device in serial.tools.list_ports.comports():
-        #     print(device)
-        #     if platform.system() == "Linux":
-        #         port = '/dev/ttyUSB0'
-        #     else:
-        #         port = 'COM7'
+        port = ""
+        for device in serial.tools.list_ports.comports():
+            print(device)
+            if platform.system() == "Linux":
+                port = '/dev/ttyUSB0'
+            else:
+                port = 'COM7'
         link = txfer.SerialTransfer(port, baud=baudrate)
         link.open()
         time.sleep(2)  # allow some time for the Arduino to completely reset
@@ -85,5 +85,5 @@ if __name__ == "__main__":
 
     while True:
         arduino_communicator.read_accel()
-        arduino_communicator.send_error(0.2, 0.0)
-        arduino_communicator.send_error(-0.2, 0.0)
+        arduino_communicator.send_error(5.0, 0.0)
+        arduino_communicator.send_error(-5.0, 0.0)
