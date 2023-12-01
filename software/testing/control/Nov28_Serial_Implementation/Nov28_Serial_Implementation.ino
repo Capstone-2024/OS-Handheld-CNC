@@ -157,10 +157,10 @@ void setup() {
   }
   pixels.show();   // Send the updated pixel colors to the hardware.
 
-  if(!accel.begin()) {
-    Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-    while(1);
-  }
+//  if(!accel.begin()) {
+//    Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
+//    while(1);
+//  }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
   currentPosX = penOriginX;
@@ -217,7 +217,7 @@ void setup() {
         yc = yb + l2*sin(theta1+theta2);
       }
      
-      float thetaPen = asin((xc-xb)/l2) + DEG_TO_RAD*(34.821+90);
+      float thetaPen = asin((xc-xb)/l2) + DEG_TO_RAD*(29.1+90);
       float thetaPenInv = PI - thetaPen;
       penPoints[count][0] = xc - 45.011*sin(thetaPenInv);
       penPoints[count][1] = yc + 45.011*cos(thetaPenInv);
