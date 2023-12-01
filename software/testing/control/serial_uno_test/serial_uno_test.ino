@@ -14,18 +14,19 @@ void loop()
     {
         uint8_t instruction = myTransfer.packet.rxBuff[0];
 
-        if (int(instruction) == 73)
-        {
-            uint16_t recSize = 0;
-            float xPacket;
-            float yPacket;
+        // if (int(instruction) == 73)
+        // {
+        //     uint16_t recSize = 0;
+        //     float xPacket;
+        //     float yPacket;
 
-            recSize = myTransfer.rxObj(xPacket, recSize);
-            recSize = myTransfer.rxObj(yPacket, recSize);
+        //     recSize = myTransfer.rxObj(xPacket, recSize);
+        //     recSize = myTransfer.rxObj(yPacket, recSize);
 
-            // autoCorrection(xPacket, yPacket);
-        }
-        else if (int(instruction) == 65)
+        //     // autoCorrection(xPacket, yPacket);
+        // }
+        // else 
+        if (int(instruction) == 65)
         {
             sampleAccelerometer();
         }
