@@ -23,7 +23,7 @@ void loop()
             recSize = myTransfer.rxObj(xPacket, recSize);
             recSize = myTransfer.rxObj(yPacket, recSize);
 
-            autoCorrection(xPacket, yPacket);
+            // autoCorrection(xPacket, yPacket);
         }
         else if (int(instruction) == 65)
         {
