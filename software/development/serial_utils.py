@@ -71,7 +71,7 @@ if __name__ == "__main__":
     arduino.ardu_write('H'.encode('ascii'))
     time.sleep(1)
     arduino.ardu_write('A'.encode('ascii'))
-    arduino.start_read()
+    # arduino.start_read()
     # arduino.ardu_read(8)
     print(arduino.ardu_readline())
     # print(arduino.data)
