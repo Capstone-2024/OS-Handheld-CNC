@@ -141,10 +141,8 @@ def pose_estimation(frame, marker_locations):
         return [pos[0], pos[1]], rot_M, frame
     
     else: 
-        # Trigger error
-        # Write error sequence 
         print("Moving Too fast please slow down")
-        return [None, None], frame
+        return [None, None], None, frame
     
 
 def HBOS_outliers(x, y, contamination=0.2): 
