@@ -98,11 +98,11 @@ void leftInterrupt() {
   int breakTime = millis();
   while(((digitalRead(LeftbuttonPin)||digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
     if((millis() - breakTime) >= 5000)
     {
@@ -116,11 +116,11 @@ void rightInterrupt() {
   int breakTime = millis();
   while(((digitalRead(LeftbuttonPin)||digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
     if((millis() - breakTime) >= 5000)
     {
@@ -453,10 +453,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
   float x = currentPosX + desiredDeltaX;
   float y = currentPosY + desiredDeltaY;
 
-  Serial.print("Pen X: ");
-  Serial.println(x);
-  Serial.print("Pen Y: ");
-  Serial.println(y);
+  // Serial.print("Pen X: ");
+  // Serial.println(x);
+  // Serial.print("Pen Y: ");
+  // Serial.println(y);
 
   float minDiff = 1000;
   int minIndex = 0;
@@ -476,16 +476,16 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
 
   float thetaPenCurr = penPoints[minIndex][2];
 
-  Serial.print("Theta Pen: ");
-  Serial.println(RAD_TO_DEG*thetaPenCurr);
+  // Serial.print("Theta Pen: ");
+  // Serial.println(RAD_TO_DEG*thetaPenCurr);
 
   x = x + 45.011*sin(thetaPenCurr);
   y = y - 45.011*cos(thetaPenCurr);
 
-  Serial.print("End Effector X: ");
-  Serial.println(x);
-  Serial.print("End Effector Y: ");
-  Serial.println(y);
+  // Serial.print("End Effector X: ");
+  // Serial.println(x);
+  // Serial.print("End Effector Y: ");
+  // Serial.println(y);
 
   float w = l5;
 
@@ -513,10 +513,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
     theta4 = 0;
   }
 
-  Serial.print("T1: ");
-  Serial.println(theta1);
-  Serial.print("T4: ");
-  Serial.println(theta4);
+  // Serial.print("T1: ");
+  // Serial.println(theta1);
+  // Serial.print("T4: ");
+  // Serial.println(theta4);
 
   desiredJointAngles[0] = theta1;
   desiredJointAngles[1] = theta4;
@@ -572,11 +572,11 @@ void startupSequence()
 {
   while(((digitalRead(LeftbuttonPin)||digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
   }
 }
@@ -699,17 +699,20 @@ void zRetract(int steps)
 
 void sampleAccelerometer()
 {
-   sensors_event_t event; 
+  sensors_event_t event; 
 
-   accel.getEvent(&event);
+  accel.getEvent(&event);
 
-   float z_accel = event.acceleration.z;
-   float y_accel = event.acceleration.y;
-   float accel = sqrt(sq(z_accel) + sq(y_accel));
+  float z_accel = event.acceleration.z;
+  float y_accel = event.acceleration.y;
 
-  Serial.print((char)z_accel);
-  Serial.print(',');
-  Serial.print((char)y_accel);
-  Serial.println(); 
+  // Create a byte array to hold the accelerometer values
+  byte data[8];
+  memcpy(data, &z_accel, sizeof(z_accel));
+  memcpy(data + sizeof(z_accel), &y_accel, sizeof(y_accel));
+
+  // Send the binary data
+  Serial.write(data, sizeof(data));
+
   return;
 }

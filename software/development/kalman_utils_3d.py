@@ -22,7 +22,8 @@ def PE_filter(x, P, R, Q, dt):
     kf.F = np.array([[1., dt, 1/2*(dt**2)], 
                      [0., 1., dt], 
                      [0., 0., 1.]]) # State Transition matrix
-    kf.H = np.array([[1., 0., 0.]]) # Measurement function
+    kf.H = np.array([[1., 0., 0.],
+                     [0., 0., 1.]]) # Measurement function
     kf.R *= R # measurement uncertainty
 
     if np.isscalar(P):
