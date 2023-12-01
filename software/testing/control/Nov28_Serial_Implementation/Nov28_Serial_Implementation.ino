@@ -145,7 +145,8 @@ void setup() {
 
   pinMode(X_MAX_PIN, INPUT);
   pinMode(X_MIN_PIN, INPUT);
-
+  
+  Serial.flush();
   Serial.begin(115200); // Arduino USB serial for serial monitor
   SERIAL_PORT.begin(9600); // HW UART drivers
   Wire.begin(); // I2C comms for MPU6050
@@ -217,6 +218,7 @@ void setup() {
         yc = yb + l2*sin(theta1+theta2);
       }
      
+
       float thetaPen = asin((xc-xb)/l2) + DEG_TO_RAD*(29.1+90);
       float thetaPenInv = PI - thetaPen;
       penPoints[count][0] = xc - 45.011*sin(thetaPenInv);
