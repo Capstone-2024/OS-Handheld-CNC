@@ -12,7 +12,20 @@ void loop()
 {
     if (myTransfer.available())
     {
-        if (int(myTransfer.packet.rxBuff[0]) == 65)
+        uint8_t instruction = myTransfer.packet.rxBuff[0];
+
+        if (int(instruction) == 73)
+        {
+            uint16_t recSize = 0;
+            float xPacket;
+            float yPacket;
+
+            recSize = myTransfer.rxObj(xPacket, recSize);
+            recSize = myTransfer.rxObj(yPacket, recSize);
+
+            autoCorrection(xPacket, yPacket);
+        }
+        if (int(instruction) == 65)
         {
             sampleAccelerometer();
         }
