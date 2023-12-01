@@ -25,7 +25,7 @@ void loop()
 
             autoCorrection(xPacket, yPacket);
         }
-        if (int(instruction) == 65)
+        else if (int(instruction) == 65)
         {
             sampleAccelerometer();
         }

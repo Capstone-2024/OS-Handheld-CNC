@@ -152,9 +152,10 @@ void setup() {
   pinMode(X_MAX_PIN, INPUT);
   pinMode(X_MIN_PIN, INPUT);
   
-  Serial.flush();
+  // Serial.flush();
   Serial.begin(115200); // Arduino USB serial for serial monitor
   myTransfer.begin(Serial);
+
   SERIAL_PORT.begin(9600); // HW UART drivers
   Wire.begin(); // I2C comms for MPU6050
 
@@ -405,10 +406,10 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   currentTheta1 = desiredJointAngles[0];
   currentTheta4 = desiredJointAngles[1];
 
-  Serial.print("Steps 1:");
-  Serial.println(desiredSteps[0]);
-  Serial.print("Steps 4:");
-  Serial.println(desiredSteps[1]);
+  // Serial.print("Steps 1:");
+  // Serial.println(desiredSteps[0]);
+  // Serial.print("Steps 4:");
+  // Serial.println(desiredSteps[1]);
 
   if(desiredSteps[0] > 0)
   {
@@ -451,10 +452,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
   float x = currentPosX + desiredDeltaX;
   float y = currentPosY + desiredDeltaY;
 
-  Serial.print("Pen X: ");
-  Serial.println(x);
-  Serial.print("Pen Y: ");
-  Serial.println(y);
+  // Serial.print("Pen X: ");
+  // Serial.println(x);
+  // Serial.print("Pen Y: ");
+  // Serial.println(y);
 
 //  float minDiff = 1000;
 //  int minIndex = 0;
@@ -480,10 +481,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
 //  x = x + 45.011*sin(thetaPenCurr);
 //  y = y - 45.011*cos(thetaPenCurr);
 
-  Serial.print("End Effector X: ");
-  Serial.println(x);
-  Serial.print("End Effector Y: ");
-  Serial.println(y);
+  // Serial.print("End Effector X: ");
+  // Serial.println(x);
+  // Serial.print("End Effector Y: ");
+  // Serial.println(y);
 
   float w = l5;
 
@@ -516,10 +517,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
     theta4 = 0;
   }
 
-  Serial.print("T1: ");
-  Serial.println(theta1);
-  Serial.print("T4: ");
-  Serial.println(theta4);
+  // Serial.print("T1: ");
+  // Serial.println(theta1);
+  // Serial.print("T4: ");
+  // Serial.println(theta4);
 
   desiredJointAngles[0] = theta1;
   desiredJointAngles[1] = theta4;
@@ -571,10 +572,10 @@ void forwardKin(float theta1, float theta4)
       currentPosX = xc;
       currentPosY = yc;
 
-      Serial.print("Curr Pos X: ");
-      Serial.println(currentPosX);
-      Serial.print("Curr Pos Y: ");
-      Serial.println(currentPosY);
+      // Serial.print("Curr Pos X: ");
+      // Serial.println(currentPosX);
+      // Serial.print("Curr Pos Y: ");
+      // Serial.println(currentPosY);
 }
 
 int DegToSteps(float deltaTheta)
@@ -632,11 +633,11 @@ void startupSequence()
 {
   while(((digitalRead(LeftbuttonPin)||digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
   }
 }
