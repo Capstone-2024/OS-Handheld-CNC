@@ -15,7 +15,7 @@ class ArduinoComms:
 
         for device in serial.tools.list_ports.comports():
             if platform == "Linux":
-                if "USB Serial" in device.description:
+                if "CH340" in device.description:
                     port = device.device
             else:
                 if "Arduino" in device.description:
