@@ -21,8 +21,8 @@ def PE_filter(x, P, R, Q, dt):
     kf.x = np.array([x[0], x[1], x[2]]) # position, velocity, acceleration
     kf.F = np.array([[1., dt, 1/2*(dt**2)], 
                      [0., 1., dt], 
-                     [0., 0., 1.]]) # state transition matrix
-    kf.H = np.array([[1., 0, 0.]]) # Measurement function
+                     [0., 0., 1.]]) # State Transition matrix
+    kf.H = np.array([[1., 0., 0.]]) # Measurement function
     kf.R *= R # measurement uncertainty
 
     if np.isscalar(P):

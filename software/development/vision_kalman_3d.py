@@ -41,15 +41,15 @@ def vision_main(shape):
     # Kalman Filter
     dt = 1 / 60  # 60 fps, i want to make this dynamic but idk if it works that way
     # P
-    P_x = np.diag([1**2.0, 10**2])  # covariance matrix
-    P_y = np.diag([1**2.0, 10**2])
+    P_x = np.diag([1**2.0, 10**2, 10**2])  # covariance matrix
+    P_y = np.diag([1**2.0, 10**2, 10**2])
 
-    # R
-    R_x = np.array([1**2])
-    R_y = np.array([1**2])
+    # R - Measurement Error
+    R_x = np.array([1**2, 0.5**2])
+    R_y = np.array([1**2, 0.5**2])
 
-    # Q
-    Q = 10**2  # process variance
+    # Q - process variance
+    Q = 10**2
 
     x = np.array([0.0, 0.0, 0.0])
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
@@ -87,11 +87,11 @@ def vision_main(shape):
 
             # Kalman Filter Predict and Update
             kf_x.predict()
-            kf_x.update(x_pos)
+            kf_x.update([x_pos, accel_x])
             # print(f"X: {kf_x.x}")
 
             kf_y.predict()
-            kf_y.update(y_pos)
+            kf_y.update([y_pos, accel_y])
             # print(f"Y: {kf_y.x}")
 
             ''' Calculate Local Machine Error Vector and Send to Arduino '''

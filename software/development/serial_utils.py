@@ -64,9 +64,9 @@ if __name__ == "__main__":
 
     arduino = ArduinoComms()
     arduino.start_transmit()
-    arduino.ardu_write('A'.encode('ascii'))
+    # arduino.ardu_write('A'.encode('ascii'))
     arduino.ardu_write('H'.encode('ascii'))
     # # arduino.start_read()
     arduino.ardu_read(8)
-    # print(arduino.arduino.readline())
+    print(arduino.arduino.readline())
     # print(arduino.data)
