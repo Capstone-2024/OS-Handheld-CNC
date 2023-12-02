@@ -384,6 +384,16 @@ void loop()
       homingSequence();
     }
 
+    else if(int(instruction) == 83)
+    {
+      zRetract(2000);
+    }
+
+    else if(int(instruction) == 90)
+    {
+      zHomingSequence();
+    }
+
     else if (int(instruction) == 65)
     {
       sampleAccelerometer();
@@ -400,6 +410,13 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   float desiredJointAngles[2] = {0, 0};
 
   cycle++;
+
+  // Going from Global to Local Coordinate System
+  float currentSpindleDeltaX = currentPosX - homedPosX;
+  float currentSpindleDeltaY = currentPosY - homedPosY;
+
+  desiredDeltaX = desiredDeltaX - currentSpindleDeltaX;
+  desiredDeltaY = desiredDeltaY - currentSpindleDeltaY;
 
   InvKin(desiredDeltaX, desiredDeltaY, currentPosX, currentPosY, desiredJointAngles);
 
