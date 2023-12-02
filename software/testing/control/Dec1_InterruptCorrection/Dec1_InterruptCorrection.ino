@@ -778,6 +778,11 @@ void homingSequence()
   currentPosY = penOriginY;
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
+
+  uint16_t sendSize = 0;
+  char data = 'G';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
 }
 
 void motorLeft(int steps, int stepDelay)
