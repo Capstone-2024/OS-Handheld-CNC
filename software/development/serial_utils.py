@@ -85,8 +85,8 @@ if __name__ == "__main__":
 
     while True:
         arduino_communicator.read_accel()
-        x = round(random.uniform(-5, 5), 2)
-        y = round(random.uniform(-5, 5), 2)
+        x = round(random.uniform(0, 5), 2)
+        y = round(random.uniform(0, 5), 2)
         arduino_communicator.send_error(x, y)
         time.sleep(0.06)
         arduino_communicator.send_error(0, 0)
