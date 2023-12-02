@@ -108,11 +108,11 @@ void leftInterrupt() {
   int breakTime = millis();
   while(((digitalRead(LeftbuttonPin)||digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
     if((millis() - breakTime) >= 5000)
     {
@@ -126,11 +126,11 @@ void rightInterrupt() {
   int breakTime = millis();
   while(((digitalRead(LeftbuttonPin)||digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
     if((millis() - breakTime) >= 5000)
     {
@@ -170,10 +170,10 @@ void setup() {
   }
   pixels.show();   // Send the updated pixel colors to the hardware.
 
-//  if(!accel.begin()) {
-//    Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-//    while(1);
-//  }
+ if(!accel.begin()) {
+  //  Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
+   while(1);
+ }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
   currentPosX = penOriginX;
@@ -413,10 +413,10 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   float currentSpindleDeltaX = currentPosX - penOriginX;
   float currentSpindleDeltaY = currentPosY - penOriginY;
 
-  Serial.print("currentSpindleDeltaX: ");
-  Serial.println(currentSpindleDeltaX);
-  Serial.print("currentSpindleDeltaY: ");
-  Serial.println(currentSpindleDeltaY);
+  // Serial.print("currentSpindleDeltaX: ");
+  // Serial.println(currentSpindleDeltaX);
+  // Serial.print("currentSpindleDeltaY: ");
+  // Serial.println(currentSpindleDeltaY);
 
   desiredDeltaX = desiredDeltaX - currentSpindleDeltaX;
   desiredDeltaY = desiredDeltaY - currentSpindleDeltaY;
@@ -428,10 +428,10 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   desiredSteps[0] = DegToSteps(desiredJointAngles[0] - currentTheta1);
   desiredSteps[1] = DegToSteps(desiredJointAngles[1] - currentTheta4);
 
-  Serial.print("Steps 1:");
-  Serial.println(desiredSteps[0]);
-  Serial.print("Steps 4:");
-  Serial.println(desiredSteps[1]);
+  // Serial.print("Steps 1:");
+  // Serial.println(desiredSteps[0]);
+  // Serial.print("Steps 4:");
+  // Serial.println(desiredSteps[1]);
 
   if(desiredSteps[0] > 0)
   {
@@ -507,10 +507,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
 //  x = x + 45.011*sin(thetaPenCurr);
 //  y = y - 45.011*cos(thetaPenCurr);
 
-  Serial.print("End Effector X: ");
-  Serial.println(x);
-  Serial.print("End Effector Y: ");
-  Serial.println(y);
+  // Serial.print("End Effector X: ");
+  // Serial.println(x);
+  // Serial.print("End Effector Y: ");
+  // Serial.println(y);
 
   float w = l5;
 
@@ -543,10 +543,10 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
     theta4 = 0;
   }
 
-  Serial.print("T1: ");
-  Serial.println(theta1);
-  Serial.print("T4: ");
-  Serial.println(theta4);
+  // Serial.print("T1: ");
+  // Serial.println(theta1);
+  // Serial.print("T4: ");
+  // Serial.println(theta4);
 
   desiredJointAngles[0] = theta1;
   desiredJointAngles[1] = theta4;
@@ -598,10 +598,10 @@ void forwardKin(float theta1, float theta4)
       currentPosX = xc;
       currentPosY = yc;
 
-      Serial.print("Curr Pos X: ");
-      Serial.println(currentPosX);
-      Serial.print("Curr Pos Y: ");
-      Serial.println(currentPosY);
+      // Serial.print("Curr Pos X: ");
+      // Serial.println(currentPosX);
+      // Serial.print("Curr Pos Y: ");
+      // Serial.println(currentPosY);
 }
 
 int DegToSteps(float deltaTheta)
@@ -646,10 +646,10 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray [], int great
   int leftStepsTaken = 0;
   int rightStepsTaken = 0;
   
-  Serial.print("T1 Upon Entry: ");
-  Serial.println(currentTheta1);
-  Serial.print("T4 Upon Entry: ");
-  Serial.println(currentTheta4);
+  // Serial.print("T1 Upon Entry: ");
+  // Serial.println(currentTheta1);
+  // Serial.print("T4 Upon Entry: ");
+  // Serial.println(currentTheta4);
   
   for (int i=1; i <= loopIterations; i++)
   {
@@ -674,35 +674,35 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray [], int great
     {
       //Update position w.r.t how far we actually travelled.
 
-      Serial.print("RIGHT STEPS TAKEN: ");
-      Serial.println(rightStepsTaken);
-      Serial.print("LEFT STEPS TAKEN: ");
-      Serial.println(leftStepsTaken);
+      // Serial.print("RIGHT STEPS TAKEN: ");
+      // Serial.println(rightStepsTaken);
+      // Serial.print("LEFT STEPS TAKEN: ");
+      // Serial.println(leftStepsTaken);
 
       if(driver.shaft() == true)
       {
         currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-        Serial.print("CurrTheta1: ");
-        Serial.println(currentTheta1);
+        // Serial.print("CurrTheta1: ");
+        // Serial.println(currentTheta1);
       }
       else
       {
         currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-        Serial.print("CurrTheta1: ");
-      Serial.println(currentTheta1);
+      //   Serial.print("CurrTheta1: ");
+      // Serial.println(currentTheta1);
       }
 
       if(driver2.shaft() == true)
       {
         currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-        Serial.print("CurrTheta4: ");
-      Serial.println(currentTheta4);
+      //   Serial.print("CurrTheta4: ");
+      // Serial.println(currentTheta4);
       }
       else
       {
         currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-        Serial.print("CurrTheta4: ");
-      Serial.println(currentTheta4);
+      //   Serial.print("CurrTheta4: ");
+      // Serial.println(currentTheta4);
       }
 
       forwardKin(currentTheta1, currentTheta4);
@@ -712,43 +712,43 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray [], int great
   }
       // Update Pos and Angles
 
-      Serial.print("RIGHT STEPS TAKEN: ");
-      Serial.println(rightStepsTaken);
-      Serial.print("LEFT STEPS TAKEN: ");
-      Serial.println(leftStepsTaken);
+      // Serial.print("RIGHT STEPS TAKEN: ");
+      // Serial.println(rightStepsTaken);
+      // Serial.print("LEFT STEPS TAKEN: ");
+      // Serial.println(leftStepsTaken);
       
       if(leftShaftVal == true)
       {
         currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-        Serial.print("Left Degrees Taken: ");
-        Serial.println(StepsToDeg(leftStepsTaken));
-        Serial.print("CurrTheta1: ");
-        Serial.println(currentTheta1);
+        // Serial.print("Left Degrees Taken: ");
+        // Serial.println(StepsToDeg(leftStepsTaken));
+        // Serial.print("CurrTheta1: ");
+        // Serial.println(currentTheta1);
       }
       else
       {
         currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-        Serial.print("Left Degrees Taken: ");
-        Serial.println(StepsToDeg(leftStepsTaken));
-        Serial.print("CurrTheta1: ");
-        Serial.println(currentTheta1);
+        // Serial.print("Left Degrees Taken: ");
+        // Serial.println(StepsToDeg(leftStepsTaken));
+        // Serial.print("CurrTheta1: ");
+        // Serial.println(currentTheta1);
       }
 
       if(rightShaftVal == true)
       {
         currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-        Serial.print("Right Degrees Taken: ");
-        Serial.println(StepsToDeg(rightStepsTaken));
-        Serial.print("CurrTheta4: ");
-      Serial.println(currentTheta4);
+      //   Serial.print("Right Degrees Taken: ");
+      //   Serial.println(StepsToDeg(rightStepsTaken));
+      //   Serial.print("CurrTheta4: ");
+      // Serial.println(currentTheta4);
       }
       else
       {
         currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-        Serial.print("Right Degrees Taken: ");
-        Serial.println(StepsToDeg(rightStepsTaken));
-        Serial.print("CurrTheta4: ");
-      Serial.println(currentTheta4);
+      //   Serial.print("Right Degrees Taken: ");
+      //   Serial.println(StepsToDeg(rightStepsTaken));
+      //   Serial.print("CurrTheta4: ");
+      // Serial.println(currentTheta4);
       }
 
       forwardKin(currentTheta1, currentTheta4);  
@@ -758,11 +758,11 @@ void startupSequence()
 {
   while(((digitalRead(LeftbuttonPin)||digitalRead(RightbuttonPin))) != 0)
   {
-    Serial.println("Press both buttons!!!!");
-    Serial.print("Left");
-    Serial.println(digitalRead(LeftbuttonPin));
-    Serial.print("Right");
-    Serial.println(digitalRead(RightbuttonPin));
+    // Serial.println("Press both buttons!!!!");
+    // Serial.print("Left");
+    // Serial.println(digitalRead(LeftbuttonPin));
+    // Serial.print("Right");
+    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
   }
 }
@@ -885,17 +885,17 @@ void zRetract(int steps)
 
 void sampleAccelerometer()
 {
-   sensors_event_t event; 
+  sensors_event_t event;
 
-   accel.getEvent(&event);
+  accel.getEvent(&event);
 
-   float z_accel = event.acceleration.z;
-   float y_accel = event.acceleration.y;
-   float accel = sqrt(sq(z_accel) + sq(y_accel));
+  float z_accel = event.acceleration.z;
+  float y_accel = event.acceleration.x; 
 
-  Serial.print((char)z_accel);
-  Serial.print(',');
-  Serial.print((char)y_accel);
-  Serial.print('\n'); 
+  uint16_t sendSize = 0;
+  sendSize = myTransfer.txObj(z_accel, sendSize);
+  sendSize = myTransfer.txObj(y_accel, sendSize);
+  myTransfer.sendData(sendSize);
+
   return;
 }
