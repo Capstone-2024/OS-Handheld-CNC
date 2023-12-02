@@ -25,7 +25,7 @@ class ArduinoComms:
         time.sleep(2)  # allow some time for the Arduino to completely reset
         return link
 
-    def read_accel(self):
+    def prompt_accel(self):
         # try:
         # Keep track of packet size
         send_size = 0
@@ -34,6 +34,8 @@ class ArduinoComms:
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
         self.link.send(send_size)
+
+    def get_accel(self): 
         """ Wait for a response and report any errors while receiving packets """
         while not self.link.available():
             if self.link.status < 0:
@@ -84,7 +86,9 @@ if __name__ == "__main__":
     arduino_communicator.home()
 
     while True:
-        arduino_communicator.read_accel()
+        # arduino_communicator.read_accel()
+        # arduino_communicator.prompt_accel()
+        # arduino_communicator.get_accel()
         # x = round(random.uniform(0, 3), 2)
         # y = round(random.uniform(0, 3), 2)
         x = 5
