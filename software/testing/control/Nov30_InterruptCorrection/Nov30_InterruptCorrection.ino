@@ -69,6 +69,8 @@ bool startup = false; // set false after homing
 // Variables
 bool shaftVal = true;
 bool stalled_X = false;
+bool leftShaftVal;
+bool rightShaftVal;
 bool zShaftVal = false;
 
 float Nema17Resolution = 1.8;
@@ -365,6 +367,18 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
 
   cycle++;
 
+  // Going from Global to Local Coordinate System
+  float currentSpindleDeltaX = currentPosX - penOriginX;
+  float currentSpindleDeltaY = currentPosY - penOriginY;
+
+  Serial.print("currentSpindleDeltaX: ");
+  Serial.println(currentSpindleDeltaX);
+  Serial.print("currentSpindleDeltaY: ");
+  Serial.println(currentSpindleDeltaY);
+
+  desiredDeltaX = desiredDeltaX - currentSpindleDeltaX;
+  desiredDeltaY = desiredDeltaY - currentSpindleDeltaY;
+
   InvKin(desiredDeltaX, desiredDeltaY, currentPosX, currentPosY, desiredJointAngles);
 
   int desiredSteps[2] = {0, 0};
@@ -380,19 +394,23 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   if(desiredSteps[0] > 0)
   {
     driver.shaft(true);
+    leftShaftVal = true;
   }
   else
   {
     driver.shaft(false);
+    leftShaftVal = false;
   }
 
   if(desiredSteps[1] > 0)
   {
     driver2.shaft(true);
+    rightShaftVal = true;
   }
   else
   {
     driver2.shaft(false);
+    rightShaftVal = false;
   }
 
   desiredSteps[0] = abs(desiredSteps[0]);
@@ -551,7 +569,7 @@ int DegToSteps(float deltaTheta)
 
 float StepsToDeg(int steps)
 {
-  return ((float)steps*(float)Nema17Resolution*(float)MICROSTEP);
+  return float(steps*Nema17Resolution*MICROSTEP);
 }
 
 /*
@@ -595,16 +613,16 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray [], int great
   {
     if(greater == 1)
     { 
-    motorLeft(stepRatio + randomArray[i], 600);
-    motorRight(1, 600);
+    motorLeft(stepRatio + randomArray[i], 160);
+    motorRight(1, 160);
 
     leftStepsTaken = leftStepsTaken + (stepRatio + randomArray[i]);
     rightStepsTaken = rightStepsTaken + 1;
     }
     else
     {
-    motorLeft(1, 600);
-    motorRight(stepRatio + randomArray[i], 600);
+    motorLeft(1, 160);
+    motorRight(stepRatio + randomArray[i], 160);
 
     leftStepsTaken = leftStepsTaken + 1;
     rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
@@ -657,7 +675,7 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray [], int great
       Serial.print("LEFT STEPS TAKEN: ");
       Serial.println(leftStepsTaken);
       
-      if(driver.shaft() == true)
+      if(leftShaftVal == true)
       {
         currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
         Serial.print("Left Degrees Taken: ");
@@ -674,7 +692,7 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray [], int great
         Serial.println(currentTheta1);
       }
 
-      if(driver2.shaft() == true)
+      if(rightShaftVal == true)
       {
         currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
         Serial.print("Right Degrees Taken: ");
