@@ -58,6 +58,7 @@ def pose_estimation(frame, marker_locations):
 
         x = np.zeros(len(corners))
         y = np.zeros(len(corners))
+        rotations = np.zeros(len(corners))
 
         # For each detected ID
         for i in range(0, len(ids)):
@@ -104,6 +105,11 @@ def pose_estimation(frame, marker_locations):
                 x[i] = (position_W[0])
                 y[i] = (position_W[1])
 
+
+                # Rotation Averaging
+                # get_quaternion(G_t_C[:3, :3])
+                rotations[i] = cv2.Rodrigues(-rot_M)[2] # Add the inverse of the rotation matrix
+
                 # Draw Axis
                 # cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
                 # # cv2.drawFrameAxes(frame, matrix_coefficients, None, rvec, tvec, 4, 1)
@@ -132,13 +138,16 @@ def pose_estimation(frame, marker_locations):
         
         pos = [np.average(x), np.average(y)]
 
+        # Z Rotation
+        z_rot = np.average(rotations)
+
         # plt.scatter(x, y)
         # plt.show()
 
         # Display Position on Screen
         cv2.putText(frame, f"X: {round(pos[0], 2)}, Y:{round(pos[1], 2)}", (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA, False)
 
-        return [pos[0], pos[1]], rot_M, frame
+        return [pos[0], pos[1]], z_rot, frame
     
     else: 
         print("Moving Too fast please slow down")
@@ -183,7 +192,6 @@ def reject_outliers(x, y, contamination=0.2, random_state=None):
 
     return filtered_x, filtered_y
 
-
 def plot_chart(time, raw_x, raw_y, x_data, y_data):
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
     ax1.plot(time, raw_x)
@@ -210,7 +218,6 @@ def rotationMatrix2D(center, theta):
     # print(M)
     
     return M
-
 
 def manual_analyze_stitched(): 
     distance = 28.40 # mm
@@ -277,6 +284,44 @@ def access_map(data_dir):
     
     return map_data['tag_locations']
 
+
+def get_quaternion(R):
+    trace = R[0, 0] + R[1, 1] + R[2, 2]
+
+    Q = np.zeros(4)
+
+    if trace > 0.0:
+        s = np.sqrt(trace + 1.0)
+        Q[3] = s * 0.5
+        s = 0.5 / s
+        Q[0] = (R[2, 1] - R[1, 2]) * s
+        Q[1] = (R[0, 2] - R[2, 0]) * s
+        Q[2] = (R[1, 0] - R[0, 1]) * s
+    else:
+        i = np.argmax([R[0, 0], R[1, 1], R[2, 2]])
+        j = (i + 1) % 3
+        k = (i + 2) % 3
+
+        s = np.sqrt(R[i, i] - R[j, j] - R[k, k] + 1.0)
+        Q[i] = s * 0.5
+        s = 0.5 / s
+
+        Q[3] = (R[k, j] - R[j, k]) * s
+        Q[j] = (R[j, i] + R[i, j]) * s
+        Q[k] = (R[k, i] + R[i, k]) * s
+
+    return Q
+
+def normalize_quaternion(q):
+    norm = np.linalg.norm(q)
+    return q / norm
+
+def average_quaternions(quaternions):
+    average_vector = np.mean(quaternions, axis=0)
+    average_quaternion = normalize_quaternion(average_vector)
+    return average_quaternion
+
+# Marker
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
     "DICT_4X4_100": cv2.aruco.DICT_4X4_100,

@@ -1,5 +1,5 @@
 from threading_utils import WebcamVideoStream
-from cv_utils import pose_estimation, plot_chart, manual_analyze_stitched, access_map, svg_to_points
+from cv_utils import pose_estimation, plot_chart, manual_analyze_stitched, access_map, svg_to_points, rotationMatrix2D
 import cv2
 import numpy as np
 import time
@@ -56,20 +56,22 @@ def vision_main(shape):
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
     # Initialize Communication with Arduino
-    arduino = ArduinoComms()
-    arduino.home()
+    # arduino = ArduinoComms()
+    # arduino.home()
     
     # Main Loop
     while True:
         frame = vs.read()
 
-        # Read Acceleromete
-        accel_x, accel_y = arduino.read_accel()
-        accel_x_mm = accel_x*1000
-        accel_y_mm = accel_y*1000
+        # Read Accelerometer
+        # accel_x, accel_y = arduino.read_accel()
+        # accel_x_mm = accel_x*1000
+        # accel_y_mm = accel_y*1000
+        accel_x_mm = 0 
+        accel_y_mm = 0 
 
         ''' Calculate Position with Pose Estimation '''
-        (x_pos, y_pos), rot_M, output = pose_estimation(frame, marker_locations)
+        (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
 
         # print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
         
@@ -100,13 +102,16 @@ def vision_main(shape):
            
             pos_diff = [test_point[0] - kf_x.x[0], test_point[1] - kf_y.x[0]]
             print(f'Global Vector: {pos_diff[0], pos_diff[1]}')
-            loc_diff = np.array([[pos_diff[0]],[pos_diff[1]],[0]]) @ rot_M # apply rotation in the vector sent since the coordinate is relative to the local
+
+            # Z Rotation About 0, 0
+            rot_M = rotationMatrix2D([0, 0], z_rot)
+            loc_diff = rot_M @ np.array([[pos_diff[0]],[pos_diff[1]],[0]]) # apply rotation in the vector sent since the coordinate is relative to the local
             print(f'Local Vector: {loc_diff[0], loc_diff[1]}')
 
             # Send to arduino 
             if abs(loc_diff[0]) < 5 and abs(loc_diff[1]) < 5: 
                 print('Sending to Arduino...')
-                arduino.send_error(loc_diff[0], loc_diff[1])
+                # arduino.send_error(loc_diff[0], loc_diff[1])
                 print(f'Data Sent: {loc_diff[0]}, {loc_diff[1]}')
 
             ''' Testing '''
@@ -139,9 +144,7 @@ def vision_main(shape):
                 df = pd.DataFrame([x_data, y_data])
                 df.to_excel("output.xlsx")
                 break
-            
 
-            
             ''' Calculate FPS and Display ''' 
             new_frame_time = time.time()
             fps = 1 / (new_frame_time - prev_frame_time)
