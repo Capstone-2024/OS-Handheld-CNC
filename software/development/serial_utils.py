@@ -102,18 +102,20 @@ class ArduinoComms:
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
+    while arduino_communicator.home() != 'G':
+        continue
+    
     while True:
-        if arduino_communicator.home() == 'G': 
-            # arduino_communicator.read_accel()
-            # arduino_communicator.prompt_accel()
-            # arduino_communicator.get_accel()
-            # x = round(random.uniform(0, 3), 2)
-            # y = round(random.uniform(0, 3), 2)
-            x = 5
-            y = 5
-            arduino_communicator.send_error(x, y)
-            time.sleep(0.2)
-            # arduino_communicator.send_error(0, 0)
-            # time.sleep(1)
-            # arduino_communicator.send_error(x, y)
-            print(x, y)
+        # arduino_communicator.read_accel()
+        # arduino_communicator.prompt_accel()
+        # arduino_communicator.get_accel()
+        # x = round(random.uniform(0, 3), 2)
+        # y = round(random.uniform(0, 3), 2)
+        x = 5
+        y = 5
+        arduino_communicator.send_error(x, y)
+        time.sleep(0.2)
+        # arduino_communicator.send_error(0, 0)
+        # time.sleep(1)
+        # arduino_communicator.send_error(x, y)
+        print(x, y)
