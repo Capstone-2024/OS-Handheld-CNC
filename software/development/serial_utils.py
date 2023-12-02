@@ -103,7 +103,7 @@ if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
     while True:
-        if arduino_communicator.home() != 'G': 
+        if arduino_communicator.home() == 'G': 
             # arduino_communicator.read_accel()
             # arduino_communicator.prompt_accel()
             # arduino_communicator.get_accel()
