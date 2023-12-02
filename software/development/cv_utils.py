@@ -208,16 +208,14 @@ def plot_chart(time, raw_x, raw_y, x_data, y_data):
     plt.show()
 
 # 2D Rotation Matrix
-def rotationMatrix2D(center, theta): 
+def rotationMatrix2D(center, theta):
     alpha = math.cos(theta)
     beta = math.sin(theta)
 
-    row_1 = [alpha, beta, ((1-alpha)*center[0]-beta*center[1]).item()]
-    row_2 = [-beta, alpha, (beta*center[0]+(1-alpha)*center[1]).item()]
+    row_1 = [alpha, beta, (1 - alpha) * center[0] - beta * center[1]]
+    row_2 = [-beta, alpha, beta * center[0] + (1 - alpha) * center[1]]
 
     M = np.array([row_1, row_2])
-    # print(M)
-    
     return M
 
 def manual_analyze_stitched(): 
