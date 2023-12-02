@@ -95,10 +95,8 @@ class ArduinoComms:
         # Parse response list
         incoming_str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
         print("SENT: {}".format(str_))
-        print("RCVD: {} {}".format(incoming_str_))
-        # print(" ")
+        print("RCVD: {}".format(incoming_str_))
         return incoming_str_
-
 
 
 if __name__ == "__main__":
