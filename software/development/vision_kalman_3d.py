@@ -56,19 +56,19 @@ def vision_main(shape):
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
     # Initialize Communication with Arduino
-    # arduino = ArduinoComms()
-    # arduino.home()
+    arduino = ArduinoComms()
+    arduino.home()
     
     # Main Loop
     while True:
         frame = vs.read()
 
         # Read Accelerometer
-        # accel_x, accel_y = arduino.read_accel()
-        # accel_x_mm = accel_x*1000
-        # accel_y_mm = accel_y*1000
-        accel_x_mm = 0 
-        accel_y_mm = 0 
+        accel_x, accel_y = arduino.read_accel()
+        accel_x_mm = accel_x*1000
+        accel_y_mm = accel_y*1000
+        # accel_x_mm = 0 
+        # accel_y_mm = 0 
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
@@ -111,7 +111,7 @@ def vision_main(shape):
             # Send to arduino 
             if abs(loc_diff[0]) < 5 and abs(loc_diff[1]) < 5: 
                 print('Sending to Arduino...')
-                # arduino.send_error(loc_diff[0], loc_diff[1])
+                arduino.send_error(loc_diff[0], loc_diff[1])
                 print(f'Data Sent: {loc_diff[0]}, {loc_diff[1]}')
 
             ''' Testing '''
@@ -135,15 +135,15 @@ def vision_main(shape):
             y_data.append(kf_y.x[0])
 
             ''' Plot '''
-            if len(x_data) >= num_data_p:
-                # print(record_data)
-                # print(raw_x)
-                plot_chart(
-                    [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
-                )
-                df = pd.DataFrame([x_data, y_data])
-                df.to_excel("output.xlsx")
-                break
+            # if len(x_data) >= num_data_p:
+            #     # print(record_data)
+            #     # print(raw_x)
+            #     plot_chart(
+            #         [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
+            #     )
+            #     df = pd.DataFrame([x_data, y_data])
+            #     df.to_excel("output.xlsx")
+            #     break
 
             ''' Calculate FPS and Display ''' 
             new_frame_time = time.time()
