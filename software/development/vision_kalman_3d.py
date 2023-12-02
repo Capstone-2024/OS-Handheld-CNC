@@ -104,15 +104,20 @@ def vision_main(shape):
             print(f'Global Vector: {pos_diff[0], pos_diff[1]}')
 
             # Z Rotation About 0, 0
-            rot_M = rotationMatrix2D([0, 0], z_rot)
-            loc_diff = rot_M @ np.array([[pos_diff[0]],[pos_diff[1]],[0]]) # apply rotation in the vector sent since the coordinate is relative to the local
-            print(f'Local Vector: {loc_diff[0], loc_diff[1]}')
+            # rot_M = rotationMatrix2D([0, 0], z_rot)
+            # loc_diff = rot_M @ np.array([[pos_diff[0]],[pos_diff[1]],[0]]) # apply rotation in the vector sent since the coordinate is relative to the local
+            # print(f'Local Vector: {loc_diff[0], loc_diff[1]}')
 
             # Send to arduino 
-            if abs(loc_diff[0]) < 5 and abs(loc_diff[1]) < 5: 
+            # if abs(loc_diff[0]) < 5 and abs(loc_diff[1]) < 5: 
+            #     print('Sending to Arduino...')
+            #     arduino.send_error(loc_diff[0], loc_diff[1])
+            #     print(f'Data Sent: {loc_diff[0]}, {loc_diff[1]}')
+
+            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                 print('Sending to Arduino...')
-                arduino.send_error(loc_diff[0], loc_diff[1])
-                print(f'Data Sent: {loc_diff[0]}, {loc_diff[1]}')
+                arduino.send_error(pos_diff[0], pos_diff[1])
+                print(f'Data Sent: {pos_diff[0]}, {pos_diff[1]}')
 
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
