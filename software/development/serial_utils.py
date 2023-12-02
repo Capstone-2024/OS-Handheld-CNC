@@ -101,10 +101,10 @@ class ArduinoComms:
 
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
+    arduino_communicator.home()
+    # while arduino_communicator.home() != 'G':
+    #     continue
 
-    while arduino_communicator.home() != 'G':
-        continue
-    
     while True:
         # arduino_communicator.read_accel()
         # arduino_communicator.prompt_accel()
