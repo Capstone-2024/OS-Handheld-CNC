@@ -88,7 +88,7 @@ if __name__ == "__main__":
         x = round(random.uniform(0, 3), 2)
         y = round(random.uniform(0, 3), 2)
         arduino_communicator.send_error(x, y)
-        time.sleep(0.1)
+        time.sleep(1)
         arduino_communicator.send_error(0, 0)
         # arduino_communicator.send_error(x, y)
         print(x, y)
