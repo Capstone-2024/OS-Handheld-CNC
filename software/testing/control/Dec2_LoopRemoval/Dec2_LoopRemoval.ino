@@ -426,7 +426,7 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   int loopIterations = min(desiredSteps[0], desiredSteps[1]);
   int greater = (desiredSteps[0] > desiredSteps[1]) ? 1 : 0; // if condition is true, set to 1, else set to 0.
 
-  int random;
+  int random = 0;
 
   // remainderArray(loopIterations, stepRemainder, randomArray);
 
