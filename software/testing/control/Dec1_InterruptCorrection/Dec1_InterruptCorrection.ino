@@ -413,11 +413,7 @@ void loop()
 
 void autoCorrection(float desiredDeltaX, float desiredDeltaY)
 {
-  completed = 0;
-
   float desiredJointAngles[2] = {0, 0};
-
-  cycle++;
 
   // Going from Global to Local Coordinate System
   float currentSpindleDeltaX = currentPosX - penOriginX;
@@ -667,7 +663,7 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
   // Serial.print("T4 Upon Entry: ");
   // Serial.println(currentTheta4);
 
-  for (int i = 1; i <= loopIterations; i++)
+  for (int i = 0; i < loopIterations; i++)
   {
     if (greater == 1)
     {
@@ -686,44 +682,47 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
       rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
     }
 
-    if (Serial.available())
+    if (myTransfer.available())
     {
-      // Update position w.r.t how far we actually travelled.
-
-      // Serial.print("RIGHT STEPS TAKEN: ");
-      // Serial.println(rightStepsTaken);
-      // Serial.print("LEFT STEPS TAKEN: ");
-      // Serial.println(leftStepsTaken);
-
-      if (driver.shaft() == true)
+      if (myTransfer.packet.txBuff[0] == 73)
       {
-        currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-        // Serial.print("CurrTheta1: ");
-        // Serial.println(currentTheta1);
-      }
-      else
-      {
-        currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-        //   Serial.print("CurrTheta1: ");
-        // Serial.println(currentTheta1);
-      }
+        // Update position w.r.t how far we actually travelled.
 
-      if (driver2.shaft() == true)
-      {
-        currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-        //   Serial.print("CurrTheta4: ");
-        // Serial.println(currentTheta4);
-      }
-      else
-      {
-        currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-        //   Serial.print("CurrTheta4: ");
-        // Serial.println(currentTheta4);
-      }
+        // Serial.print("RIGHT STEPS TAKEN: ");
+        // Serial.println(rightStepsTaken);
+        // Serial.print("LEFT STEPS TAKEN: ");
+        // Serial.println(leftStepsTaken);
 
-      forwardKin(currentTheta1, currentTheta4);
+        if (leftShaftVal == true)
+        {
+          currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
+          // Serial.print("CurrTheta1: ");
+          // Serial.println(currentTheta1);
+        }
+        else
+        {
+          currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
+          //   Serial.print("CurrTheta1: ");
+          // Serial.println(currentTheta1);
+        }
 
-      break;
+        if (rightShaftVal == true)
+        {
+          currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
+          //   Serial.print("CurrTheta4: ");
+          // Serial.println(currentTheta4);
+        }
+        else
+        {
+          currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
+          //   Serial.print("CurrTheta4: ");
+          // Serial.println(currentTheta4);
+        }
+
+        forwardKin(currentTheta1, currentTheta4);
+
+        break;
+      }
     }
   }
   // Update Pos and Angles
