@@ -64,11 +64,11 @@ def vision_main(shape):
         frame = vs.read()
 
         # Read Accelerometer
-        accel_x, accel_y = arduino.read_accel()
-        accel_x_mm = accel_x*1000
-        accel_y_mm = accel_y*1000
-        # accel_x_mm = 0 
-        # accel_y_mm = 0 
+        # accel_x, accel_y = arduino.read_accel()
+        # accel_x_mm = accel_x*1000
+        # accel_y_mm = accel_y*1000
+        accel_x_mm = 0 
+        accel_y_mm = 0 
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
