@@ -717,6 +717,11 @@ void homingSequence()
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
 
+  uint16_t sendSize = 0;
+  char data = 'G';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
+
   //    pixels.clear();
   //    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
   //
