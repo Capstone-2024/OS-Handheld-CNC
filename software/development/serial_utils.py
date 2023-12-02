@@ -84,7 +84,7 @@ if __name__ == "__main__":
     arduino_communicator.home()
 
     while True:
-        arduino_communicator.read_accel()
+        # arduino_communicator.read_accel()
         x = round(random.uniform(0, 3), 2)
         y = round(random.uniform(0, 3), 2)
         arduino_communicator.send_error(x, y)

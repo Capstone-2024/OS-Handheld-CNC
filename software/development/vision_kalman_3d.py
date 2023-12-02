@@ -59,6 +59,10 @@ def vision_main(shape):
     arduino = ArduinoComms()
     arduino.home()
     
+    # Accelerometer offsets
+    for i in range(0, 10): 
+        offset_x, offset_y = arduino.read_accel()
+    
     # Main Loop
     while True:
         frame = vs.read()

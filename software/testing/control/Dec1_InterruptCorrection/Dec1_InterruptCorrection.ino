@@ -61,7 +61,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 // must be in StealthChop Mode for stallguard to work
 // Value of TCOOLTHRS must be greater than TSTEP & TPWMTHRS
 #define STALL_VALUE 40 // [0..255] // Need to calibrate
-int stepTime = 160;    // Determines speed of stepper. 160Hz step frequency
+int stepTime = 100;    // Determines speed of stepper. 160Hz step frequency
 bool startup = false;  // set false after homing
 
 // Initializing stepper driver in UART
@@ -906,8 +906,8 @@ void sampleAccelerometer()
 
   accel.getEvent(&event);
 
-  float z_accel = event.acceleration.z + 0.08;
-  float y_accel = event.acceleration.y -10;
+  float z_accel = event.acceleration.z;
+  float y_accel = event.acceleration.y;
 
   uint16_t sendSize = 0;
   sendSize = myTransfer.txObj(z_accel, sendSize);
