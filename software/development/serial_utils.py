@@ -91,5 +91,5 @@ if __name__ == "__main__":
         time.sleep(0.06)
         arduino_communicator.send_error(0, 0)
         time.sleep(0.06)
-        arduino_communicator.send_error(-x, -y)
+        # arduino_communicator.send_error(x, y)
         print(x, y)
