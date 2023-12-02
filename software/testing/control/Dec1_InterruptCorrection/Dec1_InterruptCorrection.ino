@@ -8,6 +8,9 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h> 
 #include <Adafruit_ADXL345_U.h>
+#include "SerialTransfer.h"
+
+SerialTransfer myTransfer;
 
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 
@@ -155,6 +158,8 @@ void setup() {
   
   Serial.flush();
   Serial.begin(115200); // Arduino USB serial for serial monitor
+  myTransfer.begin(Serial);
+  
   SERIAL_PORT.begin(9600); // HW UART drivers
   Wire.begin(); // I2C comms for MPU6050
 
@@ -306,53 +311,90 @@ void setup() {
 
 void loop() 
 { 
- if (Serial.available() > 0)
- {
-  char instruction = Serial.read();
-  // 2 Packet sizes, either 1 byte for simple instruction, or 9 bytes for complex instruction
+// if (Serial.available() > 0)
+// {
+//  char instruction = Serial.read();
+//  // 2 Packet sizes, either 1 byte for simple instruction, or 9 bytes for complex instruction
+//
+//  if((int)instruction == 73)
+//  {
+//      float xPacket = Serial.parseFloat();
+//      char comma = Serial.read(); // Read and discard comma delimiter
+//      float yPacket = Serial.parseFloat();
+//      
+////      Serial.println(xPacket);
+////      Serial.println(yPacket);
+//      autoCorrection(xPacket, yPacket);
+//  }
+//
+//  else if((int)instruction == 72)
+//  {
+//    homingSequence();
+//  }
+//
+//  else if((int)instruction == 82)
+//  {
+//    zRetract(2000);
+//  }
+//  else if((int)instruction == 90)
+//  {
+//    zHomingSequence();
+//  }
+//  else if((int)instruction == 65)
+//  {
+//    sampleAccelerometer();
+//  }
+//  else if((int)instruction == 83)
+//  {
+//    int via = 4;
+//    float poses[via][2]={{2,2},{-2,2},{-2,-2},{2,-2}};
+//    for(int i = 0; i<via; i++)
+//    {
+//      autoCorrection(poses[i][0], poses[i][1]);
+//    }
+//  }
+//  else
+//  {
+//    
+//  }
+// }
+  if (myTransfer.available())
+  {
+    uint8_t instruction = myTransfer.packet.rxBuff[0];
 
-  if((int)instruction == 73)
-  {
-      float xPacket = Serial.parseFloat();
-      char comma = Serial.read(); // Read and discard comma delimiter
-      float yPacket = Serial.parseFloat();
-      
-//      Serial.println(xPacket);
-//      Serial.println(yPacket);
-      autoCorrection(xPacket, yPacket);
-  }
-
-  else if((int)instruction == 72)
-  {
-    homingSequence();
-  }
-
-  else if((int)instruction == 82)
-  {
-    zRetract(2000);
-  }
-  else if((int)instruction == 90)
-  {
-    zHomingSequence();
-  }
-  else if((int)instruction == 65)
-  {
-    sampleAccelerometer();
-  }
-  else if((int)instruction == 83)
-  {
-    int via = 4;
-    float poses[via][2]={{2,2},{-2,2},{-2,-2},{2,-2}};
-    for(int i = 0; i<via; i++)
+    if (int(instruction) == 73)
     {
-      autoCorrection(poses[i][0], poses[i][1]);
+      uint16_t recSize = 1; // Start after the character byte
+      float xPacket;
+      float yPacket;
+
+      recSize = myTransfer.rxObj(xPacket, recSize);
+      recSize = myTransfer.rxObj(yPacket, recSize);
+
+      autoCorrection(xPacket, yPacket);
+    }
+
+    else if (int(instruction) == 72)
+    {
+      homingSequence();
+    }
+
+    else if(int(instruction) == 83)
+    {
+      zRetract(2000);
+    }
+
+    else if(int(instruction) == 90)
+    {
+      zHomingSequence();
+    }
+
+    else if (int(instruction) == 65)
+    {
+      sampleAccelerometer();
     }
   }
-  else
-  {
-    
-  }
- }
+ 
   digitalWrite(EN_PIN, LOW); // Enable driver in hardware
   digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
   digitalWrite(Z_ENABLE_PIN, LOW);
