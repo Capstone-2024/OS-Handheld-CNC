@@ -108,7 +108,7 @@ def pose_estimation(frame, marker_locations):
 
                 # Rotation Averaging
                 # get_quaternion(G_t_C[:3, :3])
-                rotations[i] = cv2.Rodrigues(-rot_M)[2] # Add the inverse of the rotation matrix
+                rotations[i] = (cv2.Rodrigues(-rot_M))[0][2] # Add the inverse of the rotation matrix
 
                 # Draw Axis
                 # cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
@@ -139,6 +139,7 @@ def pose_estimation(frame, marker_locations):
         pos = [np.average(x), np.average(y)]
 
         # Z Rotation
+        print(rotations)
         z_rot = np.average(rotations)
 
         # plt.scatter(x, y)
