@@ -684,7 +684,7 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
 
     if (myTransfer.available())
     {
-      if (myTransfer.packet.txBuff[0] == 73)
+      if (myTransfer.packet.rxBuff[0] == 73)
       {
         // Update position w.r.t how far we actually travelled.
 
