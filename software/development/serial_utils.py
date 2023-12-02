@@ -86,4 +86,6 @@ if __name__ == "__main__":
     while True:
         arduino_communicator.read_accel()
         arduino_communicator.send_error(5.0, 0.0)
+        time.sleep(0.06)
         arduino_communicator.send_error(-5.0, 0.0)
+        
