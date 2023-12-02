@@ -2,7 +2,7 @@ import time
 from pySerialTransfer import pySerialTransfer as txfer
 import serial.tools.list_ports
 from sys import platform
-
+import random
 
 class ArduinoComms:
     """
@@ -85,7 +85,8 @@ if __name__ == "__main__":
 
     while True:
         arduino_communicator.read_accel()
-        arduino_communicator.send_error(10.0, 0.0)
+        x = random.uniform(0, 10)
+        y = random.uniform(0, 10)
+        arduino_communicator.send_error(x, y)
         time.sleep(0.06)
-        arduino_communicator.send_error(-10.0, 0.0)
-        
+        arduino_communicator.send_error(-x, -y)
