@@ -176,8 +176,7 @@ void setup()
   if (!accel.begin())
   {
     //  Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-    while (1)
-      ;
+    while (1);
   }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
@@ -381,7 +380,6 @@ void loop()
 
       recSize = myTransfer.rxObj(xPacket, recSize);
       recSize = myTransfer.rxObj(yPacket, recSize);
-      Serial.flush();
 
       autoCorrection(xPacket, yPacket);
     }
@@ -410,8 +408,6 @@ void loop()
   digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
   digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
   digitalWrite(Z_ENABLE_PIN, LOW);
-
-  Serial.flush();
 }
 
 void autoCorrection(float desiredDeltaX, float desiredDeltaY)
@@ -685,88 +681,51 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
       rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
     }
     
-    if (myTransfer.available() || Serial.available())
+    if (Serial.available() == 9)
     {
-      if (myTransfer.packet.rxBuff[0] == 73)
-      {
         // Update position w.r.t how far we actually travelled.
-
-        // Serial.print("RIGHT STEPS TAKEN: ");
-        // Serial.println(rightStepsTaken);
-        // Serial.print("LEFT STEPS TAKEN: ");
-        // Serial.println(leftStepsTaken);
 
         if (leftShaftVal == true)
         {
           currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-          // Serial.print("CurrTheta1: ");
-          // Serial.println(currentTheta1);
         }
         else
         {
           currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-          //   Serial.print("CurrTheta1: ");
-          // Serial.println(currentTheta1);
         }
 
         if (rightShaftVal == true)
         {
           currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-          //   Serial.print("CurrTheta4: ");
-          // Serial.println(currentTheta4);
         }
         else
         {
           currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-          //   Serial.print("CurrTheta4: ");
-          // Serial.println(currentTheta4);
         }
 
         forwardKin(currentTheta1, currentTheta4);
 
         break;
-      }
     }
   }
-  // Update Pos and Angles
-
-  // Serial.print("RIGHT STEPS TAKEN: ");
-  // Serial.println(rightStepsTaken);
-  // Serial.print("LEFT STEPS TAKEN: ");
-  // Serial.println(leftStepsTaken);
+  // Update Pos and Angles if we reach target
 
   if (leftShaftVal == true)
   {
     currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-    // Serial.print("Left Degrees Taken: ");
-    // Serial.println(StepsToDeg(leftStepsTaken));
-    // Serial.print("CurrTheta1: ");
-    // Serial.println(currentTheta1);
   }
   else
   {
     currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-    // Serial.print("Left Degrees Taken: ");
-    // Serial.println(StepsToDeg(leftStepsTaken));
-    // Serial.print("CurrTheta1: ");
-    // Serial.println(currentTheta1);
   }
 
   if (rightShaftVal == true)
   {
     currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-    //   Serial.print("Right Degrees Taken: ");
-    //   Serial.println(StepsToDeg(rightStepsTaken));
-    //   Serial.print("CurrTheta4: ");
-    // Serial.println(currentTheta4);
   }
   else
   {
     currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-    //   Serial.print("Right Degrees Taken: ");
-    //   Serial.println(StepsToDeg(rightStepsTaken));
-    //   Serial.print("CurrTheta4: ");
-    // Serial.println(currentTheta4);
   }
 
   forwardKin(currentTheta1, currentTheta4);
@@ -819,21 +778,6 @@ void homingSequence()
   currentPosY = penOriginY;
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
-
-  //    pixels.clear();
-  //    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-  //
-  //    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-  //    // Here we're using a moderately bright green color:
-  //    pixels.setPixelColor(i, pixels.Color(0, 150, 0));
-  //
-  //    pixels.show();   // Send the updated pixel colors to the hardware.
-  //
-  //    delay(DELAYVAL); // Pause before next pass through loop
-  //    }
-  //    pixels.clear();
-
-  // delay(2000);
 }
 
 void motorLeft(int steps, int stepDelay)
