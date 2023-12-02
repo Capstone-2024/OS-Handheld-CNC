@@ -906,8 +906,8 @@ void sampleAccelerometer()
 
   accel.getEvent(&event);
 
-  float z_accel = event.acceleration.z;
-  float y_accel = event.acceleration.y;
+  float z_accel = event.acceleration.z + 0.08;
+  float y_accel = event.acceleration.y -10;
 
   uint16_t sendSize = 0;
   sendSize = myTransfer.txObj(z_accel, sendSize);
