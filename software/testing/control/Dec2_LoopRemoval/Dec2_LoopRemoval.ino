@@ -322,53 +322,6 @@ void setup()
 
 void loop()
 {
-  // if (Serial.available() > 0)
-  // {
-  //  char instruction = Serial.read();
-  //  // 2 Packet sizes, either 1 byte for simple instruction, or 9 bytes for complex instruction
-  //
-  //  if((int)instruction == 73)
-  //  {
-  //      float xPacket = Serial.parseFloat();
-  //      char comma = Serial.read(); // Read and discard comma delimiter
-  //      float yPacket = Serial.parseFloat();
-  //
-  ////      Serial.println(xPacket);
-  ////      Serial.println(yPacket);
-  //      autoCorrection(xPacket, yPacket);
-  //  }
-  //
-  //  else if((int)instruction == 72)
-  //  {
-  //    homingSequence();
-  //  }
-  //
-  //  else if((int)instruction == 82)
-  //  {
-  //    zRetract(2000);
-  //  }
-  //  else if((int)instruction == 90)
-  //  {
-  //    zHomingSequence();
-  //  }
-  //  else if((int)instruction == 65)
-  //  {
-  //    sampleAccelerometer();
-  //  }
-  //  else if((int)instruction == 83)
-  //  {
-  //    int via = 4;
-  //    float poses[via][2]={{2,2},{-2,2},{-2,-2},{2,-2}};
-  //    for(int i = 0; i<via; i++)
-  //    {
-  //      autoCorrection(poses[i][0], poses[i][1]);
-  //    }
-  //  }
-  //  else
-  //  {
-  //
-  //  }
-  // }
   if (myTransfer.available())
   {
     uint8_t instruction = myTransfer.packet.rxBuff[0];
@@ -473,11 +426,11 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
   int loopIterations = min(desiredSteps[0], desiredSteps[1]);
   int greater = (desiredSteps[0] > desiredSteps[1]) ? 1 : 0; // if condition is true, set to 1, else set to 0.
 
-  int randomArray[loopIterations];
+  int random;
 
-  remainderArray(loopIterations, stepRemainder, randomArray);
+  // remainderArray(loopIterations, stepRemainder, randomArray);
 
-  fineTuning(stepRatio, loopIterations, randomArray, greater);
+  fineTuning(stepRatio, loopIterations, random, greater);
 }
 
 void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float currentPosY, float desiredJointAngles[])
@@ -632,31 +585,33 @@ float StepsToDeg(int steps)
  * Random computes an array of size total steps. Fills with 0's
  * Fills 1's in the array up to the modulo.
  */
-void remainderArray(int arraySize, int stepRemainder, int randomArray[])
-{
-  // Fill the array with zeros
-  for (int i = 0; i < arraySize; i++)
-  {
-    randomArray[i] = 0;
-  }
+// int calcRandom(int stepRemainder)
+// {
+//   int random;
 
-  // Add y occurrences of 1's randomly
-  for (int i = 0; i < stepRemainder; i++)
-  {
-    int randomIndex = random(0, arraySize); // Generate a random index
-    while (randomArray[randomIndex] != 0)
-    {
-      randomIndex = random(0, arraySize);
-    }
-    randomArray[randomIndex] = 1; // Set the value at the random index to 1
-  }
-}
+//   // Add y occurrences of 1's randomly
+//   for (int i = 0; i < stepRemainder; i++)
+//   {
+//     int randomIndex = random(0, arraySize); // Generate a random index
+//     while (randomArray[randomIndex] != 0)
+//     {
+//       randomIndex = random(0, arraySize);
+//     }
+//     randomArray[randomIndex] = 1; // Set the value at the random index to 1
+//   }
+
+//   if (stepRemainder < random) {
+//     return stepRemainder
+//   }
+
+//   return random
+// }
 
 /* Fine Tuning Method
  * Will step the motors in the ratio described by stepRatio.
  * Will also steps randomly based on the randomArray.
  */
-void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greater)
+void fineTuning(int stepRatio, int loopIterations, int random, int greater)
 {
   int leftStepsTaken = 0;
   int rightStepsTaken = 0;
@@ -665,70 +620,23 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
   // Serial.println(currentTheta1);
   // Serial.print("T4 Upon Entry: ");
   // Serial.println(currentTheta4);
-
-  for (int i = 0; i < loopIterations; i++)
+  if (greater == 1)
   {
-    if (greater == 1)
-    {
-      motorLeft(stepRatio + randomArray[i], stepTime);
-      motorRight(1, stepTime);
+    motorLeft(stepRatio + random, stepTime);
+    motorRight(1, stepTime);
 
-      leftStepsTaken = leftStepsTaken + (stepRatio + randomArray[i]);
-      rightStepsTaken = rightStepsTaken + 1;
-    }
-    else
-    {
-      motorLeft(1, stepTime);
-      motorRight(stepRatio + randomArray[i], stepTime);
-
-      leftStepsTaken = leftStepsTaken + 1;
-      rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
-    }
-    
-    if (myTransfer.available() || Serial.available())
-    {
-      if (myTransfer.packet.rxBuff[0] == 73)
-      {
-        // Update position w.r.t how far we actually travelled.
-
-        // Serial.print("RIGHT STEPS TAKEN: ");
-        // Serial.println(rightStepsTaken);
-        // Serial.print("LEFT STEPS TAKEN: ");
-        // Serial.println(leftStepsTaken);
-
-        if (leftShaftVal == true)
-        {
-          currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-          // Serial.print("CurrTheta1: ");
-          // Serial.println(currentTheta1);
-        }
-        else
-        {
-          currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-          //   Serial.print("CurrTheta1: ");
-          // Serial.println(currentTheta1);
-        }
-
-        if (rightShaftVal == true)
-        {
-          currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-          //   Serial.print("CurrTheta4: ");
-          // Serial.println(currentTheta4);
-        }
-        else
-        {
-          currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-          //   Serial.print("CurrTheta4: ");
-          // Serial.println(currentTheta4);
-        }
-
-        forwardKin(currentTheta1, currentTheta4);
-
-        break;
-      }
-    }
+    leftStepsTaken = leftStepsTaken + (stepRatio + random);
+    rightStepsTaken = rightStepsTaken + 1;
   }
-  // Update Pos and Angles
+  else
+  {
+    motorLeft(1, stepTime);
+    motorRight(stepRatio + random, stepTime);
+
+    leftStepsTaken = leftStepsTaken + 1;
+    rightStepsTaken = rightStepsTaken + (stepRatio + random);
+  }
+  // Update position w.r.t how far we actually travelled.
 
   // Serial.print("RIGHT STEPS TAKEN: ");
   // Serial.println(rightStepsTaken);
@@ -738,33 +646,25 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
   if (leftShaftVal == true)
   {
     currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-    // Serial.print("Left Degrees Taken: ");
-    // Serial.println(StepsToDeg(leftStepsTaken));
     // Serial.print("CurrTheta1: ");
     // Serial.println(currentTheta1);
   }
   else
   {
     currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-    // Serial.print("Left Degrees Taken: ");
-    // Serial.println(StepsToDeg(leftStepsTaken));
-    // Serial.print("CurrTheta1: ");
+    //   Serial.print("CurrTheta1: ");
     // Serial.println(currentTheta1);
   }
 
   if (rightShaftVal == true)
   {
     currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-    //   Serial.print("Right Degrees Taken: ");
-    //   Serial.println(StepsToDeg(rightStepsTaken));
     //   Serial.print("CurrTheta4: ");
     // Serial.println(currentTheta4);
   }
   else
   {
     currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-    //   Serial.print("Right Degrees Taken: ");
-    //   Serial.println(StepsToDeg(rightStepsTaken));
     //   Serial.print("CurrTheta4: ");
     // Serial.println(currentTheta4);
   }
