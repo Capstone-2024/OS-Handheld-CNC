@@ -409,6 +409,8 @@ void loop()
   digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
   digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
   digitalWrite(Z_ENABLE_PIN, LOW);
+
+  Serial.flush();
 }
 
 void autoCorrection(float desiredDeltaX, float desiredDeltaY)
