@@ -681,8 +681,8 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
       leftStepsTaken = leftStepsTaken + 1;
       rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
     }
-
-    if (myTransfer.available())
+    
+    if (myTransfer.available() || Serial.available())
     {
       if (myTransfer.packet.rxBuff[0] == 73)
       {
