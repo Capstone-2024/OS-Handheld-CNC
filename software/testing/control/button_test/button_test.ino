@@ -21,15 +21,12 @@ void setup()
 
 void loop()
 {
-    // if (myTransfer.available() && buttonState)
-    if (buttonState)
+    if (myTransfer.available() && buttonState)
+    // if (buttonState)
     {
         uint16_t sendSize = 0;
         char data = 'Y';
         sendSize = myTransfer.txObj(data, sendSize);
-
-        char extra = 'extra';
-        sendSize = myTransfer.txObj(extra, sendSize);
         myTransfer.sendData(sendSize);
 
         delay(500);

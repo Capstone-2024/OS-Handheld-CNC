@@ -49,11 +49,10 @@ class ArduinoComms:
                 else:
                     print("ERROR: {}".format(self.link.status))
         # Parse response list
-        str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
-        rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=1)
-        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=5)
+        rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4)
+        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=4)
 
-        print("RCVD: {}, {} {}".format(str_, rec_float_, rec_float_2_))
+        print("RCVD: {} {}".format(rec_float_, rec_float_2_))
         return rec_float_, rec_float_2_
 
     def send_error(self, x, y):
@@ -117,13 +116,70 @@ class ArduinoComms:
         print("Button State: {}".format(incoming_str_))
         return incoming_str_
     
-    def regOperation(self ): 
-        if self.safetyState == 'Y': 
-            # Read accel
-            self.prompt_accel()
-            return self.get_accel()
+    def homingOperation(self): 
+        send_size = 0
+        # Send 'H' to home
+        str_ = "H"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
+        self.link.send(send_size)
+    
+        """ Wait for a response and report any errors while receiving packets """
+        while not self.link.available():
+            if self.link.status < 0:
+                if self.link.status == txfer.CRC_ERROR:
+                    print("ERROR: CRC_ERROR")
+                elif self.link.status == txfer.PAYLOAD_ERROR:
+                    print("ERROR: PAYLOAD_ERROR")
+                elif self.link.status == txfer.STOP_BYTE_ERROR:
+                    print("ERROR: STOP_BYTE_ERROR")
+                else:
+                    print("ERROR: {}".format(self.link.status))
+
+        # Parse response list
+        str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+    
+        status = str_
+        homing_status = None
+
+        # Only read more if the correct button status appear
+        if status == 'Y': 
+            homing_status = self.link.rx_obj(obj_type=str, obj_byte_size=1, start_pos=1)
+        
+        return homing_status
 
 
+    def regOperation(self): 
+        self.prompt_accel # send A to retrieve data
+
+        """ Wait for a response and report any errors while receiving packets """
+        while not self.link.available():
+            if self.link.status < 0:
+                if self.link.status == txfer.CRC_ERROR:
+                    print("ERROR: CRC_ERROR")
+                elif self.link.status == txfer.PAYLOAD_ERROR:
+                    print("ERROR: PAYLOAD_ERROR")
+                elif self.link.status == txfer.STOP_BYTE_ERROR:
+                    print("ERROR: STOP_BYTE_ERROR")
+                else:
+                    print("ERROR: {}".format(self.link.status))
+
+        # Parse response list
+        str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+    
+        status = str_
+
+        rec_float_ = None
+        rec_float_2_ = None
+
+        # Only read more if the correct button status appear
+        if status == 'Y': 
+            rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=1)
+            rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=5)
+        
+        print("RCVD: {}, {} {}".format(str_, rec_float_, rec_float_2_))
+        
+        return status, rec_float_, rec_float_2_
 
 
 if __name__ == "__main__":
@@ -152,8 +208,11 @@ if __name__ == "__main__":
     #     # time.sleep(1)
     #     # arduino_communicator.send_error(x, y)
     #     print(x, y)
+    while arduino_communicator.homingOperation() != 'G': 
 
+    # 
     while True:
-        print(arduino_communicator.link.rxBuff)
-        print(arduino_communicator.safetyState())
+        # print(arduino_communicator.link.rxBuff)
+        # print(arduino_communicator.safetyState())
+        print(arduino_communicator.regOperation())
         time.sleep(0.5)

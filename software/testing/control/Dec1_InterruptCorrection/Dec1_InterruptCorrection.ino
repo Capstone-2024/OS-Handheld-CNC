@@ -103,30 +103,13 @@ const float homedTheta4 = 77.8594;
 int completed = 0;
 
 volatile bool buttonState = false;
-int buttonChangeTime;
+volatile int buttonChangeTime;
 
 void buttonInterrupt()
 {
-  // int breakTime = millis();
-
-  // If buttons are not pressed
-  // while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) == 1)
-  // {
   // Update State
-  buttonState = false;
+  buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
   buttonChangeTime = millis();
-
-  // Send 'N' when not pressed
-
-  // Shut down Motors After 1 min
-  // if ((millis() - breakTime) >= 60000)
-  // {
-  //   digitalWrite(EN_PIN, HIGH);
-  //   digitalWrite(Y_ENABLE_PIN, HIGH);
-  // }
-
-  // delay(500); // Delay for 500 ms
-  // }
 }
 
 void setup()
@@ -318,6 +301,10 @@ void loop()
   // Don't do anything if no serial or if no buttons are on
   if (myTransfer.available() && buttonState)
   {
+    uint16_t sendSize = 0;
+    char data = 'Y';
+    sendSize = myTransfer.txObj(data, sendSize);
+
     // Receive Bytes
     uint8_t instruction = myTransfer.packet.rxBuff[0];
 
@@ -336,7 +323,7 @@ void loop()
 
     else if (int(instruction) == 72)
     {
-      homingSequence();
+      homingSequence(sendSize);
     }
 
     else if (int(instruction) == 83)
@@ -351,7 +338,7 @@ void loop()
 
     else if (int(instruction) == 65)
     {
-      sampleAccelerometer();
+      sampleAccelerometer(sendSize);
     }
 
     // Turn motor on again after shutting down
@@ -361,10 +348,10 @@ void loop()
   }
   else // Update Button otherwise
   {
-    // uint16_t sendSize = 0;
-    // char data = 'N';
-    // sendSize = myTransfer.txObj(data, sendSize);
-    // myTransfer.sendData(sendSize);
+    uint16_t sendSize = 0;
+    char data = 'N';
+    sendSize = myTransfer.txObj(data, sendSize);
+    myTransfer.sendData(sendSize);
 
     // Shutdown motors after 1 min
     if ((millis() - buttonChangeTime) >= 60000)
@@ -373,7 +360,7 @@ void loop()
       digitalWrite(Y_ENABLE_PIN, HIGH);
     }
 
-    updateButtonState(); // Update State of Button
+    delay(200);
   }
 }
 
@@ -698,11 +685,6 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
   forwardKin(currentTheta1, currentTheta4);
 }
 
-void updateButtonState()
-{
-  buttonState = (digitalRead(LeftbuttonPin) && digitalRead(RightbuttonPin));
-}
-
 void startupSequence()
 {
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) == 1)
@@ -723,7 +705,7 @@ void startupSequence()
   buttonState = true;
 }
 
-void homingSequence()
+void homingSequence(uint16_t sendSize)
 {
   int flagLeft = 0;
   int flagRight = 0;
@@ -758,7 +740,7 @@ void homingSequence()
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
 
-  uint16_t sendSize = 0;
+  // uint16_t sendSize = 0;
   char data = 'G';
   sendSize = myTransfer.txObj(data, sendSize);
   myTransfer.sendData(sendSize);
@@ -831,9 +813,9 @@ void zRetract(int steps)
   motorVert(steps, 200);
 }
 
-void sampleAccelerometer()
+void sampleAccelerometer(uint16_t sendSize)
 {
-  uint16_t sendSize = 0;
+  // uint16_t sendSize = 0;
 
   sensors_event_t event;
 
