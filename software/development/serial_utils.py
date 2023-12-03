@@ -121,28 +121,34 @@ class ArduinoComms:
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
-    # Check if buttons pressed
-    while arduino_communicator.safetyState() == 'N': 
-        # time.sleep(0.2)
+    # # Check if buttons pressed
+    # while arduino_communicator.safetyState() == 'N': 
+    #     # time.sleep(0.2)
 
-        # If pressed start homing
-        if arduino_communicator.home()  != 'G': 
-            time.sleep(0.2)
-            continue
-                
-        continue
+    #     # If pressed start homing
+    #     if arduino_communicator.home() != 'G': 
+    #         time.sleep(0.2)
+    #         continue
+
+    #     continue
     
+    # while True:
+    #     if arduino_communicator.safetyState() == 'Y': # If button pressed 
+    #         arduino_communicator.prompt_accel()
+    #         arduino_communicator.get_accel()
+    #         x = round(random.uniform(0, 3), 2)
+    #         y = round(random.uniform(0, 3), 2)
+    #         # x = 5
+    #         # y = 5
+    #         arduino_communicator.send_error(x, y)
+    #         time.sleep(0.066)
+    #         # arduino_communicator.send_error(0, 0)
+    #         # time.sleep(1)
+    #         # arduino_communicator.send_error(x, y)
+    #         print(x, y)
+
+    #     else: 
+    #         time.sleep(0.2)
     while True:
-        if arduino_communicator.safetyState() == 'Y': 
-            arduino_communicator.prompt_accel()
-            arduino_communicator.get_accel()
-            x = round(random.uniform(0, 3), 2)
-            y = round(random.uniform(0, 3), 2)
-            # x = 5
-            # y = 5
-            arduino_communicator.send_error(x, y)
-            time.sleep(0.066)
-            # arduino_communicator.send_error(0, 0)
-            # time.sleep(1)
-            # arduino_communicator.send_error(x, y)
-            print(x, y)
+        print(arduino_communicator.safetyState())
+        time.sleep(0.5)

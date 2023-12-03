@@ -109,8 +109,6 @@ void buttonInterrupt()
   // If buttons are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   {
-    delay(500); // Delay for 500 ms
-
     // Send 'N' when not pressed 
     uint16_t sendSize = 0;
     char data = 'N';
@@ -123,6 +121,8 @@ void buttonInterrupt()
       digitalWrite(EN_PIN, HIGH);
       digitalWrite(Y_ENABLE_PIN, HIGH);
     }
+
+    delay(500); // Delay for 500 ms
   }
 }
 
@@ -303,6 +303,7 @@ void setup()
   // homingSequence();
 }
 
+
 void loop()
 {
   // Send 'Y' when the buttons are pressed
@@ -349,6 +350,7 @@ void loop()
     }
   }
 
+  // Turn motor on again after shutting down 
   digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
   digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
   digitalWrite(Z_ENABLE_PIN, LOW);
