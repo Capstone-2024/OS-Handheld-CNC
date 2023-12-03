@@ -108,7 +108,7 @@ void buttonInterrupt()
 {
   int breakTime = millis();
 
-  // If left button are not pressed
+  // If buttons are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   { 
     uint16_t sendSize = 0;
