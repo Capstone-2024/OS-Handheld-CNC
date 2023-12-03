@@ -106,16 +106,12 @@ void buttonInterrupt()
 {
   int breakTime = millis();
 
-  uint16_t sendSize = 0;
-  char data = 'Y';
-  sendSize = myTransfer.txObj(data, sendSize);
-  myTransfer.sendData(sendSize);
-
   // If buttons are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   {
     delay(500); // Delay for 500 ms
 
+    // Send 'N' when not pressed 
     uint16_t sendSize = 0;
     char data = 'N';
     sendSize = myTransfer.txObj(data, sendSize);
@@ -309,6 +305,12 @@ void setup()
 
 void loop()
 {
+  // Send 'Y' when the buttons are pressed
+  uint16_t sendSize = 0;
+  char data = 'Y';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
+
   if (myTransfer.available())
   {
     uint8_t instruction = myTransfer.packet.rxBuff[0];
