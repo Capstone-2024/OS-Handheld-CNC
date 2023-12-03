@@ -108,19 +108,9 @@ void buttonInterrupt()
 {
   int breakTime = millis();
 
-  uint16_t sendSize = 0;
-  char data = 'Y';
-  sendSize = myTransfer.txObj(data, sendSize);
-  myTransfer.sendData(sendSize);
-
   // If buttons are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
-  { 
-    uint16_t sendSize = 0;
-    char data = 'N';
-    sendSize = myTransfer.txObj(data, sendSize);
-    myTransfer.sendData(sendSize);
-
+  {
     delay(500); // Delay for 500 ms
 
     // Shut down Motors After 1 min
