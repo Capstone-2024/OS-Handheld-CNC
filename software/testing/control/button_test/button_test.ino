@@ -12,8 +12,8 @@ void setup()
 {
     pinMode(RightbuttonPin, INPUT_PULLUP);
     pinMode(LeftbuttonPin, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, FALLING);
-    attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, FALLING);
+    attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, CHANGE);
 }
 
 void loop()
@@ -35,19 +35,13 @@ void loop()
         if ((millis() - buttonChangeTime) >= 60000)
         {
         }
-
-        updateButtonState();
         delay(500);
     }
-}
-
-void updateButtonState()
-{
-    buttonState = (digitalRead(LeftbuttonPin) && digitalRead(RightbuttonPin));
 }
 
 void buttonInterrupt()
 {
     buttonState = false;
     buttonChangeTime = millis();
+    buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
 }
