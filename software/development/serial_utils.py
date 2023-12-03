@@ -126,7 +126,7 @@ if __name__ == "__main__":
         continue
     
     while True:
-        if arduino_communicator.safetyState() != 'N': 
+        if arduino_communicator.safetyState() == None: 
             arduino_communicator.prompt_accel()
             arduino_communicator.get_accel()
             x = round(random.uniform(0, 3), 2)
