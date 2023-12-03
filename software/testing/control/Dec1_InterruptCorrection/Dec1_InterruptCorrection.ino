@@ -107,7 +107,7 @@ void buttonInterrupt()
   int breakTime = millis();
 
   // If buttons are not pressed
-  while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
+  while (((digitalRead(LeftbuttonPin) && digitalRead(RightbuttonPin))) == 1)
   {
     // Send 'N' when not pressed 
     uint16_t sendSize = 0;
