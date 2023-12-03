@@ -383,9 +383,9 @@ class FourthWin(QWidget, FourthUi):
     def update_video_frame(self):
         # This method is called periodically to update the video frame
         if self.video_thread.isRunning():
-            frame = self.video_thread.vs.read()[1]  # Read a frame from the video stream
-            self.video_thread.frame_signal.emit(frame)
-    
+            pass
+        
+        
     def update_frame(self, frame):
         height, width, channel = frame.shape
         bytes_per_line = 3 * width
@@ -541,11 +541,11 @@ class VideoThread(QThread):
                     print(f"FPS: {fps}")
                 
                     ''' Only display if we are using PC '''
-                    if platform != "linux":
+                    # if platform != "linux":
                         # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-                        cv2.imshow("Output Result", output)
+                        # cv2.imshow("Output Result", output)
 
-                    key = cv2.waitKey(1) & 0xFF
+                    # key = cv2.waitKey(1) & 0xFF
                     self.frame_signal.emit(output)
         self.vs.release()
     
