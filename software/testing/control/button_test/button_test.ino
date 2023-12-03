@@ -33,16 +33,15 @@ void loop()
         sendSize = myTransfer.txObj(data, sendSize);
         myTransfer.sendData(sendSize);
 
-        if ((millis() - buttonChangeTime) >= 60000)
-        {
-        }
+        // if ((millis() - buttonChangeTime) >= 60000)
+        // {
+        // }
         delay(500);
     }
 }
 
 void buttonInterrupt()
 {
-    buttonState = false;
     buttonChangeTime = millis();
     buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
 }
