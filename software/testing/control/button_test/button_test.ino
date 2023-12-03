@@ -28,6 +28,8 @@ void loop()
         char data = 'Y';
         sendSize = myTransfer.txObj(data, sendSize);
         myTransfer.sendData(sendSize);
+
+        delay(500);
     }
     
     else
