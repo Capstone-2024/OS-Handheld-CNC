@@ -107,13 +107,12 @@ if __name__ == "__main__":
         continue
     
     while True:
-        # arduino_communicator.read_accel()
-        # arduino_communicator.prompt_accel()
-        # arduino_communicator.get_accel()
-        # x = round(random.uniform(0, 3), 2)
-        # y = round(random.uniform(0, 3), 2)
-        x = 5
-        y = 5
+        arduino_communicator.prompt_accel()
+        arduino_communicator.get_accel()
+        x = round(random.uniform(0, 3), 2)
+        y = round(random.uniform(0, 3), 2)
+        # x = 5
+        # y = 5
         arduino_communicator.send_error(x, y)
         time.sleep(0.2)
         # arduino_communicator.send_error(0, 0)
