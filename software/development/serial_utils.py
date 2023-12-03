@@ -123,15 +123,18 @@ if __name__ == "__main__":
 
     # Check if homed
     while arduino_communicator.safetyState() == 'N': 
+        time.sleep(0.2)
         continue
     else: 
         while arduino_communicator.home()  != 'G': 
+            time.sleep(0.2)
             continue
     
     while True:
         if arduino_communicator.safetyState() != 'N': 
-            arduino_communicator.prompt_accel()
-            arduino_communicator.get_accel()
+            received_char = arduino_communicator.prompt_accel()
+            if received_char == 'A': 
+                arduino_communicator.get_accel()
             x = round(random.uniform(0, 3), 2)
             y = round(random.uniform(0, 3), 2)
             # x = 5
