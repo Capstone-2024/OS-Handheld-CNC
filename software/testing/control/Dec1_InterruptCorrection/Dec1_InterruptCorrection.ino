@@ -104,18 +104,17 @@ int cycle = 1;
 
 int completed = 0;
 
-void leftInterrupt()
+void buttonInterrupt()
 {
   int breakTime = millis();
+
+  // If left button are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   {
-    // Serial.println("Press both buttons!!!!");
-    // Serial.print("Left");
-    // Serial.println(digitalRead(LeftbuttonPin));
-    // Serial.print("Right");
-    // Serial.println(digitalRead(RightbuttonPin));
     delay(1000);
-    if ((millis() - breakTime) >= 5000)
+
+    // Shut down Motors After 1 min
+    if ((millis() - breakTime) >= 60000)
     {
       digitalWrite(EN_PIN, HIGH);
       digitalWrite(Y_ENABLE_PIN, HIGH);
@@ -123,24 +122,22 @@ void leftInterrupt()
   }
 }
 
-void rightInterrupt()
-{
-  int breakTime = millis();
-  while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
-  {
-    // Serial.println("Press both buttons!!!!");
-    // Serial.print("Left");
-    // Serial.println(digitalRead(LeftbuttonPin));
-    // Serial.print("Right");
-    // Serial.println(digitalRead(RightbuttonPin));
-    delay(1000);
-    if ((millis() - breakTime) >= 5000)
-    {
-      digitalWrite(EN_PIN, HIGH);
-      digitalWrite(Y_ENABLE_PIN, HIGH);
-    }
-  }
-}
+// void rightInterrupt()
+// {
+//   // If both buttons are not pressed
+//   int breakTime = millis();
+//   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
+//   {
+//     delay(1000);
+
+//     // Shutdown Motor After 5 Seconds
+//     if ((millis() - breakTime) >= 5000)
+//     {
+//       digitalWrite(EN_PIN, HIGH);
+//       digitalWrite(Y_ENABLE_PIN, HIGH);
+//     }
+//   }
+// }
 
 void setup()
 {
@@ -309,8 +306,8 @@ void setup()
 
   pinMode(RightbuttonPin, INPUT_PULLUP);
   pinMode(LeftbuttonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), leftInterrupt, RISING);
-  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), rightInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
 
   // startupSequence();
 
