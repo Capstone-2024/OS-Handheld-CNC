@@ -306,14 +306,15 @@ void setup()
 
 void loop()
 {
-  // Send 'Y' when the buttons are pressed
-  uint16_t sendSize = 0;
-  char data = 'Y';
-  sendSize = myTransfer.txObj(data, sendSize);
-  myTransfer.sendData(sendSize);
-
   if (myTransfer.available())
   {
+    // Send 'Y' when the buttons are pressed
+    uint16_t sendSize = 0;
+    char data = 'Y';
+    sendSize = myTransfer.txObj(data, sendSize);
+    myTransfer.sendData(sendSize);
+
+    // Receive Bytes
     uint8_t instruction = myTransfer.packet.rxBuff[0];
 
     if (int(instruction) == 73)
