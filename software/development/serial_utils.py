@@ -137,15 +137,18 @@ class ArduinoComms:
                     print("ERROR: {}".format(self.link.status))
 
         # Parse response list
-        str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+        incoming_str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
     
-        status = str_
+        status = incoming_str_
         homing_status = None
 
         # Only read more if the correct button status appear
         if status == 'Y': 
             homing_status = self.link.rx_obj(obj_type=str, obj_byte_size=1, start_pos=1)
         
+        print("SENT: {}".format(str_))
+        print("RCVD: {}".format(incoming_str_))
+
         return homing_status
 
 
@@ -172,10 +175,10 @@ class ArduinoComms:
         rec_float_ = None
         rec_float_2_ = None
 
-        print(self.link.bytesToRec)
+        # print(self.link.bytesToRec)
 
         # Only read more if the correct button status appear
-        if status == 'Y': 
+        if status == 'Y' and self.link.bytesToRec > 8: 
             rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=1)
             rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=5)
         
@@ -211,6 +214,7 @@ if __name__ == "__main__":
     #     # arduino_communicator.send_error(x, y)
     #     print(x, y)
     while arduino_communicator.homingOperation() != 'G': 
+        time.sleep(0.5)
         continue
     # 
     while True:
