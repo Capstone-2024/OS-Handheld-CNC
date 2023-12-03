@@ -49,11 +49,11 @@ class ArduinoComms:
                 else:
                     print("ERROR: {}".format(self.link.status))
         # Parse response list
-        rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4)
-        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=4)
+        str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+        rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=1)
+        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=5)
 
-        print("RCVD: {} {}".format(rec_float_, rec_float_2_))
-        # print(" ")
+        print("RCVD: {}, {} {}".format(str_, rec_float_, rec_float_2_))
         return rec_float_, rec_float_2_
 
     def send_error(self, x, y):
