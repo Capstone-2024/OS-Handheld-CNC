@@ -61,7 +61,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 // must be in StealthChop Mode for stallguard to work
 // Value of TCOOLTHRS must be greater than TSTEP & TPWMTHRS
 #define STALL_VALUE 40 // [0..255] // Need to calibrate
-int stepTime = 100;    // Determines speed of stepper. 160Hz step frequency
+int stepTime = 400;    // Determines speed of stepper. 160Hz step frequency
 bool startup = false;  // set false after homing
 
 // Initializing stepper driver in UART
