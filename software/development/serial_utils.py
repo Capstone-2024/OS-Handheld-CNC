@@ -222,7 +222,10 @@ if __name__ == "__main__":
         continue
     # 
     while True:
-        print(arduino_communicator.link.rxBuff)
+        # print(arduino_communicator.link.rxBuff)
         # print(arduino_communicator.safetyState())
         print(arduino_communicator.regOperation())
+        x = round(random.uniform(0, 3), 2)
+        y = round(random.uniform(0, 3), 2)
+        arduino_communicator.send_error(x, y)
         # time.sleep(0.5)
