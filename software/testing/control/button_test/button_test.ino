@@ -18,7 +18,8 @@ void setup()
 
 void loop()
 {
-    if (myTransfer.available() && buttonState)
+    // if (myTransfer.available() && buttonState)
+    if (buttonState)
     {
         uint16_t sendSize = 0;
         char data = 'Y';
