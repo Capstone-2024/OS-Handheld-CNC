@@ -153,7 +153,13 @@ class ArduinoComms:
 
 
     def regOperation(self): 
-        self.prompt_accel # send A to retrieve data
+        send_size = 0
+        # Send 'A' to start transfer
+        str_ = "A"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
+        self.link.send(send_size)
+        print("SENT: {}".format(str_))
 
         """ Wait for a response and report any errors while receiving packets """
         while not self.link.available():
@@ -168,9 +174,7 @@ class ArduinoComms:
                     print("ERROR: {}".format(self.link.status))
 
         # Parse response list
-        str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
-    
-        status = str_
+        status = self.link.rx_obj(obj_type=str, obj_byte_size=1)
 
         rec_float_ = None
         rec_float_2_ = None

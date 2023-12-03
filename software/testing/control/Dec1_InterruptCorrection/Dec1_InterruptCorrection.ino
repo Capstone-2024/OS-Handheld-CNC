@@ -341,13 +341,12 @@ void loop()
       else if (int(instruction) == 65)
       {
         sampleAccelerometer(sendSize);
-      }
-
-      // Turn motor on again after shutting down
+      } 
+    }
+    // Turn motor on again after shutting down
       digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
       digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
       digitalWrite(Z_ENABLE_PIN, LOW);
-    }
   }
   else // Update Button otherwise
   {
