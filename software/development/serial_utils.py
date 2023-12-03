@@ -212,7 +212,7 @@ if __name__ == "__main__":
         continue
     # 
     while True:
-        # print(arduino_communicator.link.rxBuff)
+        print(arduino_communicator.link.rxBuff)
         # print(arduino_communicator.safetyState())
         print(arduino_communicator.regOperation())
         time.sleep(0.5)
