@@ -102,28 +102,31 @@ const float homedTheta4 = 77.8594;
 
 int completed = 0;
 
+volatile bool buttonState = false;
+int buttonChangeTime;
+
 void buttonInterrupt()
 {
-  int breakTime = millis();
+  // int breakTime = millis();
 
   // If buttons are not pressed
-  while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) == 1)
-  {
-    // Send 'N' when not pressed 
-    uint16_t sendSize = 0;
-    char data = 'N';
-    sendSize = myTransfer.txObj(data, sendSize);
-    myTransfer.sendData(sendSize);
-  
-    // Shut down Motors After 1 min
-    if ((millis() - breakTime) >= 60000)
-    {
-      digitalWrite(EN_PIN, HIGH);
-      digitalWrite(Y_ENABLE_PIN, HIGH);
-    }
+  // while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) == 1)
+  // {
+  // Update State
+  buttonState = false;
+  buttonChangeTime = millis();
 
-    delay(500); // Delay for 500 ms
-  }
+  // Send 'N' when not pressed
+
+  // Shut down Motors After 1 min
+  // if ((millis() - breakTime) >= 60000)
+  // {
+  //   digitalWrite(EN_PIN, HIGH);
+  //   digitalWrite(Y_ENABLE_PIN, HIGH);
+  // }
+
+  // delay(500); // Delay for 500 ms
+  // }
 }
 
 void setup()
@@ -160,7 +163,8 @@ void setup()
   if (!accel.begin())
   {
     //  Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-    while (1);
+    while (1)
+      ;
   }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
@@ -308,16 +312,10 @@ void setup()
   // homingSequence();
 }
 
-
 void loop()
 {
-  // Send 'Y' when the buttons are pressed
-  uint16_t sendSize = 0;
-  char data = 'Y';
-  sendSize = myTransfer.txObj(data, sendSize);
-  myTransfer.sendData(sendSize);
-
-  if (myTransfer.available())
+  // Don't do anything if no serial or if no buttons are on
+  if (myTransfer.available() && buttonState)
   {
     // Receive Bytes
     uint8_t instruction = myTransfer.packet.rxBuff[0];
@@ -325,7 +323,7 @@ void loop()
     if (int(instruction) == 73)
     {
       uint16_t recSize = 1; // Start after the character byte
-      
+
       float xPacket;
       float yPacket;
 
@@ -355,8 +353,24 @@ void loop()
       sampleAccelerometer();
     }
   }
+  else // Update Button otherwise
+  {
+    // uint16_t sendSize = 0;
+    // char data = 'N';
+    // sendSize = myTransfer.txObj(data, sendSize);
+    // myTransfer.sendData(sendSize);
 
-  // Turn motor on again after shutting down 
+    // Shutdown motors after 1 min
+    if ((millis() - buttonChangeTime) >= 60000)
+    {
+      digitalWrite(EN_PIN, HIGH);
+      digitalWrite(Y_ENABLE_PIN, HIGH);
+    }
+
+    updateButtonState(); // Update State of Button
+  }
+
+  // Turn motor on again after shutting down
   digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
   digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
   digitalWrite(Z_ENABLE_PIN, LOW);
@@ -632,32 +646,32 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
       leftStepsTaken = leftStepsTaken + 1;
       rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
     }
-    
+
     if (Serial.available() == 9)
     {
-        // Update position w.r.t how far we actually travelled.
+      // Update position w.r.t how far we actually travelled.
 
-        if (leftShaftVal == true)
-        {
-          currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-        }
-        else
-        {
-          currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-        }
+      if (leftShaftVal == true)
+      {
+        currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
+      }
+      else
+      {
+        currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
+      }
 
-        if (rightShaftVal == true)
-        {
-          currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-        }
-        else
-        {
-          currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-        }
+      if (rightShaftVal == true)
+      {
+        currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
+      }
+      else
+      {
+        currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
+      }
 
-        forwardKin(currentTheta1, currentTheta4);
+      forwardKin(currentTheta1, currentTheta4);
 
-        break;
+      break;
     }
   }
   // Update Pos and Angles if we reach target
@@ -683,22 +697,29 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
   forwardKin(currentTheta1, currentTheta4);
 }
 
+void updateButtonState()
+{
+  buttonState = (digitalRead(LeftbuttonPin) && digitalRead(RightbuttonPin));
+}
+
 void startupSequence()
 {
-  while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
+  while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) == 1)
   {
     // Serial.println("Press both buttons!!!!");
     // Serial.print("Left");
     // Serial.println(digitalRead(LeftbuttonPin));
     // Serial.print("Right");
     // Serial.println(digitalRead(RightbuttonPin));
-    // Send 'N' when not pressed 
+    // Send 'N' when not pressed
     uint16_t sendSize = 0;
     char data = 'N';
     sendSize = myTransfer.txObj(data, sendSize);
     myTransfer.sendData(sendSize);
-    delay(1000);
+    delay(500);
   }
+
+  buttonState = true;
 }
 
 void homingSequence()
@@ -811,6 +832,8 @@ void zRetract(int steps)
 
 void sampleAccelerometer()
 {
+  uint16_t sendSize = 0;
+
   sensors_event_t event;
 
   accel.getEvent(&event);
@@ -818,7 +841,6 @@ void sampleAccelerometer()
   float z_accel = event.acceleration.z;
   float y_accel = event.acceleration.y;
 
-  uint16_t sendSize = 0;
   sendSize = myTransfer.txObj(z_accel, sendSize);
   sendSize = myTransfer.txObj(y_accel, sendSize);
   myTransfer.sendData(sendSize);
