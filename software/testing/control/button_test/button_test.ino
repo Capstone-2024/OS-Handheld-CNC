@@ -10,6 +10,9 @@ volatile int buttonChangeTime;
 
 void setup()
 {
+    Serial.flush();
+    Serial.begin(115200);
+    myTransfer.begin(Serial);
     pinMode(RightbuttonPin, INPUT_PULLUP);
     pinMode(LeftbuttonPin, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, CHANGE);
@@ -26,6 +29,7 @@ void loop()
         sendSize = myTransfer.txObj(data, sendSize);
         myTransfer.sendData(sendSize);
     }
+    
     else
     {
         uint16_t sendSize = 0;
