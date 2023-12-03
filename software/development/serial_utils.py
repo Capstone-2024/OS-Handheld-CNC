@@ -225,4 +225,4 @@ if __name__ == "__main__":
         print(arduino_communicator.link.rxBuff)
         # print(arduino_communicator.safetyState())
         print(arduino_communicator.regOperation())
-        time.sleep(0.5)
+        # time.sleep(0.5)
