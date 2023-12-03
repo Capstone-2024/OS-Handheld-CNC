@@ -163,15 +163,15 @@ def vision_main(shape):
             y_data.append(kf_y.x[0])
 
             ''' Plot '''
-            # if len(x_data) >= num_data_p:
-            #     # print(record_data)
-            #     # print(raw_x)
-            #     plot_chart(
-            #         [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
-            #     )
-            #     df = pd.DataFrame([x_data, y_data])
-            #     df.to_excel("output.xlsx")
-            #     break
+            if len(x_data) >= num_data_p:
+                # print(record_data)
+                # print(raw_x)
+                plot_chart(
+                    [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
+                )
+                df = pd.DataFrame([x_data, y_data])
+                df.to_excel("output.xlsx")
+                break
 
             ''' Calculate FPS and Display ''' 
             new_frame_time = time.time()
