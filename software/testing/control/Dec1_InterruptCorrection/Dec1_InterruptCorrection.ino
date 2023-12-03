@@ -293,10 +293,15 @@ void setup()
 
   pinMode(RightbuttonPin, INPUT_PULLUP);
   pinMode(LeftbuttonPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
-  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
 
-  // startupSequence();
+  // Make sure buttons are pressed
+  startupSequence();
+
+  // Attach Interrupts
+  // attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
+  // attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, FALLING);
+  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, FALLING);
 
   // zHomingSequence();
 
