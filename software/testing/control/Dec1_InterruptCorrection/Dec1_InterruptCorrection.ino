@@ -107,7 +107,7 @@ void buttonInterrupt()
   int breakTime = millis();
 
   // If buttons are not pressed
-  while (((digitalRead(LeftbuttonPin) && digitalRead(RightbuttonPin))) == 1)
+  while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) == 1)
   {
     // Send 'N' when not pressed 
     uint16_t sendSize = 0;
@@ -311,11 +311,11 @@ void setup()
 
 void loop()
 {
-    // Send 'Y' when the buttons are pressed
-    uint16_t sendSize = 0;
-    char data = 'Y';
-    sendSize = myTransfer.txObj(data, sendSize);
-    myTransfer.sendData(sendSize);
+  // Send 'Y' when the buttons are pressed
+  uint16_t sendSize = 0;
+  char data = 'Y';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
 
   if (myTransfer.available())
   {

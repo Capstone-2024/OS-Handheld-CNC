@@ -121,33 +121,33 @@ class ArduinoComms:
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
-    # # # Check if buttons pressed
-    # while arduino_communicator.safetyState() == 'N': 
-    #     # time.sleep(0.2)
-    #     continue
-    # else: 
-    #     # If pressed start homing
-    #     while arduino_communicator.home() != 'G': 
-    #         time.sleep(0.2)
-    #         continue
+    # Check if buttons pressed
+    while arduino_communicator.safetyState() == 'N': 
+        # time.sleep(0.2)
+        continue
+    else: 
+        # If pressed start homing
+        while arduino_communicator.home() != 'G': 
+            time.sleep(0.2)
+            continue
     
-    # while True:
-    #     if arduino_communicator.safetyState() == 'Y': # If button pressed 
-    #         arduino_communicator.prompt_accel()
-    #         arduino_communicator.get_accel()
-    #         x = round(random.uniform(0, 3), 2)
-    #         y = round(random.uniform(0, 3), 2)
-    #         # x = 5
-    #         # y = 5
-    #         arduino_communicator.send_error(x, y)
-    #         time.sleep(0.066)
-    #         # arduino_communicator.send_error(0, 0)
-    #         # time.sleep(1)
-    #         # arduino_communicator.send_error(x, y)
-    #         print(x, y)
-
-    #     else: 
-    #         time.sleep(0.2)
     while True:
-        print(arduino_communicator.safetyState())
-        # time.sleep(0.5)
+        if arduino_communicator.safetyState() == 'Y': # If button pressed 
+            arduino_communicator.prompt_accel()
+            arduino_communicator.get_accel()
+            x = round(random.uniform(0, 3), 2)
+            y = round(random.uniform(0, 3), 2)
+            # x = 5
+            # y = 5
+            arduino_communicator.send_error(x, y)
+            time.sleep(0.066)
+            # arduino_communicator.send_error(0, 0)
+            # time.sleep(1)
+            # arduino_communicator.send_error(x, y)
+            print(x, y)
+
+        else: 
+            time.sleep(0.2)
+    # while True:
+    #     print(arduino_communicator.safetyState())
+    #     # time.sleep(0.5)
