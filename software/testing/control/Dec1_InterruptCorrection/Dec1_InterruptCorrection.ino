@@ -352,6 +352,11 @@ void loop()
     {
       sampleAccelerometer();
     }
+
+    // Turn motor on again after shutting down
+    digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
+    digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
+    digitalWrite(Z_ENABLE_PIN, LOW);
   }
   else // Update Button otherwise
   {
@@ -369,11 +374,6 @@ void loop()
 
     updateButtonState(); // Update State of Button
   }
-
-  // Turn motor on again after shutting down
-  digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
-  digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
-  digitalWrite(Z_ENABLE_PIN, LOW);
 }
 
 void autoCorrection(float desiredDeltaX, float desiredDeltaY)
