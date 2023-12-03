@@ -172,6 +172,8 @@ class ArduinoComms:
         rec_float_ = None
         rec_float_2_ = None
 
+        print(self.link.bytesToRec)
+
         # Only read more if the correct button status appear
         if status == 'Y': 
             rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=1)
