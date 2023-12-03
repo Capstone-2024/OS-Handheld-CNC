@@ -299,52 +299,55 @@ void setup()
 void loop()
 {
   // Don't do anything if no serial or if no buttons are on
-  if (myTransfer.available() && buttonState)
+  if (buttonState)
   {
     uint16_t sendSize = 0;
     char data = 'Y';
     sendSize = myTransfer.txObj(data, sendSize);
 
-    // Receive Bytes
-    uint8_t instruction = myTransfer.packet.rxBuff[0];
-
-    if (int(instruction) == 73)
+    if (myTransfer.available())
     {
-      uint16_t recSize = 1; // Start after the character byte
+      // Receive Bytes
+      uint8_t instruction = myTransfer.packet.rxBuff[0];
 
-      float xPacket;
-      float yPacket;
+      if (int(instruction) == 73)
+      {
+        uint16_t recSize = 1; // Start after the character byte
 
-      recSize = myTransfer.rxObj(xPacket, recSize);
-      recSize = myTransfer.rxObj(yPacket, recSize);
+        float xPacket;
+        float yPacket;
 
-      autoCorrection(xPacket, yPacket);
+        recSize = myTransfer.rxObj(xPacket, recSize);
+        recSize = myTransfer.rxObj(yPacket, recSize);
+
+        autoCorrection(xPacket, yPacket);
+      }
+
+      else if (int(instruction) == 72)
+      {
+        homingSequence(sendSize);
+      }
+
+      else if (int(instruction) == 83)
+      {
+        zRetract(2000);
+      }
+
+      else if (int(instruction) == 90)
+      {
+        zHomingSequence();
+      }
+
+      else if (int(instruction) == 65)
+      {
+        sampleAccelerometer(sendSize);
+      }
+
+      // Turn motor on again after shutting down
+      digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
+      digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
+      digitalWrite(Z_ENABLE_PIN, LOW);
     }
-
-    else if (int(instruction) == 72)
-    {
-      homingSequence(sendSize);
-    }
-
-    else if (int(instruction) == 83)
-    {
-      zRetract(2000);
-    }
-
-    else if (int(instruction) == 90)
-    {
-      zHomingSequence();
-    }
-
-    else if (int(instruction) == 65)
-    {
-      sampleAccelerometer(sendSize);
-    }
-
-    // Turn motor on again after shutting down
-    digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
-    digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
-    digitalWrite(Z_ENABLE_PIN, LOW);
   }
   else // Update Button otherwise
   {
