@@ -640,10 +640,10 @@ void remainderArray(int arraySize, int stepRemainder, int randomArray[])
   for (int i = 0; i < stepRemainder; i++)
   {
     int randomIndex = random(0, arraySize); // Generate a random index
-    while (randomArray[randomIndex] != 0)
-    {
-      randomIndex = random(0, arraySize);
-    }
+    // while (randomArray[randomIndex] != 0)
+    // {
+    //   randomIndex = random(0, arraySize);
+    // }
     randomArray[randomIndex] = 1; // Set the value at the random index to 1
   }
 }

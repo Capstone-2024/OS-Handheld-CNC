@@ -58,21 +58,31 @@ def vision_main(shape):
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
     arduino.home()
+
+    num_accel_samples = 10
+    offsets_x = np.zeros(num_accel_samples)
+    offsets_y = np.zeros(num_accel_samples)
     
     # Accelerometer offsets
-    for i in range(0, 10): 
-        offset_x, offset_y = arduino.read_accel()
-    
+    for i in range(0, num_accel_samples): 
+        arduino.prompt_accel()
+        reading = arduino.get_accel()
+        offsets_x[i] = reading[0]
+        offsets_y[i] = reading[1]
+
+    accel_offset_x = np.average(offsets_x)
+    accel_offset_y = np.average(offsets_y)
+
     # Main Loop
     while True:
         frame = vs.read()
 
         # Read Accelerometer
         # accel_x, accel_y = arduino.read_accel()
-        # accel_x_mm = accel_x*1000
-        # accel_y_mm = accel_y*1000
-        accel_x_mm = 0 
-        accel_y_mm = 0 
+        # accel_x_mm = (accel_x - accel_offsets_x)*1000
+        # accel_y_mm = (accel_y - accel_offsets_y)*1000
+        accel_x_mm = 0
+        accel_y_mm = 0
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)

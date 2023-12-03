@@ -34,6 +34,7 @@ class ArduinoComms:
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
         self.link.send(send_size)
+        print("SENT: {}".format(str_))
 
     def get_accel(self): 
         """ Wait for a response and report any errors while receiving packets """
@@ -49,8 +50,8 @@ class ArduinoComms:
                     print("ERROR: {}".format(self.link.status))
         # Parse response list
         rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4)
-        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=(4))
-        print("SENT: {}".format(str_))
+        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=4)
+
         print("RCVD: {} {}".format(rec_float_, rec_float_2_))
         # print(" ")
         return rec_float_, rec_float_2_
