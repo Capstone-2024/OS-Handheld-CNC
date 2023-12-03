@@ -374,21 +374,18 @@ class FourthWin(QWidget, FourthUi):
         # Update the label with the processed image from the vision task
         # self.label_3.setPixmap(QPixmap.fromImage(qt_image))
     
-    def start_video_thread(self):
-        self.timer.timeout.connect(self.update_video_frame)
-        self.timer.start(50)
-    
     def execute_video_thread(self):
         # Start VideoThread to execute once
         self.video_thread.start()
-        self.video_thread.wait()
-        self.start_video_thread()
+        self.timer.timeout.connect(self.update_video_frame)
+        self.timer.start(50)
     
     def update_video_frame(self):
         # This method is called periodically to update the video frame
         if self.video_thread.isRunning():
-            self.video_thread.frame_signal.emit(np.zeros((100, 100, 3), dtype=np.uint8))  # 假设这里有一个示例图像
-    
+            pass
+        
+        
     def update_frame(self, frame):
         height, width, channel = frame.shape
         bytes_per_line = 3 * width
@@ -398,7 +395,7 @@ class FourthWin(QWidget, FourthUi):
 
     def closeEvent(self, event):
         self.timer.stop()
-        self.video_thread.quit()
+        self.video_thread.stop()
         self.video_thread.wait()
         event.accept()
 
@@ -544,11 +541,11 @@ class VideoThread(QThread):
                     print(f"FPS: {fps}")
                 
                     ''' Only display if we are using PC '''
-                    if platform != "linux":
+                    # if platform != "linux":
                         # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-                        cv2.imshow("Output Result", output)
+                        # cv2.imshow("Output Result", output)
 
-                    key = cv2.waitKey(1) & 0xFF
+                    # key = cv2.waitKey(1) & 0xFF
                     self.frame_signal.emit(output)
         self.vs.release()
     
