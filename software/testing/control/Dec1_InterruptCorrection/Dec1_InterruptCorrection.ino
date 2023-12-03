@@ -309,8 +309,8 @@ void setup()
 
   pinMode(RightbuttonPin, INPUT_PULLUP);
   pinMode(LeftbuttonPin, INPUT_PULLUP);
-  // attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), leftInterrupt, RISING);
-  // attachInterrupt(digitalPinToInterrupt(RightbuttonPin), rightInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), leftInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), rightInterrupt, RISING);
 
   // startupSequence();
 

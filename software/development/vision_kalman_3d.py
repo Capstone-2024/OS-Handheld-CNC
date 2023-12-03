@@ -63,7 +63,7 @@ def vision_main(shape):
 
     # Ensure Low-Level is Homed
     while arduino.home() != 'G':
-        print('Spindle Not Homed')
+        print('Spindle Not Homed.')
         continue
 
     print('Spindle Home Successfully.')
@@ -87,11 +87,11 @@ def vision_main(shape):
         frame = vs.read()
 
         # Read Accelerometer
-        # accel_x, accel_y = arduino.read_accel()
-        # accel_x_mm = (accel_x - accel_offsets_x)*1000
-        # accel_y_mm = (accel_y - accel_offsets_y)*1000
-        accel_x_mm = 0
-        accel_y_mm = 0
+        accel_x, accel_y = arduino.read_accel()
+        accel_x_mm = (accel_x - accel_offset_x)*1000
+        accel_y_mm = (accel_y - accel_offset_y)*1000
+        # accel_x_mm = 0
+        # accel_y_mm = 0
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
@@ -145,8 +145,8 @@ def vision_main(shape):
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
             # print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
-            print(f'Current Global: {x_pos}, {y_pos} \n')
-            print(f'Filtered Global: {kf_x.x}, {kf_y.x} \n')
+            print(f'Current Global: {x_pos}, {y_pos}')
+            print(f'Filtered Global: {kf_x.x[0]}, {kf_y.x[0]} \n')
             
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 

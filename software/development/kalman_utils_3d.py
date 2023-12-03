@@ -1,5 +1,3 @@
-# Ideas for Kalman
-
 # 1. Hidden Variable
 # Use position measurements to calculate velocity
 # Use Velocity as a variable to adjust for position (a hidden variable)
@@ -15,7 +13,7 @@ import numpy as np
 
 def PE_filter(x, P, R, Q, dt):
     """ Returns a KalmanFilter which implements a
-    constant acceleration model for a state [x dx].T
+    constant acceleration model
     """
     kf = KalmanFilter(dim_x=3, dim_z=2)
     kf.x = np.array([x[0], x[1], x[2]]) # position, velocity, acceleration

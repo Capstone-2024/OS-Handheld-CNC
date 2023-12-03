@@ -89,10 +89,10 @@ def pose_estimation(frame, marker_locations):
 
                 # Global Marker Position Transformation Matrix
                 G_M = np.array([[1, 0, 0, marker_locations[ids[i][0]][0]], 
-                              [0, 1, 0, marker_locations[ids[i][0]][1]], 
-                              [0, 0, 1, 0], 
+                                [0, 1, 0, marker_locations[ids[i][0]][1]], 
+                                [0, 0, 1, 0], 
                             #   [0, 0, 1, t_diff_i[2]], 
-                              [0, 0, 0, 1]])
+                                [0, 0, 0, 1]])
                 # print(G_M)
                 
                 G_t_C = G_t @ G_M
@@ -104,7 +104,6 @@ def pose_estimation(frame, marker_locations):
                 # Add to Array
                 x[i] = (position_W[0])
                 y[i] = (position_W[1])
-
 
                 # Rotation Averaging
                 # get_quaternion(G_t_C[:3, :3])
