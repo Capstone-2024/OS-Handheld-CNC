@@ -138,11 +138,11 @@ if __name__ == "__main__":
     while arduino_communicator.safetyState() == 'N': 
         # time.sleep(0.2)
         continue
-    else: 
-        # If pressed start homing
-        while arduino_communicator.home() != 'G': 
-            time.sleep(0.2)
-            continue
+    
+    # If pressed start homing
+    while arduino_communicator.home() != 'G': 
+        time.sleep(0.2)
+        continue
     
     while True:
         arduino_communicator.prompt_accel()

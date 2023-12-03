@@ -299,7 +299,7 @@ void setup()
   pinMode(LeftbuttonPin, INPUT_PULLUP);
 
   // Make sure buttons are pressed
-  startupSequence();
+  // startupSequence();
 
   // Attach Interrupts
   // attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
