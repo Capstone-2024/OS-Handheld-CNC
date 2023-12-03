@@ -296,7 +296,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
   attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
 
-  // startupSequence();
+  startupSequence();
 
   // zHomingSequence();
 
@@ -306,14 +306,14 @@ void setup()
 
 void loop()
 {
-  if (myTransfer.available())
-  {
-    // Send 'Y' when the buttons are pressed
+      // Send 'Y' when the buttons are pressed
     uint16_t sendSize = 0;
     char data = 'Y';
     sendSize = myTransfer.txObj(data, sendSize);
     myTransfer.sendData(sendSize);
 
+  if (myTransfer.available())
+  {
     // Receive Bytes
     uint8_t instruction = myTransfer.packet.rxBuff[0];
 
@@ -687,6 +687,11 @@ void startupSequence()
     // Serial.println(digitalRead(LeftbuttonPin));
     // Serial.print("Right");
     // Serial.println(digitalRead(RightbuttonPin));
+    // Send 'N' when not pressed 
+    uint16_t sendSize = 0;
+    char data = 'N';
+    sendSize = myTransfer.txObj(data, sendSize);
+    myTransfer.sendData(sendSize);
     delay(1000);
   }
 }

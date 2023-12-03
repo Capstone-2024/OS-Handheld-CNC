@@ -122,15 +122,14 @@ if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
     # # Check if buttons pressed
-    # while arduino_communicator.safetyState() == 'N': 
-    #     # time.sleep(0.2)
-
-    #     # If pressed start homing
-    #     if arduino_communicator.home() != 'G': 
-    #         time.sleep(0.2)
-    #         continue
-
-    #     continue
+    while arduino_communicator.safetyState() == 'N': 
+        # time.sleep(0.2)
+        continue
+    else: 
+        # If pressed start homing
+        while arduino_communicator.home() != 'G': 
+            time.sleep(0.2)
+            continue
     
     # while True:
     #     if arduino_communicator.safetyState() == 'Y': # If button pressed 
