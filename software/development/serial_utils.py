@@ -121,9 +121,12 @@ class ArduinoComms:
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
-    while arduino_communicator.home() != 'G' or arduino_communicator.safetyState() == 'N':
-        time.sleep(0.1)
+    # Check if homed
+    while arduino_communicator.safetyState() == 'N': 
         continue
+    else: 
+        while arduino_communicator.home()  != 'G': 
+            continue
     
     while True:
         if arduino_communicator.safetyState() != 'N': 

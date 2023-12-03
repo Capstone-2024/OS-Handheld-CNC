@@ -100,19 +100,27 @@ float penPoints[400][3];
 const float homedTheta1 = 162.2107;
 const float homedTheta4 = 77.8594;
 
-int cycle = 1;
-
 int completed = 0;
 
 void buttonInterrupt()
 {
   int breakTime = millis();
 
+  uint16_t sendSize = 0;
+  char data = 'Y';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
+
   // If buttons are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   {
     delay(500); // Delay for 500 ms
 
+    uint16_t sendSize = 0;
+    char data = 'N';
+    sendSize = myTransfer.txObj(data, sendSize);
+    myTransfer.sendData(sendSize);
+  
     // Shut down Motors After 1 min
     if ((millis() - breakTime) >= 60000)
     {
@@ -124,7 +132,7 @@ void buttonInterrupt()
 
 void setup()
 {
-
+  // Set up motor driver pins
   pinMode(EN_PIN, OUTPUT);
   pinMode(STEP_PIN, OUTPUT);
   // shaft direction controlled through uart: driver.shaft(true or false)
@@ -308,6 +316,7 @@ void loop()
     if (int(instruction) == 73)
     {
       uint16_t recSize = 1; // Start after the character byte
+      
       float xPacket;
       float yPacket;
 

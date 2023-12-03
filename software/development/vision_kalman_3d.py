@@ -6,12 +6,7 @@ import time
 import pandas as pd
 from kalman_utils_3d import PE_filter
 from sys import platform
-# from serial_utils import ardu_write, ardu_read
 from serial_utils import ArduinoComms
-import math
-import os
-import struct
-
 
 def vision_main(shape):
     ''' Main Vision Program for Pose Estimation '''
@@ -57,16 +52,15 @@ def vision_main(shape):
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
-
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
 
     # Ensure Low-Level is Homed
     while arduino.home() != 'G':
-        print('Spindle Not Homed.')
+        print('Spindle not homed...')
         continue
 
-    print('Spindle Home Successfully.')
+    print('Spindle homed successfully...')
 
     num_accel_samples = 10
     offsets_x = np.zeros(num_accel_samples)
@@ -90,13 +84,9 @@ def vision_main(shape):
         accel_x, accel_y = arduino.read_accel()
         accel_x_mm = (accel_x - accel_offset_x)*1000
         accel_y_mm = (accel_y - accel_offset_y)*1000
-        # accel_x_mm = 0
-        # accel_y_mm = 0
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
-
-        # print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
         
         if x_pos or y_pos != None: 
 
@@ -118,7 +108,7 @@ def vision_main(shape):
             
             # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
 
-             # pos_diff = [shape[0][point_i] - kf_x.x[0], shape[1][point_i] - kf_y.x[0]]
+            # pos_diff = [shape[0][point_i] - kf_x.x[0], shape[1][point_i] - kf_y.x[0]]
 
             ''' Fixed At One Point '''
             test_point = [0, 0]
@@ -137,7 +127,7 @@ def vision_main(shape):
             #     arduino.send_error(loc_diff[0], loc_diff[1])
             #     print(f'Data Sent: {loc_diff[0]}, {loc_diff[1]}')
 
-            if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+            if abs(pos_diff[0]) <= 5 and abs(pos_diff[1]) <= 5: 
                 print('Sending to Arduino...')
                 arduino.send_error(pos_diff[0], pos_diff[1])
                 print(f'Data Sent: {pos_diff[0]}, {pos_diff[1]}')
@@ -184,13 +174,8 @@ def vision_main(shape):
             print(f"FPS: {fps}")
             
             ''' Only display if we are using PC '''
-            # if platform != "linux":
-            #     # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-            #     # imS = cv2.resize(output, (640, 480))  
-            #     # cv2.imshow("Output Result", imS)
-            #     cv2.imshow("Output Result", output)
-
-            cv2.imshow("Output Result", output)
+            if platform != "linux":
+                cv2.imshow("Output Result", output)
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
