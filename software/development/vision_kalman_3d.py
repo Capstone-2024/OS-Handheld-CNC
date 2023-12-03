@@ -184,11 +184,13 @@ def vision_main(shape):
             print(f"FPS: {fps}")
             
             ''' Only display if we are using PC '''
-            if platform != "linux":
-                # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-                # imS = cv2.resize(output, (640, 480))  
-                # cv2.imshow("Output Result", imS)
-                cv2.imshow("Output Result", output)
+            # if platform != "linux":
+            #     # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+            #     # imS = cv2.resize(output, (640, 480))  
+            #     # cv2.imshow("Output Result", imS)
+            #     cv2.imshow("Output Result", output)
+
+            cv2.imshow("Output Result", output)
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
