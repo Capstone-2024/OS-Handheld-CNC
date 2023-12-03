@@ -374,20 +374,17 @@ class FourthWin(QWidget, FourthUi):
         # Update the label with the processed image from the vision task
         # self.label_3.setPixmap(QPixmap.fromImage(qt_image))
     
-    def start_video_thread(self):
-        self.timer.timeout.connect(self.update_video_frame)
-        self.timer.start(50)
-    
     def execute_video_thread(self):
         # Start VideoThread to execute once
         self.video_thread.start()
-        self.video_thread.wait()
-        self.start_video_thread()
+        self.timer.timeout.connect(self.update_video_frame)
+        self.timer.start(50)
     
     def update_video_frame(self):
         # This method is called periodically to update the video frame
         if self.video_thread.isRunning():
-            self.video_thread.frame_signal.emit(np.zeros((100, 100, 3), dtype=np.uint8))  # 假设这里有一个示例图像
+            frame = self.video_thread.vs.read()[1]  # Read a frame from the video stream
+            self.video_thread.frame_signal.emit(frame)
     
     def update_frame(self, frame):
         height, width, channel = frame.shape
@@ -398,7 +395,7 @@ class FourthWin(QWidget, FourthUi):
 
     def closeEvent(self, event):
         self.timer.stop()
-        self.video_thread.quit()
+        self.video_thread.stop()
         self.video_thread.wait()
         event.accept()
 
