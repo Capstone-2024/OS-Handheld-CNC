@@ -154,6 +154,6 @@ if __name__ == "__main__":
     #     print(x, y)
 
     while True:
-        # print(arduino_communicator.link.rxBuff)
+        print(arduino_communicator.link.rxBuff)
         print(arduino_communicator.safetyState())
         time.sleep(0.5)
