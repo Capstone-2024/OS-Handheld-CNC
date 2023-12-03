@@ -131,10 +131,9 @@ if __name__ == "__main__":
             continue
     
     while True:
-        if arduino_communicator.safetyState() != 'N': 
-            received_char = arduino_communicator.prompt_accel()
-            if received_char == 'A': 
-                arduino_communicator.get_accel()
+        if arduino_communicator.safetyState() == 'Y': 
+            arduino_communicator.prompt_accel()
+            arduino_communicator.get_accel()
             x = round(random.uniform(0, 3), 2)
             y = round(random.uniform(0, 3), 2)
             # x = 5
