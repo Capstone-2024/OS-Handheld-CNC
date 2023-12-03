@@ -110,8 +110,13 @@ void buttonInterrupt()
 
   // If left button are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
-  {
-    delay(1000);
+  { 
+    uint16_t sendSize = 0;
+    char data = 'N';
+    sendSize = myTransfer.txObj(data, sendSize);
+    myTransfer.sendData(sendSize);
+
+    delay(500); // Delay for 500 ms
 
     // Shut down Motors After 1 min
     if ((millis() - breakTime) >= 60000)
@@ -121,23 +126,6 @@ void buttonInterrupt()
     }
   }
 }
-
-// void rightInterrupt()
-// {
-//   // If both buttons are not pressed
-//   int breakTime = millis();
-//   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
-//   {
-//     delay(1000);
-
-//     // Shutdown Motor After 5 Seconds
-//     if ((millis() - breakTime) >= 5000)
-//     {
-//       digitalWrite(EN_PIN, HIGH);
-//       digitalWrite(Y_ENABLE_PIN, HIGH);
-//     }
-//   }
-// }
 
 void setup()
 {
@@ -318,53 +306,6 @@ void setup()
 
 void loop()
 {
-  // if (Serial.available() > 0)
-  // {
-  //  char instruction = Serial.read();
-  //  // 2 Packet sizes, either 1 byte for simple instruction, or 9 bytes for complex instruction
-  //
-  //  if((int)instruction == 73)
-  //  {
-  //      float xPacket = Serial.parseFloat();
-  //      char comma = Serial.read(); // Read and discard comma delimiter
-  //      float yPacket = Serial.parseFloat();
-  //
-  ////      Serial.println(xPacket);
-  ////      Serial.println(yPacket);
-  //      autoCorrection(xPacket, yPacket);
-  //  }
-  //
-  //  else if((int)instruction == 72)
-  //  {
-  //    homingSequence();
-  //  }
-  //
-  //  else if((int)instruction == 82)
-  //  {
-  //    zRetract(2000);
-  //  }
-  //  else if((int)instruction == 90)
-  //  {
-  //    zHomingSequence();
-  //  }
-  //  else if((int)instruction == 65)
-  //  {
-  //    sampleAccelerometer();
-  //  }
-  //  else if((int)instruction == 83)
-  //  {
-  //    int via = 4;
-  //    float poses[via][2]={{2,2},{-2,2},{-2,-2},{2,-2}};
-  //    for(int i = 0; i<via; i++)
-  //    {
-  //      autoCorrection(poses[i][0], poses[i][1]);
-  //    }
-  //  }
-  //  else
-  //  {
-  //
-  //  }
-  // }
   if (myTransfer.available())
   {
     uint8_t instruction = myTransfer.packet.rxBuff[0];
