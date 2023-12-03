@@ -14,6 +14,8 @@ import struct
 
 
 def vision_main(shape):
+    ''' Main Vision Program for Pose Estimation '''
+
     # Analyze Stitched Image, establishing global coordinate system
     marker_locations = manual_analyze_stitched()
 
@@ -45,8 +47,8 @@ def vision_main(shape):
     P_y = np.diag([1**2.0, 10**2, 10**2])
 
     # R - Measurement Error
-    R_x = np.array([1**2, 0.5**2])
-    R_y = np.array([1**2, 0.5**2])
+    R_x = np.array([1**2, 20**2])
+    R_y = np.array([1**2, 20**2])
 
     # Q - process variance
     Q = 10**2
@@ -55,24 +57,41 @@ def vision_main(shape):
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
+
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
-    arduino.home()
+
+    # Ensure Low-Level is Homed
+    while arduino.home() != 'G':
+        print('Spindle Not Homed.')
+        continue
+
+    print('Spindle Home Successfully.')
+
+    num_accel_samples = 10
+    offsets_x = np.zeros(num_accel_samples)
+    offsets_y = np.zeros(num_accel_samples)
     
     # Accelerometer offsets
-    for i in range(0, 10): 
-        offset_x, offset_y = arduino.read_accel()
-    
+    for i in range(0, num_accel_samples): 
+        arduino.prompt_accel()
+        reading = arduino.get_accel()
+        offsets_x[i] = reading[0]
+        offsets_y[i] = reading[1]
+
+    accel_offset_x = np.average(offsets_x)
+    accel_offset_y = np.average(offsets_y)
+
     # Main Loop
     while True:
         frame = vs.read()
 
         # Read Accelerometer
-        # accel_x, accel_y = arduino.read_accel()
-        # accel_x_mm = accel_x*1000
-        # accel_y_mm = accel_y*1000
-        accel_x_mm = 0 
-        accel_y_mm = 0 
+        accel_x, accel_y = arduino.read_accel()
+        accel_x_mm = (accel_x - accel_offset_x)*1000
+        accel_y_mm = (accel_y - accel_offset_y)*1000
+        # accel_x_mm = 0
+        # accel_y_mm = 0
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
@@ -126,8 +145,8 @@ def vision_main(shape):
             ''' Testing '''
             # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
             # print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
-            print(f'Current Global: {x_pos}, {y_pos} \n')
-            print(f'Filtered Global: {kf_x.x}, {kf_y.x} \n')
+            print(f'Current Global: {x_pos}, {y_pos}')
+            print(f'Filtered Global: {kf_x.x[0]}, {kf_y.x[0]} \n')
             
             # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
 
@@ -144,15 +163,15 @@ def vision_main(shape):
             y_data.append(kf_y.x[0])
 
             ''' Plot '''
-            # if len(x_data) >= num_data_p:
-            #     # print(record_data)
-            #     # print(raw_x)
-            #     plot_chart(
-            #         [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
-            #     )
-            #     df = pd.DataFrame([x_data, y_data])
-            #     df.to_excel("output.xlsx")
-            #     break
+            if len(x_data) >= num_data_p:
+                # print(record_data)
+                # print(raw_x)
+                plot_chart(
+                    [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
+                )
+                df = pd.DataFrame([x_data, y_data])
+                df.to_excel("output.xlsx")
+                break
 
             ''' Calculate FPS and Display ''' 
             new_frame_time = time.time()
@@ -165,11 +184,13 @@ def vision_main(shape):
             print(f"FPS: {fps}")
             
             ''' Only display if we are using PC '''
-            if platform != "linux":
-                # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-                # imS = cv2.resize(output, (640, 480))  
-                # cv2.imshow("Output Result", imS)
-                cv2.imshow("Output Result", output)
+            # if platform != "linux":
+            #     # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+            #     # imS = cv2.resize(output, (640, 480))  
+            #     # cv2.imshow("Output Result", imS)
+            #     cv2.imshow("Output Result", output)
+
+            cv2.imshow("Output Result", output)
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):

@@ -25,7 +25,7 @@ class ArduinoComms:
         time.sleep(2)  # allow some time for the Arduino to completely reset
         return link
 
-    def read_accel(self):
+    def prompt_accel(self):
         # try:
         # Keep track of packet size
         send_size = 0
@@ -34,6 +34,9 @@ class ArduinoComms:
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
         self.link.send(send_size)
+        print("SENT: {}".format(str_))
+
+    def get_accel(self): 
         """ Wait for a response and report any errors while receiving packets """
         while not self.link.available():
             if self.link.status < 0:
@@ -47,8 +50,8 @@ class ArduinoComms:
                     print("ERROR: {}".format(self.link.status))
         # Parse response list
         rec_float_ = self.link.rx_obj(obj_type=float, obj_byte_size=4)
-        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=(4))
-        print("SENT: {}".format(str_))
+        rec_float_2_ = self.link.rx_obj(obj_type=float, obj_byte_size=4, start_pos=4)
+
         print("RCVD: {} {}".format(rec_float_, rec_float_2_))
         # print(" ")
         return rec_float_, rec_float_2_
@@ -77,21 +80,62 @@ class ArduinoComms:
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
         self.link.send(send_size)
+        
+        """ Wait for a response and report any errors while receiving packets """
+        while not self.link.available():
+            if self.link.status < 0:
+                if self.link.status == txfer.CRC_ERROR:
+                    print("ERROR: CRC_ERROR")
+                elif self.link.status == txfer.PAYLOAD_ERROR:
+                    print("ERROR: PAYLOAD_ERROR")
+                elif self.link.status == txfer.STOP_BYTE_ERROR:
+                    print("ERROR: STOP_BYTE_ERROR")
+                else:
+                    print("ERROR: {}".format(self.link.status))
+
+        # Parse response list
+        incoming_str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+        print("SENT: {}".format(str_))
+        print("RCVD: {}".format(incoming_str_))
+        return incoming_str_
+    
+    def safetyState(self): 
+        """ Receive button state information  """
+        while not self.link.available():
+            if self.link.status < 0:
+                if self.link.status == txfer.CRC_ERROR:
+                    print("ERROR: CRC_ERROR")
+                elif self.link.status == txfer.PAYLOAD_ERROR:
+                    print("ERROR: PAYLOAD_ERROR")
+                elif self.link.status == txfer.STOP_BYTE_ERROR:
+                    print("ERROR: STOP_BYTE_ERROR")
+                else:
+                    print("ERROR: {}".format(self.link.status))
+
+        # Parse response list
+        incoming_str_ = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+        print("Button State: {}".format(incoming_str_))
+        return incoming_str_
 
 
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
-    arduino_communicator.home()
 
+    while arduino_communicator.home() != 'G' or arduino_communicator.safetyState() == 'N':
+        time.sleep(0.1)
+        continue
+    
     while True:
-        arduino_communicator.read_accel()
-        # x = round(random.uniform(0, 3), 2)
-        # y = round(random.uniform(0, 3), 2)
-        x = 5
-        y = 5
-        arduino_communicator.send_error(x, y)
-        time.sleep(0.2)
-        # arduino_communicator.send_error(0, 0)
-        # time.sleep(1)
-        # arduino_communicator.send_error(x, y)
-        print(x, y)
+        if arduino_communicator.safetyState() != 'N': 
+            arduino_communicator.prompt_accel()
+            arduino_communicator.get_accel()
+            x = round(random.uniform(0, 3), 2)
+            y = round(random.uniform(0, 3), 2)
+            # x = 5
+            # y = 5
+            arduino_communicator.send_error(x, y)
+            time.sleep(0.066)
+            # arduino_communicator.send_error(0, 0)
+            # time.sleep(1)
+            # arduino_communicator.send_error(x, y)
+            print(x, y)

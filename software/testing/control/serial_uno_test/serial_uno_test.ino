@@ -58,11 +58,10 @@ void sampleAccelerometer()
     float z_accel = event.acceleration.z;
     float y_accel = event.acceleration.y;
 
-    // float z_accel = -0.110;
-    // float y_accel = 1.230;
     uint16_t sendSize = 0;
     sendSize = myTransfer.txObj(z_accel, sendSize);
     sendSize = myTransfer.txObj(y_accel, sendSize);
     myTransfer.sendData(sendSize);
+    
     return;
 }

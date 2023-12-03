@@ -61,7 +61,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 // must be in StealthChop Mode for stallguard to work
 // Value of TCOOLTHRS must be greater than TSTEP & TPWMTHRS
 #define STALL_VALUE 40 // [0..255] // Need to calibrate
-int stepTime = 100;    // Determines speed of stepper. 160Hz step frequency
+int stepTime = 400;    // Determines speed of stepper. 160Hz step frequency
 bool startup = false;  // set false after homing
 
 // Initializing stepper driver in UART
@@ -104,37 +104,17 @@ int cycle = 1;
 
 int completed = 0;
 
-void leftInterrupt()
+void buttonInterrupt()
 {
   int breakTime = millis();
-  while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
-  {
-    // Serial.println("Press both buttons!!!!");
-    // Serial.print("Left");
-    // Serial.println(digitalRead(LeftbuttonPin));
-    // Serial.print("Right");
-    // Serial.println(digitalRead(RightbuttonPin));
-    delay(1000);
-    if ((millis() - breakTime) >= 5000)
-    {
-      digitalWrite(EN_PIN, HIGH);
-      digitalWrite(Y_ENABLE_PIN, HIGH);
-    }
-  }
-}
 
-void rightInterrupt()
-{
-  int breakTime = millis();
+  // If buttons are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   {
-    // Serial.println("Press both buttons!!!!");
-    // Serial.print("Left");
-    // Serial.println(digitalRead(LeftbuttonPin));
-    // Serial.print("Right");
-    // Serial.println(digitalRead(RightbuttonPin));
-    delay(1000);
-    if ((millis() - breakTime) >= 5000)
+    delay(500); // Delay for 500 ms
+
+    // Shut down Motors After 1 min
+    if ((millis() - breakTime) >= 60000)
     {
       digitalWrite(EN_PIN, HIGH);
       digitalWrite(Y_ENABLE_PIN, HIGH);
@@ -176,8 +156,7 @@ void setup()
   if (!accel.begin())
   {
     //  Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-    while (1)
-      ;
+    while (1);
   }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
@@ -310,8 +289,8 @@ void setup()
 
   pinMode(RightbuttonPin, INPUT_PULLUP);
   pinMode(LeftbuttonPin, INPUT_PULLUP);
-  // attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), leftInterrupt, RISING);
-  // attachInterrupt(digitalPinToInterrupt(RightbuttonPin), rightInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
 
   // startupSequence();
 
@@ -322,53 +301,6 @@ void setup()
 
 void loop()
 {
-  // if (Serial.available() > 0)
-  // {
-  //  char instruction = Serial.read();
-  //  // 2 Packet sizes, either 1 byte for simple instruction, or 9 bytes for complex instruction
-  //
-  //  if((int)instruction == 73)
-  //  {
-  //      float xPacket = Serial.parseFloat();
-  //      char comma = Serial.read(); // Read and discard comma delimiter
-  //      float yPacket = Serial.parseFloat();
-  //
-  ////      Serial.println(xPacket);
-  ////      Serial.println(yPacket);
-  //      autoCorrection(xPacket, yPacket);
-  //  }
-  //
-  //  else if((int)instruction == 72)
-  //  {
-  //    homingSequence();
-  //  }
-  //
-  //  else if((int)instruction == 82)
-  //  {
-  //    zRetract(2000);
-  //  }
-  //  else if((int)instruction == 90)
-  //  {
-  //    zHomingSequence();
-  //  }
-  //  else if((int)instruction == 65)
-  //  {
-  //    sampleAccelerometer();
-  //  }
-  //  else if((int)instruction == 83)
-  //  {
-  //    int via = 4;
-  //    float poses[via][2]={{2,2},{-2,2},{-2,-2},{2,-2}};
-  //    for(int i = 0; i<via; i++)
-  //    {
-  //      autoCorrection(poses[i][0], poses[i][1]);
-  //    }
-  //  }
-  //  else
-  //  {
-  //
-  //  }
-  // }
   if (myTransfer.available())
   {
     uint8_t instruction = myTransfer.packet.rxBuff[0];
@@ -381,7 +313,6 @@ void loop()
 
       recSize = myTransfer.rxObj(xPacket, recSize);
       recSize = myTransfer.rxObj(yPacket, recSize);
-      Serial.flush();
 
       autoCorrection(xPacket, yPacket);
     }
@@ -410,8 +341,6 @@ void loop()
   digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
   digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
   digitalWrite(Z_ENABLE_PIN, LOW);
-
-  Serial.flush();
 }
 
 void autoCorrection(float desiredDeltaX, float desiredDeltaY)
@@ -644,10 +573,10 @@ void remainderArray(int arraySize, int stepRemainder, int randomArray[])
   for (int i = 0; i < stepRemainder; i++)
   {
     int randomIndex = random(0, arraySize); // Generate a random index
-    while (randomArray[randomIndex] != 0)
-    {
-      randomIndex = random(0, arraySize);
-    }
+    // while (randomArray[randomIndex] != 0)
+    // {
+    //   randomIndex = random(0, arraySize);
+    // }
     randomArray[randomIndex] = 1; // Set the value at the random index to 1
   }
 }
@@ -685,88 +614,51 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
       rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
     }
     
-    if (myTransfer.available() || Serial.available())
+    if (Serial.available() == 9)
     {
-      if (myTransfer.packet.rxBuff[0] == 73)
-      {
         // Update position w.r.t how far we actually travelled.
-
-        // Serial.print("RIGHT STEPS TAKEN: ");
-        // Serial.println(rightStepsTaken);
-        // Serial.print("LEFT STEPS TAKEN: ");
-        // Serial.println(leftStepsTaken);
 
         if (leftShaftVal == true)
         {
           currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-          // Serial.print("CurrTheta1: ");
-          // Serial.println(currentTheta1);
         }
         else
         {
           currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-          //   Serial.print("CurrTheta1: ");
-          // Serial.println(currentTheta1);
         }
 
         if (rightShaftVal == true)
         {
           currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-          //   Serial.print("CurrTheta4: ");
-          // Serial.println(currentTheta4);
         }
         else
         {
           currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-          //   Serial.print("CurrTheta4: ");
-          // Serial.println(currentTheta4);
         }
 
         forwardKin(currentTheta1, currentTheta4);
 
         break;
-      }
     }
   }
-  // Update Pos and Angles
-
-  // Serial.print("RIGHT STEPS TAKEN: ");
-  // Serial.println(rightStepsTaken);
-  // Serial.print("LEFT STEPS TAKEN: ");
-  // Serial.println(leftStepsTaken);
+  // Update Pos and Angles if we reach target
 
   if (leftShaftVal == true)
   {
     currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-    // Serial.print("Left Degrees Taken: ");
-    // Serial.println(StepsToDeg(leftStepsTaken));
-    // Serial.print("CurrTheta1: ");
-    // Serial.println(currentTheta1);
   }
   else
   {
     currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-    // Serial.print("Left Degrees Taken: ");
-    // Serial.println(StepsToDeg(leftStepsTaken));
-    // Serial.print("CurrTheta1: ");
-    // Serial.println(currentTheta1);
   }
 
   if (rightShaftVal == true)
   {
     currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-    //   Serial.print("Right Degrees Taken: ");
-    //   Serial.println(StepsToDeg(rightStepsTaken));
-    //   Serial.print("CurrTheta4: ");
-    // Serial.println(currentTheta4);
   }
   else
   {
     currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-    //   Serial.print("Right Degrees Taken: ");
-    //   Serial.println(StepsToDeg(rightStepsTaken));
-    //   Serial.print("CurrTheta4: ");
-    // Serial.println(currentTheta4);
   }
 
   forwardKin(currentTheta1, currentTheta4);
@@ -820,20 +712,10 @@ void homingSequence()
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
 
-  //    pixels.clear();
-  //    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-  //
-  //    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-  //    // Here we're using a moderately bright green color:
-  //    pixels.setPixelColor(i, pixels.Color(0, 150, 0));
-  //
-  //    pixels.show();   // Send the updated pixel colors to the hardware.
-  //
-  //    delay(DELAYVAL); // Pause before next pass through loop
-  //    }
-  //    pixels.clear();
-
-  // delay(2000);
+  uint16_t sendSize = 0;
+  char data = 'G';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
 }
 
 void motorLeft(int steps, int stepDelay)
