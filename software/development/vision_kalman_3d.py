@@ -14,6 +14,8 @@ import struct
 
 
 def vision_main(shape):
+    ''' Main Vision Program for Pose Estimation '''
+
     # Analyze Stitched Image, establishing global coordinate system
     marker_locations = manual_analyze_stitched()
 
@@ -45,8 +47,8 @@ def vision_main(shape):
     P_y = np.diag([1**2.0, 10**2, 10**2])
 
     # R - Measurement Error
-    R_x = np.array([1**2, 0.5**2])
-    R_y = np.array([1**2, 0.5**2])
+    R_x = np.array([1**2, 20**2])
+    R_y = np.array([1**2, 20**2])
 
     # Q - process variance
     Q = 10**2
@@ -55,9 +57,16 @@ def vision_main(shape):
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
     kf_y = PE_filter(x, P_y, R_y, Q, dt)
 
+
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
-    arduino.home()
+
+    # Ensure Low-Level is Homed
+    while arduino.home() != 'G':
+        print('Spindle Not Homed')
+        continue
+
+    print('Spindle Home Successfully.')
 
     num_accel_samples = 10
     offsets_x = np.zeros(num_accel_samples)
