@@ -296,7 +296,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
   attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
 
-  startupSequence();
+  // startupSequence();
 
   // zHomingSequence();
 
@@ -306,7 +306,7 @@ void setup()
 
 void loop()
 {
-      // Send 'Y' when the buttons are pressed
+    // Send 'Y' when the buttons are pressed
     uint16_t sendSize = 0;
     char data = 'Y';
     sendSize = myTransfer.txObj(data, sendSize);

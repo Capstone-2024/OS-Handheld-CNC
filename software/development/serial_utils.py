@@ -150,4 +150,4 @@ if __name__ == "__main__":
     #         time.sleep(0.2)
     while True:
         print(arduino_communicator.safetyState())
-        time.sleep(0.5)
+        # time.sleep(0.5)
