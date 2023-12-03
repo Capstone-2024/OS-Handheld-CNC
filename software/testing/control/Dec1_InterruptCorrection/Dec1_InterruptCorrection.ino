@@ -108,6 +108,11 @@ void buttonInterrupt()
 {
   int breakTime = millis();
 
+  uint16_t sendSize = 0;
+  char data = 'Y';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
+
   // If buttons are not pressed
   while (((digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin))) != 0)
   { 

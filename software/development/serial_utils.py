@@ -100,7 +100,7 @@ class ArduinoComms:
         return incoming_str_
     
     def safetyState(self): 
-        """ Wait for a response and report any errors while receiving packets """
+        """ Receive button state information  """
         while not self.link.available():
             if self.link.status < 0:
                 if self.link.status == txfer.CRC_ERROR:
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         continue
     
     while True:
-        if arduino_communicator.safetyState() == None: 
+        if arduino_communicator.safetyState() != 'N': 
             arduino_communicator.prompt_accel()
             arduino_communicator.get_accel()
             x = round(random.uniform(0, 3), 2)
