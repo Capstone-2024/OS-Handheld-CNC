@@ -118,15 +118,10 @@ class ArduinoComms:
         return incoming_str_
     
     def regOperation(self ): 
-        ''' Send A to prompt for accelerometer data, then read the received bytes '''
-        # Keep track of packet size
-        send_size = 0
-        # Send 'A' to start transfer
-        str_ = "A"
-        str_size = self.link.tx_obj(str_, send_size) - send_size
-        send_size += str_size
-        self.link.send(send_size)
-        print("SENT: {}".format(str_))
+        if self.safetyState == 'Y': 
+            # Read accel
+            self.prompt_accel()
+            return self.get_accel()
 
 
 
@@ -134,30 +129,31 @@ class ArduinoComms:
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
-    # Check if buttons pressed
-    while arduino_communicator.safetyState() == 'N': 
-        # time.sleep(0.2)
-        continue
+    # # Check if buttons pressed
+    # while arduino_communicator.safetyState() == 'N': 
+    #     # time.sleep(0.2)
+    #     continue
     
-    # If pressed start homing
-    while arduino_communicator.home() != 'G': 
-        time.sleep(0.2)
-        continue
+    # # If pressed start homing
+    # while arduino_communicator.home() != 'G': 
+    #     time.sleep(0.2)
+    #     continue
     
-    while True:
-        arduino_communicator.prompt_accel()
-        arduino_communicator.get_accel()
-        x = round(random.uniform(0, 3), 2)
-        y = round(random.uniform(0, 3), 2)
-        # x = 5
-        # y = 5
-        arduino_communicator.send_error(x, y)
-        time.sleep(0.066)
-        # arduino_communicator.send_error(0, 0)
-        # time.sleep(1)
-        # arduino_communicator.send_error(x, y)
-        print(x, y)
-
     # while True:
-    #     print(arduino_communicator.safetyState())
-    #     # time.sleep(0.5)
+    #     arduino_communicator.prompt_accel()
+    #     arduino_communicator.get_accel()
+    #     x = round(random.uniform(0, 3), 2)
+    #     y = round(random.uniform(0, 3), 2)
+    #     # x = 5
+    #     # y = 5
+    #     arduino_communicator.send_error(x, y)
+    #     time.sleep(0.066)
+    #     # arduino_communicator.send_error(0, 0)
+    #     # time.sleep(1)
+    #     # arduino_communicator.send_error(x, y)
+    #     print(x, y)
+
+    while True:
+        print(arduino_communicator.link.rxBuff)
+        # print(arduino_communicator.safetyState())
+        time.sleep(0.5)

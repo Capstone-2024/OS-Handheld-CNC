@@ -295,6 +295,7 @@ void setup()
   // attachInterrupt(digitalPinToInterrupt(STALL_PIN_Z), stallInterruptZ, RISING);
   digitalWrite(Z_ENABLE_PIN, LOW); // Enable driver in hardware
 
+  // Setup button pins
   pinMode(RightbuttonPin, INPUT_PULLUP);
   pinMode(LeftbuttonPin, INPUT_PULLUP);
 
