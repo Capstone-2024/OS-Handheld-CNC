@@ -105,7 +105,7 @@ int completed = 0;
 volatile bool buttonState = false;
 volatile int buttonChangeTime;
 
-int zPos = 0;
+int zPos = 1000;
 
 // void buttonInterruptLeft()
 // {
@@ -372,7 +372,6 @@ void loop()
       }
 
       // Irrespective of Z position states
-
       // XY Homing
       else if (state == 72)
       {
@@ -404,7 +403,7 @@ void loop()
     digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
     digitalWrite(Z_ENABLE_PIN, LOW); // Enable driver in hardware
   }
-  else // Update Button otherwise
+  else // If Button is not pressed
   {
     uint16_t sendSize = 0;
     char data = 'N';
@@ -420,7 +419,6 @@ void loop()
     }
 
     // Go up 1000 steps
-
     if (zPos == 0)
     {
       zRetract(1000);
