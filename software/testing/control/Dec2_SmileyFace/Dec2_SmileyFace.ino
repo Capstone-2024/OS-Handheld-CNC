@@ -176,7 +176,8 @@ void setup()
   if (!accel.begin())
   {
     //  Serial.println("Could not find a valid ADXL345 sensor, check wiring!");
-    while (1);
+    while (1)
+      ;
   }
 
   // Pen Origin w.r.t center of Actuator 1 - From CAD
@@ -321,130 +322,128 @@ void setup()
 
 void loop()
 {
-   if (Serial.available() > 0)
-   {
+  if (Serial.available() > 0)
+  {
     char instruction = Serial.read();
     // 2 Packet sizes, either 1 byte for simple instruction, or 9 bytes for complex instruction
-  
-    if((int)instruction == 73)
+
+    if ((int)instruction == 73)
     {
-        float xPacket = Serial.parseFloat();
-        char comma = Serial.read(); // Read and discard comma delimiter
-        float yPacket = Serial.parseFloat();
-  
-  //      Serial.println(xPacket);
-  //      Serial.println(yPacket);
-        autoCorrection(xPacket, yPacket);
+      float xPacket = Serial.parseFloat();
+      char comma = Serial.read(); // Read and discard comma delimiter
+      float yPacket = Serial.parseFloat();
+
+      //      Serial.println(xPacket);
+      //      Serial.println(yPacket);
+      autoCorrection(xPacket, yPacket);
     }
-  
-    else if((int)instruction == 72)
+
+    else if ((int)instruction == 72)
     {
       homingSequence();
     }
-  
-    else if((int)instruction == 82)
+
+    else if ((int)instruction == 82)
     {
       zRetract(2000);
     }
-    else if((int)instruction == 90)
+    else if ((int)instruction == 90)
     {
       zHomingSequence();
     }
-    else if((int)instruction == 65)
+    else if ((int)instruction == 65)
     {
       sampleAccelerometer();
     }
-    else if((int)instruction == 83)
+    else if ((int)instruction == 83)
     {
       int via = 20;
-      float poses[3][via][2] = {{{90,60},{89.9458,60.3247},{89.7891,60.6142},{89.5469,60.8372},{89.2455,60.9694},{88.9174,60.9966},{88.5983,60.9158},{88.3227,60.7357},{88.1205,60.4579},{88.0136,60.1646},{88.0136,59.8354},{88.1205,59.5241},{88.3227,59.2643},{88.5983,59.0842},{88.9174,59.0034},{89.2455,59.0306},{89.5469,59.1628},{89.7891,59.3858},{89.9458,59.6753},{90.0,60.0}},{{94,60},{93.9458,60.3247},{93.7891,60.6142},{93.5469,60.8372},{93.2455,60.9694},{92.9174,60.9966},{92.5983,60.9158},{92.3227,60.7357},{92.1205,60.4759},{92.0136,60.1646},{92.0136,59.8354},{92.1205,59.5241},{92.3227,59.2643},{92.5983,59.0842},{92.9174,59.0034},{93.2455,59.0306},{93.5469,59.1628},{93.7891,59.3858},{93.9458,59.6753},{94,60}},{{94.5355,63.5355},{94.2315,63.8154},{93.9054,64.0692},{93.5594,64.2953},{93.1960,64.4920},{92.8175,64.6580},{92.4267,64.7921},{92.0261,64.8936},{91.6185,64.9616},{91.2066,64.9957},{90.7934,64.9957},{90.3815,64.9616},{89.0739,64.8936},{89.5733,64.7921},{89.1825,64.6580},{88.08040,64.4920},{88.4406,64.2953},{88.0946,64.0692},{87.7685,63.8154},{87.4645,63.5355}}};
+      float poses[3][via][2] = {{{90, 60}, {89.9458, 60.3247}, {89.7891, 60.6142}, {89.5469, 60.8372}, {89.2455, 60.9694}, {88.9174, 60.9966}, {88.5983, 60.9158}, {88.3227, 60.7357}, {88.1205, 60.4579}, {88.0136, 60.1646}, {88.0136, 59.8354}, {88.1205, 59.5241}, {88.3227, 59.2643}, {88.5983, 59.0842}, {88.9174, 59.0034}, {89.2455, 59.0306}, {89.5469, 59.1628}, {89.7891, 59.3858}, {89.9458, 59.6753}, {90.0, 60.0}}, {{94, 60}, {93.9458, 60.3247}, {93.7891, 60.6142}, {93.5469, 60.8372}, {93.2455, 60.9694}, {92.9174, 60.9966}, {92.5983, 60.9158}, {92.3227, 60.7357}, {92.1205, 60.4759}, {92.0136, 60.1646}, {92.0136, 59.8354}, {92.1205, 59.5241}, {92.3227, 59.2643}, {92.5983, 59.0842}, {92.9174, 59.0034}, {93.2455, 59.0306}, {93.5469, 59.1628}, {93.7891, 59.3858}, {93.9458, 59.6753}, {94, 60}}, {{94.5355, 63.5355}, {94.2315, 63.8154}, {93.9054, 64.0692}, {93.5594, 64.2953}, {93.1960, 64.4920}, {92.8175, 64.6580}, {92.4267, 64.7921}, {92.0261, 64.8936}, {91.6185, 64.9616}, {91.2066, 64.9957}, {90.7934, 64.9957}, {90.3815, 64.9616}, {89.0739, 64.8936}, {89.5733, 64.7921}, {89.1825, 64.6580}, {88.08040, 64.4920}, {88.4406, 64.2953}, {88.0946, 64.0692}, {87.7685, 63.8154}, {87.4645, 63.5355}}};
 
-      for(int j = 0; j<3; j++)
+      for (int j = 0; j < 3; j++)
       {
-      zShaftVal = true;
-      motorVert(500,stepTime);
-      delay(1000);
-      
-      for(int i = 0; i<via; i++)
-      {
-        float currTime = millis();
-        autoCorrection(poses[j][i][0], poses[j][i][1]);
+        zShaftVal = true;
+        motorVert(500, stepTime);
+        delay(1000);
+
+        for (int i = 0; i < via; i++)
+        {
+          float currTime = millis();
+          autoCorrection(poses[j][i][0], poses[j][i][1]);
           float loopTime = millis() - currTime;
           Serial.print("Loop Time: ");
           Serial.println(loopTime);
-        if(i == 0)
-        {
-          zShaftVal = false;
-          motorVert(500,stepTime);
-          delay(1000);
+          if (i == 0)
+          {
+            zShaftVal = false;
+            motorVert(500, stepTime);
+            delay(1000);
+          }
         }
+        Serial.println("Done one I");
       }
-      Serial.println("Done one I");
-    }
-    
     }
     else
     {
-  
     }
-   }
-//  if (myTransfer.available())
-//  {
-//    uint8_t instruction = myTransfer.packet.rxBuff[0];
-//
-//    if (int(instruction) == 73)
-//    {
-//      uint16_t recSize = 1; // Start after the character byte
-//      float xPacket;
-//      float yPacket;
-//
-//      recSize = myTransfer.rxObj(xPacket, recSize);
-//      recSize = myTransfer.rxObj(yPacket, recSize);
-//
-//      autoCorrection(xPacket, yPacket);
-//    }
-//
-//    else if (int(instruction) == 72)
-//    {
-//      homingSequence();
-//    }
-//
-//    else if (int(instruction) == 83)
-//    {
-//      zRetract(2000);
-//    }
-//
-//    else if (int(instruction) == 90)
-//    {
-//      zHomingSequence();
-//    }
-//
-//    else if (int(instruction) == 65)
-//    {
-//      sampleAccelerometer();
-//    }
-//    else if((int)instruction == 83)
-//    {
-//      int via = 20;
-//      float poses[3][via][2] = {{{90,60},{89.9458,60.3247},{89.7891,60.6142},{89.5469,60.8372},{89.2455,60.9694},{88.9174,60.9966},{88.5983,60.9158},{88.3227,60.7357},{88.1205,60.4579},{88.0136,60.1646},{88.0136,59.8354},{88.1205,59.5241},{88.3227,59.2643},{88.5983,59.0842},{88.9174,59.0034},{89.2455,59.0306},{89.5469,59.1628},{89.7891,59.3858},{89.9458,59.6753},{90,60}}, {{94,60},{93.9458,60.3247},{93.7891,60.6142},{93.5469,60.8372},{93.2455,60.9694},{92.9174,60.9966},{92.5983,60.9158},{92.3227,60.7357},{92.1205,60.4759},{92.0136,60.1646},{92.0136,59.8354},{92.1205,59.5241},{92.3227,59.2643},{92.5983,59.0842},{92.9174,59.0034},{93.2455,59.0306},{93.5469,59.1628},{93.7891,59.3858},{93.9458,59.6753},{94,60}}, {{94.5355,63.5355},{94.2315,63.8154},{93.9054,64.0692},{93.5594,64.2953},{93.1960,64.4920},{92.8175,64.6580},{92.4267,64.7921},{92.0261,64.8936},{91.6185,64.9616},{91.2066,64.9957},{90.7934,64.9957},{90.3815,64.9616},{89.0739,64.8936},{89.5733,64.7921},{89.1825,64.6580},{88.08040,64.4920},{88.4406,64.2953},{88.0946,64.0692},{87.7685,63.8154},{87.4645,63.5355}}};
-//
-//      for(int j = 0; j<3; j++)
-//      {
-//      zShaftVal = false;
-//      motorVert(500,stepTime);
-//      
-//      for(int i = 0; i<via; i++)
-//      {
-//        autoCorrection(poses[j][i][0], poses[j][i][1]);
-//        if(i == 0)
-//        {
-//          zShaftVal = true;
-//          motorVert(500,stepTime);
-//        }
-//      }
-//    }
-//    }
-//  }
+  }
+  //  if (myTransfer.available())
+  //  {
+  //    uint8_t instruction = myTransfer.packet.rxBuff[0];
+  //
+  //    if (int(instruction) == 73)
+  //    {
+  //      uint16_t recSize = 1; // Start after the character byte
+  //      float xPacket;
+  //      float yPacket;
+  //
+  //      recSize = myTransfer.rxObj(xPacket, recSize);
+  //      recSize = myTransfer.rxObj(yPacket, recSize);
+  //
+  //      autoCorrection(xPacket, yPacket);
+  //    }
+  //
+  //    else if (int(instruction) == 72)
+  //    {
+  //      homingSequence();
+  //    }
+  //
+  //    else if (int(instruction) == 83)
+  //    {
+  //      zRetract(2000);
+  //    }
+  //
+  //    else if (int(instruction) == 90)
+  //    {
+  //      zHomingSequence();
+  //    }
+  //
+  //    else if (int(instruction) == 65)
+  //    {
+  //      sampleAccelerometer();
+  //    }
+  //    else if((int)instruction == 83)
+  //    {
+  //      int via = 20;
+  //      float poses[3][via][2] = {{{90,60},{89.9458,60.3247},{89.7891,60.6142},{89.5469,60.8372},{89.2455,60.9694},{88.9174,60.9966},{88.5983,60.9158},{88.3227,60.7357},{88.1205,60.4579},{88.0136,60.1646},{88.0136,59.8354},{88.1205,59.5241},{88.3227,59.2643},{88.5983,59.0842},{88.9174,59.0034},{89.2455,59.0306},{89.5469,59.1628},{89.7891,59.3858},{89.9458,59.6753},{90,60}}, {{94,60},{93.9458,60.3247},{93.7891,60.6142},{93.5469,60.8372},{93.2455,60.9694},{92.9174,60.9966},{92.5983,60.9158},{92.3227,60.7357},{92.1205,60.4759},{92.0136,60.1646},{92.0136,59.8354},{92.1205,59.5241},{92.3227,59.2643},{92.5983,59.0842},{92.9174,59.0034},{93.2455,59.0306},{93.5469,59.1628},{93.7891,59.3858},{93.9458,59.6753},{94,60}}, {{94.5355,63.5355},{94.2315,63.8154},{93.9054,64.0692},{93.5594,64.2953},{93.1960,64.4920},{92.8175,64.6580},{92.4267,64.7921},{92.0261,64.8936},{91.6185,64.9616},{91.2066,64.9957},{90.7934,64.9957},{90.3815,64.9616},{89.0739,64.8936},{89.5733,64.7921},{89.1825,64.6580},{88.08040,64.4920},{88.4406,64.2953},{88.0946,64.0692},{87.7685,63.8154},{87.4645,63.5355}}};
+  //
+  //      for(int j = 0; j<3; j++)
+  //      {
+  //      zShaftVal = false;
+  //      motorVert(500,stepTime);
+  //
+  //      for(int i = 0; i<via; i++)
+  //      {
+  //        autoCorrection(poses[j][i][0], poses[j][i][1]);
+  //        if(i == 0)
+  //        {
+  //          zShaftVal = true;
+  //          motorVert(500,stepTime);
+  //        }
+  //      }
+  //    }
+  //    }
+  //  }
 
   digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
   digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
@@ -455,17 +454,17 @@ void autoCorrection(float desiredDeltaX, float desiredDeltaY)
 {
   float desiredJointAngles[2] = {0, 0};
 
-//   Going from Global to Local Coordinate System
+  //   Going from Global to Local Coordinate System
   float currentSpindleDeltaX = currentPosX - penOriginX;
   float currentSpindleDeltaY = currentPosY - penOriginY;
 
-  desiredDeltaX = (desiredDeltaX-penOriginX) - currentSpindleDeltaX;
-  desiredDeltaY = (desiredDeltaY-penOriginY) - currentSpindleDeltaY;
+  desiredDeltaX = (desiredDeltaX - penOriginX) - currentSpindleDeltaX;
+  desiredDeltaY = (desiredDeltaY - penOriginY) - currentSpindleDeltaY;
 
-//  Serial.print("des Del X: ");
-//  Serial.println(desiredDeltaX);
-//  Serial.print("des Del Y: ");
-//  Serial.println(desiredDeltaY);
+  //  Serial.print("des Del X: ");
+  //  Serial.println(desiredDeltaX);
+  //  Serial.print("des Del Y: ");
+  //  Serial.println(desiredDeltaY);
 
   InvKin(desiredDeltaX, desiredDeltaY, currentPosX, currentPosY, desiredJointAngles);
 
@@ -649,10 +648,10 @@ void forwardKin(float theta1, float theta4)
   currentPosX = xc;
   currentPosY = yc;
 
-//   Serial.print("Curr Pos X: ");
-//   Serial.println(currentPosX);
-//   Serial.print("Curr Pos Y: ");
-//   Serial.println(currentPosY);
+  //   Serial.print("Curr Pos X: ");
+  //   Serial.println(currentPosX);
+  //   Serial.print("Curr Pos Y: ");
+  //   Serial.println(currentPosY);
 }
 
 int DegToSteps(float deltaTheta)
@@ -681,11 +680,11 @@ void remainderArray(int arraySize, int stepRemainder, int randomArray[])
   for (int i = 0; i < stepRemainder; i++)
   {
     int randomIndex = random(0, arraySize); // Generate a random index
-//    while (randomArray[randomIndex] != 0)
-//    {
-//      randomIndex = random(0, arraySize);
-//    }
-    randomArray[randomIndex] = 1; // Set the value at the random index to 1
+                                            //    while (randomArray[randomIndex] != 0)
+                                            //    {
+                                            //      randomIndex = random(0, arraySize);
+                                            //    }
+    randomArray[randomIndex] = 1;           // Set the value at the random index to 1
   }
 }
 
@@ -721,34 +720,34 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
       leftStepsTaken = leftStepsTaken + 1;
       rightStepsTaken = rightStepsTaken + (stepRatio + randomArray[i]);
     }
-    
-//    if (Serial.available() == 9)
-//    {
-//        // Update position w.r.t how far we actually travelled.
-//
-//        if (leftShaftVal == true)
-//        {
-//          currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
-//        }
-//        else
-//        {
-//          currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
-//        }
-//
-//        if (rightShaftVal == true)
-//        {
-//          currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
-//        }
-//        else
-//        {
-//          currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
-//        }
-//
-//        forwardKin(currentTheta1, currentTheta4);
-//
-//        break;
-//    }
-    }
+
+    //    if (Serial.available() == 9)
+    //    {
+    //        // Update position w.r.t how far we actually travelled.
+    //
+    //        if (leftShaftVal == true)
+    //        {
+    //          currentTheta1 = currentTheta1 + StepsToDeg(leftStepsTaken);
+    //        }
+    //        else
+    //        {
+    //          currentTheta1 = currentTheta1 - StepsToDeg(leftStepsTaken);
+    //        }
+    //
+    //        if (rightShaftVal == true)
+    //        {
+    //          currentTheta4 = currentTheta4 + StepsToDeg(rightStepsTaken);
+    //        }
+    //        else
+    //        {
+    //          currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
+    //        }
+    //
+    //        forwardKin(currentTheta1, currentTheta4);
+    //
+    //        break;
+    //    }
+  }
   // Update Pos and Angles if we reach target
 
   if (leftShaftVal == true)
@@ -769,10 +768,10 @@ void fineTuning(int stepRatio, int loopIterations, int randomArray[], int greate
     currentTheta4 = currentTheta4 - StepsToDeg(rightStepsTaken);
   }
 
-//  Serial.print("CurrThet1: ");
-//  Serial.println(currentTheta1);
-//  Serial.print("CurrThet4: ");
-//  Serial.println(currentTheta4);
+  //  Serial.print("CurrThet1: ");
+  //  Serial.println(currentTheta1);
+  //  Serial.print("CurrThet4: ");
+  //  Serial.println(currentTheta4);
 
   forwardKin(currentTheta1, currentTheta4);
 }

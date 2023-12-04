@@ -190,43 +190,65 @@ class ArduinoComms:
         
         return status, rec_float_, rec_float_2_
 
+    def zHoming(self): 
+        send_size = 0
+        str_ = "O"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
+        self.link.send(send_size)
+        print("SENT: {}".format(str_))
+
+        """ Wait for a response and report any errors while receiving packets """
+        while not self.link.available():
+            if self.link.status < 0:
+                if self.link.status == txfer.CRC_ERROR:
+                    print("ERROR: CRC_ERROR")
+                elif self.link.status == txfer.PAYLOAD_ERROR:
+                    print("ERROR: PAYLOAD_ERROR")
+                elif self.link.status == txfer.STOP_BYTE_ERROR:
+                    print("ERROR: STOP_BYTE_ERROR")
+                else:
+                    print("ERROR: {}".format(self.link.status))
+
+        # Parse response list
+        status = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+
+        homing_status = None
+
+        if status == 'Y': 
+            homing_status = self.link.rx_obj(obj_type=str, obj_byte_size=1, start_pos=1)
+        
+        print("SENT: {}".format(str_))
+        print("RCVD: {}".format(homing_status))
+
+        return homing_status
+    
+    def smiley(self): 
+        send_size = 0
+        # Send 'A' to start transfer
+        str_ = "S"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
+        self.link.send(send_size)
+        print("SENT: {}".format(str_))
+
 
 if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
-    # # Check if buttons pressed
-    # while arduino_communicator.safetyState() == 'N': 
-    #     # time.sleep(0.2)
-    #     continue
-    
-    # # If pressed start homing
-    # while arduino_communicator.home() != 'G': 
-    #     time.sleep(0.2)
-    #     continue
-    
-    # while True:
-    #     arduino_communicator.prompt_accel()
-    #     arduino_communicator.get_accel()
-    #     x = round(random.uniform(0, 3), 2)
-    #     y = round(random.uniform(0, 3), 2)
-    #     # x = 5
-    #     # y = 5
-    #     arduino_communicator.send_error(x, y)
-    #     time.sleep(0.066)
-    #     # arduino_communicator.send_error(0, 0)
-    #     # time.sleep(1)
-    #     # arduino_communicator.send_error(x, y)
-    #     print(x, y)
     while arduino_communicator.homingOperation() != 'G': 
         print(arduino_communicator.link.rxBuff)
         time.sleep(0.5)
         continue
-    # 
-    while True:
-        # print(arduino_communicator.link.rxBuff)
-        # print(arduino_communicator.safetyState())
-        print(arduino_communicator.regOperation())
-        x = round(random.uniform(0, 3), 2)
-        y = round(random.uniform(0, 3), 2)
-        arduino_communicator.send_error(x, y)
-        # time.sleep(0.5)
+
+    while arduino_communicator.zHoming() != 'Z': 
+        time.sleep(0.5)
+        continue
+
+    arduino_communicator.smiley()
+
+    # while True:
+    #     print(arduino_communicator.regOperation())
+    #     x = round(random.uniform(0, 3), 2)
+    #     y = round(random.uniform(0, 3), 2)
+    #     arduino_communicator.send_error(x, y)
