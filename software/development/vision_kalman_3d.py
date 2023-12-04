@@ -100,7 +100,7 @@ def vision_main(mode, shape):
             if (x_pos and y_pos and z_rot != None): 
                 # manual_offset = [marker_locations[17][0], marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
                 # manual_offset = [50, 200]
-                manual_offset = [200, 0]
+                manual_offset = [200, 300] # Lower Resolution
                 x_pos = x_pos + manual_offset[0]
                 y_pos = y_pos + manual_offset[1]
 
