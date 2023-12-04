@@ -60,7 +60,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 // diag pin pulsed HIGH when SG_RESULT falls below 2*STALL_VALUE
 // must be in StealthChop Mode for stallguard to work
 // Value of TCOOLTHRS must be greater than TSTEP & TPWMTHRS
-#define STALL_VALUE 39 // [0..255] // Need to calibrate
+#define STALL_VALUE 42 // [0..255] // Need to calibrate
 int stepTime = 400;    // Determines speed of stepper. 160Hz step frequency
 bool startup = false;  // set false after homing
 
@@ -317,7 +317,7 @@ void loop()
         {
           // Move Down to drawing/cutting position
           zShaftVal = false;
-          motorVert(zPos, stepTime);
+          motorVert(zPos, 500);
           zPos = 0; // Reset Z Pos to bottom pos
         }
 
@@ -344,7 +344,7 @@ void loop()
         for (int j = 0; j < 3; j++)
         {
           zShaftVal = true;
-          motorVert(500, stepTime);
+          motorVert(500, 500);
           delay(500);
 
           for (int i = 0; i < via; i++)
@@ -355,7 +355,7 @@ void loop()
             if (i == 0)
             {
               zShaftVal = false;
-              motorVert(500, stepTime);
+              motorVert(500, 500);
               delay(500);
             }
           }
@@ -874,7 +874,7 @@ void zRetract(int steps)
 {
   digitalWrite(Z_ENABLE_PIN, LOW);
   driver3.shaft(true);
-  motorVert(steps, 200);
+  motorVert(steps, 500);
 }
 
 void sampleAccelerometer(uint16_t sendSize)
