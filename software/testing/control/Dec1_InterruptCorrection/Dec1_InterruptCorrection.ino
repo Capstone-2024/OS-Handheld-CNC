@@ -105,7 +105,7 @@ int completed = 0;
 volatile bool buttonState = false;
 volatile int buttonChangeTime;
 
-int zPos = 1000;
+int zPos = 3000;
 
 void buttonInterrupt()
 {
@@ -412,8 +412,8 @@ void loop()
     // Go up 1000 steps
     if (zPos == 0)
     {
-      zRetract(1000);
-      zPos = 1000;
+      zRetract(3000);
+      zPos = 3000;
     }
 
     delay(200);
