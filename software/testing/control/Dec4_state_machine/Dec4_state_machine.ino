@@ -317,7 +317,10 @@ void loop()
                 autoCorrection(xPacket, yPacket);
                 
                 // Send back "O" when command is finished to receive next line
-
+                uint16_t sendSize = 0;
+                char data = 'Y';
+                sendSize = myTransfer.txObj(data, sendSize);
+                myTransfer.sendData(sendSize);
             }
 
             break;
