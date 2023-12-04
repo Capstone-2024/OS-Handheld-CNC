@@ -70,9 +70,9 @@ def vision_main(shape):
     
     # Accelerometer offsets
     for i in range(0, num_accel_samples): 
-        reading = arduino.regOperation()
-        offsets_x[i] = reading[0]
-        offsets_y[i] = reading[1]
+        _, x, y = arduino.regOperation()
+        offsets_x[i] = x
+        offsets_y[i] = y
 
     accel_offset_x = np.average(offsets_x)
     accel_offset_y = np.average(offsets_y)
