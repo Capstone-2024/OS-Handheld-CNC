@@ -82,7 +82,7 @@ def vision_main(shape):
         frame = vs.read()
 
         # Read Accelerometer
-        accel_x, accel_y = arduino.regOperation()
+        _, accel_x, accel_y = arduino.regOperation()
         accel_x_mm = (accel_x - accel_offset_x)*1000
         accel_y_mm = (accel_y - accel_offset_y)*1000
 
