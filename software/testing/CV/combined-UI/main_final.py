@@ -392,6 +392,7 @@ class FourthWin(QWidget, FourthUi):
         q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
         self.label_3.setPixmap(pixmap)
+        self.label_3.setScaledContents(True)  # Ensure the image scales to fit the label
 
     def closeEvent(self, event):
         self.timer.stop()
