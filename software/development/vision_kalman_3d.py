@@ -99,7 +99,8 @@ def vision_main(mode, shape):
             # Make sure all data are available
             if (x_pos and y_pos and z_rot != None): 
                 # manual_offset = [marker_locations[17][0], marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
-                manual_offset = [50, 200]
+                # manual_offset = [50, 200]
+                manual_offset = [200, 0]
                 x_pos = x_pos + manual_offset[0]
                 y_pos = y_pos + manual_offset[1]
 
@@ -187,8 +188,8 @@ def vision_main(mode, shape):
                     # print(f"FPS: {fps}")
                     
                     ''' Only display if we are using PC '''
-                    if platform != "linux":
-                        cv2.imshow("Output Result", output)
+                    # if platform != "linux":
+                    cv2.imshow("Output Result", output)
 
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
