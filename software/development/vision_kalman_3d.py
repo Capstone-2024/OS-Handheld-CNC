@@ -187,8 +187,8 @@ def vision_main(mode, shape):
                     
                     ''' Only display if we are using PC '''
                     # if platform != "linux":
-                    small_frame = cv2.resize(output, (480, 270))
-                    cv2.imshow("Output Result", small_frame)
+                    # small_frame = cv2.resize(output, (480, 270))
+                    # cv2.imshow("Output Result", small_frame)
 
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
