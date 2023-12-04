@@ -350,10 +350,14 @@ void loop()
         sampleAccelerometer(sendSize);
       } 
     }
+
+    // Send all the data
+    myTransfer.sendData(sendSize);
+
     // Turn motor on again after shutting down
-      digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
-      digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
-      digitalWrite(Z_ENABLE_PIN, LOW);
+    digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
+    digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
+    digitalWrite(Z_ENABLE_PIN, LOW);
   }
   else // Update Button otherwise
   {
@@ -714,7 +718,7 @@ void startupSequence()
   buttonState = true;
 }
 
-void homingSequence(uint16_t sendSize)
+uint16_t homingSequence(uint16_t sendSize)
 {
   int flagLeft = 0;
   int flagRight = 0;
@@ -752,7 +756,8 @@ void homingSequence(uint16_t sendSize)
   // uint16_t sendSize = 0;
   char data = 'G';
   sendSize = myTransfer.txObj(data, sendSize);
-  myTransfer.sendData(sendSize);
+
+  return sendSize;
 }
 
 void motorLeft(int steps, int stepDelay)
@@ -822,7 +827,7 @@ void zRetract(int steps)
   motorVert(steps, 200);
 }
 
-void sampleAccelerometer(uint16_t sendSize)
+uint16_t sampleAccelerometer(uint16_t sendSize)
 {
   // uint16_t sendSize = 0;
 
@@ -835,7 +840,6 @@ void sampleAccelerometer(uint16_t sendSize)
 
   sendSize = myTransfer.txObj(z_accel, sendSize);
   sendSize = myTransfer.txObj(y_accel, sendSize);
-  myTransfer.sendData(sendSize);
 
-  return;
+  return sendSize;
 }
