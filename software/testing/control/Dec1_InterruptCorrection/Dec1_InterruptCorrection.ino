@@ -229,7 +229,7 @@ void setup()
   driver.begin(); // SPI: Init CS pins and possible SW SPI pins
   driver.toff(4); // Enables driver in software, changed from 5
   driver.blank_time(24);
-  driver.rms_current(800); // Set motor RMS current
+  driver.rms_current(1200); // Set motor RMS current
   driver.microsteps(16);   // Set microsteps to 1/16th
 
   // driver.en_pwm_mode(true); // Toggle stealthChop on TMC2130/2160/5130/5160
@@ -248,7 +248,7 @@ void setup()
   driver2.begin(); // SPI: Init CS pins and possible SW SPI pins
   driver2.toff(4); // Enables driver in software, changed from 5
   driver2.blank_time(24);
-  driver2.rms_current(800); // Set motor RMS current
+  driver2.rms_current(1200); // Set motor RMS current
   driver2.microsteps(16);   // Set microsteps to 1/16th
 
   // driver.en_pwm_mode(true); // Toggle stealthChop on TMC2130/2160/5130/5160

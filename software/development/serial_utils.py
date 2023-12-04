@@ -237,7 +237,7 @@ if __name__ == "__main__":
     arduino_communicator = ArduinoComms()
 
     while arduino_communicator.homingOperation() != 'G': 
-        print(arduino_communicator.link.rxBuff)
+        # print(arduino_communicator.link.rxBuff)
         time.sleep(0.5)
         continue
 
