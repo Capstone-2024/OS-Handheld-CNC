@@ -372,6 +372,11 @@ void loop()
           }
         }
       }
+      // else if (state == 68) { GCODE MODE???
+      //   float pos_x = poses[j][i][0] - penOriginX;
+      //   float pos_y = poses[j][i][1] - penOriginY;
+      //   autoCorrection(pos_x, pos_y);
+      // }
 
       // Irrespective of Z position states
       // XY Homing

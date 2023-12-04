@@ -55,12 +55,14 @@ def vision_main(shape):
     # Initialize Communication with Arduino
     arduino = ArduinoComms()
 
-    # Ensure Low-Level is Homed
-    while arduino.home() != 'G':
-        print('Spindle not homed...')
+    while arduino.homingOperation() != 'G': 
+        # print(arduino_communicator.link.rxBuff)
+        time.sleep(0.5)
         continue
 
-    print('Spindle homed successfully...')
+    while arduino.zHoming() != 'O': 
+        time.sleep(0.5)
+        continue
 
     num_accel_samples = 10
     offsets_x = np.zeros(num_accel_samples)
@@ -68,8 +70,7 @@ def vision_main(shape):
     
     # Accelerometer offsets
     for i in range(0, num_accel_samples): 
-        arduino.prompt_accel()
-        reading = arduino.get_accel()
+        reading = arduino.regOperation()
         offsets_x[i] = reading[0]
         offsets_y[i] = reading[1]
 
@@ -81,7 +82,7 @@ def vision_main(shape):
         frame = vs.read()
 
         # Read Accelerometer
-        accel_x, accel_y = arduino.read_accel()
+        accel_x, accel_y = arduino.regOperation()
         accel_x_mm = (accel_x - accel_offset_x)*1000
         accel_y_mm = (accel_y - accel_offset_y)*1000
 
