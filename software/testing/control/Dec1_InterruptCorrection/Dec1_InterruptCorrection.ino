@@ -105,6 +105,8 @@ int completed = 0;
 volatile bool buttonState = false;
 volatile int buttonChangeTime;
 
+int zPos = 0;
+
 // void buttonInterruptLeft()
 // {
 //   // Update State
@@ -118,15 +120,6 @@ void buttonInterrupt()
   buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
   buttonChangeTime = millis();
   delayMicroseconds(20);
-
-  if (buttonState) {
-    zShaftVal = true;
-    motorVert(1000, 200);
-  } else {
-    zShaftVal = false;
-    motorVert(1000, 200);
-  }
-
 }
 
 void setup()
@@ -299,12 +292,7 @@ void setup()
   pinMode(RightbuttonPin, INPUT_PULLUP);
   pinMode(LeftbuttonPin, INPUT_PULLUP);
 
-  // Make sure buttons are pressed
-  // startupSequence();
-
   // Attach Interrupts
-  // attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
-  // attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
   attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, CHANGE);
 
@@ -315,20 +303,31 @@ void setup()
 
 void loop()
 {
-  // Don't do anything if no serial or if no buttons are on
+  // Check Button State
   if (buttonState)
   {
+    // Send Y for to Indicate Button Press
     uint16_t sendSize = 0;
     char data = 'Y';
     sendSize = myTransfer.txObj(data, sendSize);
 
+    // If command is sent from Orange Pi
     if (myTransfer.available())
     {
-      // Receive Bytes
-      uint8_t instruction = myTransfer.packet.rxBuff[0];
+      // Determine State
+      int state = int(myTransfer.packet.rxBuff[0]);
 
-      if (int(instruction) == 73)
+      // Correcting Based on Error Vector
+      if (state == 73)
       {
+        if (zPos != 0)
+        {
+          // Move Down to drawing/cutting position
+          zShaftVal = false;
+          motorVert(zPos, stepTime);
+          zPos = 0; // Reset Z Pos to bottom pos
+        }
+
         uint16_t recSize = 1; // Start after the character byte
 
         float xPacket;
@@ -340,27 +339,12 @@ void loop()
         autoCorrection(xPacket, yPacket);
       }
 
-      else if (int(instruction) == 72)
+      // Drawing Smiley
+      else if (state == 83)
       {
-        homingSequence(sendSize);
-      }
+        homingSequence(0);
+        zHomingSequence(0);
 
-      else if (int(instruction) == 83)
-      {
-        zRetract(2000);
-      }
-
-      else if (int(instruction) == 90)
-      {
-        zHomingSequence(sendSize);
-      }
-
-      else if (int(instruction) == 65)
-      {
-        sampleAccelerometer(sendSize);
-      }
-      else if ((int)instruction == 83) // Smiley
-      {
         int via = 20;
         float poses[3][via][2] = {{{90, 60}, {89.9458, 60.3247}, {89.7891, 60.6142}, {89.5469, 60.8372}, {89.2455, 60.9694}, {88.9174, 60.9966}, {88.5983, 60.9158}, {88.3227, 60.7357}, {88.1205, 60.4579}, {88.0136, 60.1646}, {88.0136, 59.8354}, {88.1205, 59.5241}, {88.3227, 59.2643}, {88.5983, 59.0842}, {88.9174, 59.0034}, {89.2455, 59.0306}, {89.5469, 59.1628}, {89.7891, 59.3858}, {89.9458, 59.6753}, {90.0, 60.0}}, {{94, 60}, {93.9458, 60.3247}, {93.7891, 60.6142}, {93.5469, 60.8372}, {93.2455, 60.9694}, {92.9174, 60.9966}, {92.5983, 60.9158}, {92.3227, 60.7357}, {92.1205, 60.4759}, {92.0136, 60.1646}, {92.0136, 59.8354}, {92.1205, 59.5241}, {92.3227, 59.2643}, {92.5983, 59.0842}, {92.9174, 59.0034}, {93.2455, 59.0306}, {93.5469, 59.1628}, {93.7891, 59.3858}, {93.9458, 59.6753}, {94, 60}}, {{94.5355, 63.5355}, {94.2315, 63.8154}, {93.9054, 64.0692}, {93.5594, 64.2953}, {93.1960, 64.4920}, {92.8175, 64.6580}, {92.4267, 64.7921}, {92.0261, 64.8936}, {91.6185, 64.9616}, {91.2066, 64.9957}, {90.7934, 64.9957}, {90.3815, 64.9616}, {89.0739, 64.8936}, {89.5733, 64.7921}, {89.1825, 64.6580}, {88.08040, 64.4920}, {88.4406, 64.2953}, {88.0946, 64.0692}, {87.7685, 63.8154}, {87.4645, 63.5355}}};
 
@@ -384,15 +368,41 @@ void loop()
               delay(1000);
             }
           }
-          // Serial.println("Done one I");
         }
+      }
+
+      // Irrespective of Z position states
+
+      // XY Homing
+      else if (state == 72)
+      {
+        homingSequence(sendSize);
+      }
+
+      // Retract Z testing
+      else if (state == 83)
+      {
+        zRetract(2000);
+      }
+
+      // Z Homing
+      else if (state == 90)
+      {
+        zHomingSequence(sendSize);
+        zPos = 0;
+      }
+
+      // Send Accel Data
+      else if (state == 65)
+      {
+        sampleAccelerometer(sendSize);
       }
     }
 
     // Turn motor on again after shutting down
     digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
     digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
-    digitalWrite(Z_ENABLE_PIN, LOW);
+    digitalWrite(Z_ENABLE_PIN, LOW); // Enable driver in hardware
   }
   else // Update Button otherwise
   {
@@ -406,6 +416,15 @@ void loop()
     {
       digitalWrite(EN_PIN, HIGH);
       digitalWrite(Y_ENABLE_PIN, HIGH);
+      digitalWrite(Z_ENABLE_PIN, HIGH);
+    }
+
+    // Go up 1000 steps
+
+    if (zPos == 0)
+    {
+      zRetract(1000);
+      zPos = 1000;
     }
 
     delay(200);
@@ -839,7 +858,7 @@ void zHomingSequence(uint16_t sendSize)
 {
   digitalWrite(Z_ENABLE_PIN, LOW);
   zShaftVal = false;
-  motorVert(6000, 200);
+  // motorVert(6000, 200);
   bool operation = true;
   while (operation)
   {
@@ -865,8 +884,7 @@ void zHomingSequence(uint16_t sendSize)
 void zRetract(int steps)
 {
   digitalWrite(Z_ENABLE_PIN, LOW);
-  zShaftVal = true;
-  driver3.shaft(shaftVal);
+  driver3.shaft(true);
   motorVert(steps, 200);
 }
 
