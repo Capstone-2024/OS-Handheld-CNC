@@ -151,6 +151,39 @@ class ArduinoComms:
 
         return homing_status
 
+    
+    def zHoming(self): 
+        send_size = 0
+        str_ = "Z"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
+        self.link.send(send_size)
+        print("SENT: {}".format(str_))
+
+        """ Wait for a response and report any errors while receiving packets """
+        while not self.link.available():
+            if self.link.status < 0:
+                if self.link.status == txfer.CRC_ERROR:
+                    print("ERROR: CRC_ERROR")
+                elif self.link.status == txfer.PAYLOAD_ERROR:
+                    print("ERROR: PAYLOAD_ERROR")
+                elif self.link.status == txfer.STOP_BYTE_ERROR:
+                    print("ERROR: STOP_BYTE_ERROR")
+                else:
+                    print("ERROR: {}".format(self.link.status))
+
+        # Parse response list
+        status = self.link.rx_obj(obj_type=str, obj_byte_size=1)
+
+        homing_status = None
+
+        if status == 'Y': 
+            homing_status = self.link.rx_obj(obj_type=str, obj_byte_size=1, start_pos=1)
+        
+        print("SENT: {}".format(str_))
+        print("RCVD: {}".format(homing_status))
+
+        return homing_status
 
     def regOperation(self): 
         send_size = 0
@@ -189,39 +222,6 @@ class ArduinoComms:
         print("RCVD: {}, {} {}".format(str_, rec_float_, rec_float_2_))
         
         return status, rec_float_, rec_float_2_
-
-    def zHoming(self): 
-        send_size = 0
-        str_ = "Z"
-        str_size = self.link.tx_obj(str_, send_size) - send_size
-        send_size += str_size
-        self.link.send(send_size)
-        print("SENT: {}".format(str_))
-
-        """ Wait for a response and report any errors while receiving packets """
-        while not self.link.available():
-            if self.link.status < 0:
-                if self.link.status == txfer.CRC_ERROR:
-                    print("ERROR: CRC_ERROR")
-                elif self.link.status == txfer.PAYLOAD_ERROR:
-                    print("ERROR: PAYLOAD_ERROR")
-                elif self.link.status == txfer.STOP_BYTE_ERROR:
-                    print("ERROR: STOP_BYTE_ERROR")
-                else:
-                    print("ERROR: {}".format(self.link.status))
-
-        # Parse response list
-        status = self.link.rx_obj(obj_type=str, obj_byte_size=1)
-
-        homing_status = None
-
-        if status == 'Y': 
-            homing_status = self.link.rx_obj(obj_type=str, obj_byte_size=1, start_pos=1)
-        
-        print("SENT: {}".format(str_))
-        print("RCVD: {}".format(homing_status))
-
-        return homing_status
     
     def smiley(self): 
         send_size = 0
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         time.sleep(0.5)
         continue
 
-    while arduino_communicator.zHoming() != 'Z': 
+    while arduino_communicator.zHoming() != 'O': 
         time.sleep(0.5)
         continue
 
