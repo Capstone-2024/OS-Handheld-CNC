@@ -105,18 +105,19 @@ int completed = 0;
 volatile bool buttonState = false;
 volatile int buttonChangeTime;
 
-void buttonInterruptLeft()
-{
-  // Update State
-  buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
-  buttonChangeTime = millis();
-}
+// void buttonInterruptLeft()
+// {
+//   // Update State
+//   buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
+//   buttonChangeTime = millis();
+// }
 
-void buttonInterruptRight()
+void buttonInterrupt()
 {
   // Update State
   buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
   buttonChangeTime = millis();
+  delayMicroseconds(20);
 }
 
 void setup()
@@ -295,8 +296,8 @@ void setup()
   // Attach Interrupts
   // attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, RISING);
   // attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, RISING);
-  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterruptLeft, FALLING);
-  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterruptRight, FALLING);
+  attachInterrupt(digitalPinToInterrupt(LeftbuttonPin), buttonInterrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, CHANGE);
 
   // zHomingSequence();
 
