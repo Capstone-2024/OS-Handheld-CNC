@@ -192,7 +192,7 @@ class ArduinoComms:
 
     def zHoming(self): 
         send_size = 0
-        str_ = "O"
+        str_ = "Z"
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
         self.link.send(send_size)
