@@ -41,15 +41,15 @@ def vision_main(mode, shape):
     # Kalman Filter
     dt = 1 / 20  # 60 fps, i want to make this dynamic but idk if it works that way
     # P
-    P_x = np.diag([1**2.0, 10**2, 10**2])  # covariance matrix
-    P_y = np.diag([1**2.0, 10**2, 10**2])
+    P_x = np.diag([1**2.0, 10**2, 20**2])  # covariance matrix
+    P_y = np.diag([1**2.0, 10**2, 20**2])
 
     # R - Measurement Error
     R_x = np.array([1**2, 20**2])
     R_y = np.array([1**2, 20**2])
 
     # Q - process variance
-    Q = 10**2
+    Q = 20**2
 
     x = np.array([0.0, 0.0, 0.0])
     kf_x = PE_filter(x, P_x, R_x, Q, dt)
