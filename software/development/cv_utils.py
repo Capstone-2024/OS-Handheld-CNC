@@ -135,11 +135,14 @@ def pose_estimation(frame, marker_locations):
         x, y = HBOS_outliers(x, y)
         # print(f'After Filter: {len(x)}')
         
-        pos = [np.average(x), np.average(y)]
+        if pos[0] and pos[1]: 
+            pos = [np.average(x), np.average(y)]
 
         # Z Rotation
-        print(rotations)
-        z_rot = np.average(rotations)
+        # print(rotations)
+        z_rot = None
+        if len(rotations) > 0: 
+            z_rot = np.average(rotations)
 
         # plt.scatter(x, y)
         # plt.show()

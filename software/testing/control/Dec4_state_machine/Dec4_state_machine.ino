@@ -304,7 +304,7 @@ void loop()
                 
                 int axis;
                 uint16_t recSize = 1; // Start after the command char
-                recSize = myTransfer.rxObj(xPacket, recSize);
+                recSize = myTransfer.rxObj(axis, recSize);
 
                 float xPacket;
                 float yPacket;

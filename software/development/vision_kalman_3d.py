@@ -82,14 +82,15 @@ def vision_main(shape):
         frame = vs.read()
 
         # Read Accelerometer
-        _, accel_x, accel_y = arduino.regOperation()
+        status, accel_x, accel_y = arduino.regOperation()
         accel_x_mm = (accel_x - accel_offset_x)*1000
         accel_y_mm = (accel_y - accel_offset_y)*1000
 
         ''' Calculate Position with Pose Estimation '''
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
         
-        if x_pos or y_pos != None: 
+        # Make sure all data are available
+        if x_pos or y_pos or z_rot != None and status == 'Y': 
 
             # manual_offset = [marker_locations[17][0], marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
             manual_offset = [50, 200]
@@ -154,25 +155,25 @@ def vision_main(shape):
             y_data.append(kf_y.x[0])
 
             ''' Plot '''
-            if len(x_data) >= num_data_p:
-                # print(record_data)
-                # print(raw_x)
-                plot_chart(
-                    [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
-                )
-                df = pd.DataFrame([x_data, y_data])
-                df.to_excel("output.xlsx")
-                break
+            # if len(x_data) >= num_data_p:
+            #     # print(record_data)
+            #     # print(raw_x)
+            #     plot_chart(
+            #         [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
+            #     )
+            #     df = pd.DataFrame([x_data, y_data])
+            #     df.to_excel("output.xlsx")
+            #     break
 
             ''' Calculate FPS and Display ''' 
-            new_frame_time = time.time()
-            fps = 1 / (new_frame_time - prev_frame_time)
-            prev_frame_time = new_frame_time
-            fps = int(fps)
-            fps = str(fps)
-            font = cv2.FONT_HERSHEY_PLAIN
+            # new_frame_time = time.time()
+            # fps = 1 / (new_frame_time - prev_frame_time)
+            # prev_frame_time = new_frame_time
+            # fps = int(fps)
+            # fps = str(fps)
+            # font = cv2.FONT_HERSHEY_PLAIN
             
-            print(f"FPS: {fps}")
+            # print(f"FPS: {fps}")
             
             ''' Only display if we are using PC '''
             if platform != "linux":
