@@ -225,7 +225,7 @@ class ArduinoComms:
     
     def smiley(self): 
         send_size = 0
-        # Send 'A' to start transfer
+        # Send 'S' to start transfer
         str_ = "S"
         str_size = self.link.tx_obj(str_, send_size) - send_size
         send_size += str_size
