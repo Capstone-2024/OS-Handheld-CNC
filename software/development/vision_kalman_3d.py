@@ -92,7 +92,7 @@ def vision_main(shape):
         (x_pos, y_pos), z_rot, output = pose_estimation(frame, marker_locations)
         
         # Make sure all data are available
-        if x_pos or y_pos or z_rot != None and status == 'Y': 
+        if (x_pos and y_pos and z_rot != None) and status == 'Y': 
 
             # manual_offset = [marker_locations[17][0], marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
             manual_offset = [50, 200]
