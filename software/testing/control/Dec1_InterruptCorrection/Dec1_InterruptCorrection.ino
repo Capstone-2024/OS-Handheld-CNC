@@ -107,6 +107,10 @@ volatile int buttonChangeTime;
 
 int zPos = 3000;
 
+// Serial Vars
+bool homedSent = false;
+bool zHomedSent = false;
+
 void buttonInterrupt()
 {
   // Update State
@@ -230,7 +234,7 @@ void setup()
   driver.toff(4); // Enables driver in software, changed from 5
   driver.blank_time(24);
   driver.rms_current(1200); // Set motor RMS current
-  driver.microsteps(16);   // Set microsteps to 1/16th
+  driver.microsteps(16);    // Set microsteps to 1/16th
 
   // driver.en_pwm_mode(true); // Toggle stealthChop on TMC2130/2160/5130/5160
   // driver.en_spreadCycle(false); // Toggle spreadCycle on TMC2208/2209/2224
@@ -249,7 +253,7 @@ void setup()
   driver2.toff(4); // Enables driver in software, changed from 5
   driver2.blank_time(24);
   driver2.rms_current(1200); // Set motor RMS current
-  driver2.microsteps(16);   // Set microsteps to 1/16th
+  driver2.microsteps(16);    // Set microsteps to 1/16th
 
   // driver.en_pwm_mode(true); // Toggle stealthChop on TMC2130/2160/5130/5160
   // driver.en_spreadCycle(false); // Toggle spreadCycle on TMC2208/2209/2224
@@ -798,15 +802,23 @@ void homingSequence(uint16_t sendSize)
     }
   }
 
+  if (homedSent != true) {
+    // uint16_t sendSize = 0;
+    char data = 'G';
+    sendSize = myTransfer.txObj(data, sendSize);
+    myTransfer.sendData(sendSize);
+    homedSent = true;
+  }
+
+  //   // uint16_t sendSize = 0;
+  // char data = 'G';
+  // sendSize = myTransfer.txObj(data, sendSize);
+  // myTransfer.sendData(sendSize);
+
   currentPosX = penOriginX;
   currentPosY = penOriginY;
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
-
-  // uint16_t sendSize = 0;
-  char data = 'G';
-  sendSize = myTransfer.txObj(data, sendSize);
-  myTransfer.sendData(sendSize);
 
   return;
 }
@@ -867,10 +879,18 @@ void zHomingSequence(uint16_t sendSize)
     }
   }
 
-  // uint16_t sendSize = 0;
-  char data = 'O';
-  sendSize = myTransfer.txObj(data, sendSize);
-  myTransfer.sendData(sendSize);
+  if (zHomedSent != true) {
+    // uint16_t sendSize = 0;
+    char data = 'O';
+    sendSize = myTransfer.txObj(data, sendSize);
+    myTransfer.sendData(sendSize);
+    zHomedSent = true;
+  }
+
+  //   // uint16_t sendSize = 0;
+  // char data = 'O';
+  // sendSize = myTransfer.txObj(data, sendSize);
+  // myTransfer.sendData(sendSize);
 
   delay(500);
 

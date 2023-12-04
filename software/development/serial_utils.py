@@ -245,10 +245,10 @@ if __name__ == "__main__":
         time.sleep(0.5)
         continue
 
-    arduino_communicator.smiley()
+    # arduino_communicator.smiley()
 
-    # while True:
-    #     print(arduino_communicator.regOperation())
-    #     x = round(random.uniform(0, 3), 2)
-    #     y = round(random.uniform(0, 3), 2)
-    #     arduino_communicator.send_error(x, y)
+    while True:
+        print(arduino_communicator.regOperation())
+        x = round(random.uniform(0, 3), 2)
+        y = round(random.uniform(0, 3), 2)
+        arduino_communicator.send_error(x, y)
