@@ -218,6 +218,7 @@ if __name__ == "__main__":
     #     # arduino_communicator.send_error(x, y)
     #     print(x, y)
     while arduino_communicator.homingOperation() != 'G': 
+        print(arduino_communicator.link.rxBuff)
         time.sleep(0.5)
         continue
     # 
