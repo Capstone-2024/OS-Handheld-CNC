@@ -131,7 +131,8 @@ def vision_main(shape):
 
             if abs(pos_diff[0]) <= 5 and abs(pos_diff[1]) <= 5: 
                 print('Sending to Arduino...')
-                arduino.send_error(pos_diff[0], pos_diff[1])
+                print(f'Type: {pos_diff[0]}, Type: {pos_diff[0].item()}')
+                arduino.send_error(pos_diff[0].item(), pos_diff[1].item())
                 print(f'Data Sent: {pos_diff[0]}, {pos_diff[1]}')
 
             ''' Testing '''
