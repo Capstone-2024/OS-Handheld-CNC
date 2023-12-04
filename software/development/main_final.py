@@ -3,6 +3,9 @@ import time
 import threading
 import cv2
 import os
+import numpy as np
+import pandas as pd
+import math
 
 # Import PyQT Functions
 import qdarkstyle
@@ -19,6 +22,18 @@ from ui.informationui import Ui_Dialog as InformationUi
 from ui.warningui import Ui_Dialog as WarningUi
 from ui.settings import SettingsConfig
 from PyQt5 import QtCore, QtGui, QtWidgets
+from threading_utils import WebcamVideoStream
+from cv_utils import pose_estimation, plot_chart, manual_analyze_stitched, access_map
+import numpy as np
+from kalman_utils import PE_filter
+from sys import platform
+from serial_utils import ArduinoComms
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+import matplotlib
+matplotlib.use('Agg')
 
 # BG_COLOR = '#7CA7AE'
 SETTING_MANAGE = SettingsConfig()
@@ -141,6 +156,9 @@ class SecondWin(QWidget, SecondUi):
         # back_btn 按钮的点击信号连接到 back_first 
         self.back_btn.clicked.connect(self.back_first)
 
+        self.pushButton.clicked.connect(self.point_tracking)
+        self.pushButton_2.clicked.connect(self.smileface)
+
     def back_first(self):
         # 创建 FirstWin
         self.first_win = FirstWin()
@@ -158,6 +176,26 @@ class SecondWin(QWidget, SecondUi):
         self.third_win.showFullScreen()
         # close UI
         self.close()
+
+
+    def point_tracking(self):
+        
+        self.close()
+    
+    def smileface(self):
+        arduino_communicator = ArduinoComms()
+
+        while arduino_communicator.homingOperation() != 'G': 
+            # print(arduino_communicator.link.rxBuff)
+            time.sleep(0.2)
+            continue
+
+        while arduino_communicator.zHoming() != 'O': 
+            time.sleep(0.2)
+            continue
+
+        arduino_communicator.smiley()
+        arduino_communicator.link.close()
 
 # third UI
 class ThirdWin(QWidget, ThirdUi):
@@ -228,10 +266,8 @@ class FourthWin(QWidget, FourthUi):
             'start_btn': True,
             'stop_btn': False,
         }
-        #定时器
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.show_viedo)
-        self.start_btn.clicked.connect(self.video_button)
+        
+
 
         #摄像头
         self.cap_video=0
@@ -239,8 +275,15 @@ class FourthWin(QWidget, FourthUi):
         self.flag = 0
         #存放每一帧读取的图像
         self.img = []
-
         
+        # Vision thread
+        self.video_thread = VideoThread()
+        self.video_thread.frame_signal.connect(self.update_frame)
+
+        self.timer = QTimer(self)
+        self.start_btn.clicked.connect(self.execute_video_thread)
+        self.stop_btn.clicked.connect(self.stop_video)
+        self.continue_btn.clicked.connect(self.continue_video)
         
         # 将 zoom_frame 控件设置为不可用状态
         self.zoom_frame.setEnabled(False)
@@ -313,35 +356,192 @@ class FourthWin(QWidget, FourthUi):
         self.third_win.show()
         self.close()
         
-    def video_button(self):
-        if (self.flag == 0):
-            self.cap_video = cv2.VideoCapture(1)
-            self.timer.start(50);
-            self.flag+=1
-            self.start_btn.setText("Close")
-        else:
-            self.timer.stop()
-            self.cap_video.release()
-            self.label_3.clear()
-            self.start_btn.setText("Open")
-            self.flag=0
-    
     def show_viedo(self):
         ret, self.img = self.cap_video.read()
         if ret:
             self.show_cv_img(self.img)
     
     def show_cv_img(self, img):
-        shrink = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        QtImg = QtGui.QImage(shrink.data,
-                            shrink.shape[1],
-                            shrink.shape[0],
-                            shrink.shape[1] * 3,
-                            QtGui.QImage.Format_RGB888)
-        aspect_ratio = 16 / 9  # Adjust the aspect ratio as needed
-        jpg_out = QtGui.QPixmap(QtImg).scaled(self.label.width(), int(self.label.width() / aspect_ratio), Qt.KeepAspectRatio)
+        pass
 
-        self.label_3.setPixmap(jpg_out)
+    def execute_video_thread(self):
+        # Start VideoThread to execute once
+        self.video_thread.start()
+        self.timer.timeout.connect(self.update_video_frame)
+        self.timer.start(50)
+    
+    def update_video_frame(self):
+        # This method is called periodically to update the video frame
+        if self.video_thread.isRunning():
+            pass
+        
+        
+    def update_frame(self, frame):
+        height, width, channel = frame.shape
+        bytes_per_line = 3 * width
+        q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        pixmap = QPixmap.fromImage(q_image)
+        self.label_3.setPixmap(pixmap)
+        self.label_3.setScaledContents(True)  # Ensure the image scales to fit the label
+
+    def closeEvent(self, event):
+        self.timer.stop()
+        self.video_thread.stop()
+        self.video_thread.wait()
+        event.accept()
+    
+    def stop_video(self):
+        self.video_thread.pause()
+
+    def continue_video(self):
+        self.video_thread.resume()
+
+
+        
+class VideoThread(QThread):
+    
+    frame_signal = pyqtSignal(np.ndarray)
+    
+    def __init__(self):
+        super(VideoThread, self).__init__()
+                # Analyze Stitched Image, establishing global coordinate system
+        self.vs = cv2.VideoCapture(0)
+        self.started = False  # 添加标志
+        self.marker_locations = manual_analyze_stitched()
+
+        # data_dir = os.path.abspath("./data")
+        # marker_locations = access_map(data_dir)
+
+        ''' SET UP '''
+        #   Target Point vars
+        self.point_i = 0 # index of target point 
+
+        # Plot vars and config
+        self.x_data = []
+        self.y_data = []
+        self.raw_x = []
+        self.raw_y = []
+        self.num_data_p = 500
+        self.data_lock = QMutex()
+
+        # Start Camera Stream and FPS Counter
+
+        # FPS Counter
+        self.prev_frame_time = 0  # used to record the time when we processed last frame
+        self.new_frame_time = 0  # used to record the time at which we processed current frame
+
+        # Kalman Filter
+        self.dt = 1 / 60  # 60 fps, i want to make this dynamic but idk if it works that way
+        # P
+        self.P_x = np.diag([1**2.0, 10**2])  # covariance matrix
+        self.P_y = np.diag([1**2.0, 10**2])
+
+        # R
+        self.R_x = np.array([1**2])
+        self.R_y = np.array([1**2])
+
+        # Q
+        self.Q = 10**2  # process variance
+
+        self.x = np.array([0.0, 0.0])
+        self.kf_x = PE_filter(self.x, self.P_x, self.R_x, self.Q, self.dt)
+        self.kf_y = PE_filter(self.x, self.P_y, self.R_y, self.Q, self.dt)
+
+    def run(self):
+        # Initialize Communication with Arduino
+        # arduino = ArduinoComms()
+        # Main Loop
+        self.started = True  # 设置标志
+        while not self.isInterruptionRequested():
+            ret, frame = self.vs.read()
+            
+            if ret:
+                ''' Calculate Position with Pose Estimation '''
+                (x_pos, y_pos), output = pose_estimation(frame, self.marker_locations)
+
+                print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
+            
+                if x_pos or y_pos != None: 
+
+                    # Kalman Filter Predict and Update
+                    self.kf_x.predict()
+                    self.kf_x.update(x_pos)
+                    # print(f"X: {kf_x.x}")
+
+                    self.kf_y.predict()
+                    self.kf_y.update(y_pos)
+                    # print(f"Y: {kf_y.x}")
+
+                    ''' Calculate Local Machine Error Vector and Send to Arduino '''
+                    manual_offet = [0, 0] # Should only be in x or y
+                    # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
+                    # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
+                
+                    # Send to arduino 
+                    # arduino.start_transmit()
+                    # arduino.ardu_write(str(kf_x.x) + ',' + str(kf_y.x))
+
+                    ''' Testing '''
+                    # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
+                    # print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
+                    print(f'Current Global: {x_pos}, {y_pos} \n')
+                    print(f'Filtered Global: {self.kf_x.x}, {self.kf_y.x} \n')
+                
+                    # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
+
+                    # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
+                    #     point_i += 1
+
+
+                    ''' Project Shape with points on to the frame '''
+                    # Use the RVEC from the pose estimation and the Z value to tranform the points to the image space
+
+
+
+                    ''' Testing Pose Estimation and Plotting for Kalman Filter '''
+                    ''' Collect Data for Plotting '''
+                    self.raw_x.append(float(x_pos))
+                    self.raw_y.append(float(y_pos))
+
+                    self.x_data.append(self.kf_x.x[0])
+                    self.y_data.append(self.kf_y.x[0])
+                    
+                    
+                    with QMutexLocker(self.data_lock):
+                        self.raw_x.append(float(x_pos))
+                        self.raw_y.append(float(y_pos))
+                        self.x_data.append(self.kf_x.x[0])
+                        self.y_data.append(self.kf_y.x[0])
+                
+                    ''' Calculate FPS and Display ''' 
+                    self.new_frame_time = time.time()
+                    fps = 1 / (self.new_frame_time - self.prev_frame_time)
+                    self.prev_frame_time = self.new_frame_time
+                    fps = int(fps)
+                    fps = str(fps)
+                    font = cv2.FONT_HERSHEY_PLAIN
+                
+                    print(f"FPS: {fps}")
+                
+                    ''' Only display if we are using PC '''
+                    # if platform != "linux":
+                        # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
+                        # cv2.imshow("Output Result", output)
+
+                    # key = cv2.waitKey(1) & 0xFF
+                    self.frame_signal.emit(output)
+        self.vs.release()
+    
+    def stop(self):
+        if self.started:  # 检查标志
+            self.vs.release()  # 释放摄像头资源
+            super(VideoThread, self).stop()
+    
+    def pause(self):
+        self.started = False
+
+    def resume(self):
+        self.started = True
 
 
 # stitiching  UI
