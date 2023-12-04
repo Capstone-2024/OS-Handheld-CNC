@@ -9,6 +9,10 @@ from sys import platform
 from serial_utils import ArduinoComms
 
 def vision_main(mode, shape):
+    if mode != 'L' or mode != 'P': 
+        print("Invalid mode.")
+        return
+
     ''' Main Vision Program for Pose Estimation '''
 
     # Analyze Stitched Image, establishing global coordinate system
@@ -25,7 +29,7 @@ def vision_main(mode, shape):
     y_data = []
     raw_x = []
     raw_y = []
-    num_data_p = 500
+    num_data_p = 1000
 
     # Start Camera Stream and FPS Counter
     vs = WebcamVideoStream(src=0).start()
@@ -136,10 +140,6 @@ def vision_main(mode, shape):
                         if abs(pos_diff[0]) < 0.5 and abs(pos_diff[1]) < 0.5: 
                             point_i += 1
                         print(f'Step: {point_i}')
-                    
-                    else: 
-                        print("Invalid mode.")
-                        break
 
                     print(f'Position Difference: {pos_diff[0], pos_diff[1]}')
 
