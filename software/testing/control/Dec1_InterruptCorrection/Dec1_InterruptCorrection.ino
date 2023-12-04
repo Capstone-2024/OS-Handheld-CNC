@@ -349,7 +349,9 @@ void loop()
 
           for (int i = 0; i < via; i++)
           {
-            autoCorrection(poses[j][i][0], poses[j][i][1]);
+            float pos_x = poses[j][i][0] - penOriginX;
+            float pos_y = poses[j][i][1] - penOriginY;
+            autoCorrection(pos_x, pos_y);
             if (i == 0)
             {
               zShaftVal = false;
