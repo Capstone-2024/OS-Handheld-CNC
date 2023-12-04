@@ -332,45 +332,14 @@ class FourthWin(QWidget, FourthUi):
         self.third_win.show()
         self.close()
         
-    # def video_button(self):
-        # if (self.flag == 0):
-            # self.cap_video = cv2.VideoCapture(1)
-            # self.vision_thread = VisionThread()
-            # self.vision_thread.update_signal.connect(self.update_image)  # Connect signal to update image
-            # self.vision_thread.start()
-            # self.flag+=1
-            # self.start_btn.setText("Close")
-        # else:
-        #  if self.vision_thread is not None:
-        #     self.vision_thread.terminate()  # Terminate the VisionThread
-            #    self.vision_thread.wait()  # Wait for the thread to finish
-            # elf.cap_video.release()
-            # self.label_3.clear()
-            # self.start_btn.setText("Open")
-            # self.flag = 0
-            
     def show_viedo(self):
         ret, self.img = self.cap_video.read()
         if ret:
             self.show_cv_img(self.img)
     
     def show_cv_img(self, img):
-        # shrink = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        # QtImg = QtGui.QImage(shrink.data,
-        #                     shrink.shape[1],
-        #                     shrink.shape[0],
-        #                     shrink.shape[1] * 3,
-        #                     QtGui.QImage.Format_RGB888)
-        # aspect_ratio = 16 / 9  # Adjust the aspect ratio as needed
-        # jpg_out = QtGui.QPixmap(QtImg).scaled(self.label.width(), int(self.label.width() / aspect_ratio), Qt.KeepAspectRatio)
-
-        # self.label_3.setPixmap(jpg_out)
         pass
 
-    # def update_image(self, qt_image):
-        # Update the label with the processed image from the vision task
-        # self.label_3.setPixmap(QPixmap.fromImage(qt_image))
-    
     def execute_video_thread(self):
         # Start VideoThread to execute once
         self.video_thread.start()
@@ -513,20 +482,6 @@ class VideoThread(QThread):
                         self.raw_y.append(float(y_pos))
                         self.x_data.append(self.kf_x.x[0])
                         self.y_data.append(self.kf_y.x[0])
-
-
-                    # ''' Plot '''
-                    # if len(self.x_data) >= self.num_data_p:
-                    #     with QMutexLocker(self.data_lock):
-                    #         min_length = min(len(self.raw_x), len(self.raw_y), len(self.x_data), len(self.y_data))
-                    #     # print(record_data)
-                    #     # print(raw_x)
-                    #     
-                    #     plot_chart(
-                    #         [i for i in range(0, min_length)], self.raw_x[:min_length], self.raw_y[:min_length], self.x_data[:min_length], self.y_data[:min_length]
-                    #     )
-                    #     df = pd.DataFrame([self.x_data[:min_length], self.y_data[:min_length]])
-                    #     df.to_excel("output.xlsx")
                 
                     ''' Calculate FPS and Display ''' 
                     self.new_frame_time = time.time()
