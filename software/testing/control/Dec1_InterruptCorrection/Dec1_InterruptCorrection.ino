@@ -333,7 +333,7 @@ void loop()
 
       else if (int(instruction) == 72)
       {
-        homingSequence(sendSize);
+        sendSize = homingSequence(sendSize);
       }
 
       else if (int(instruction) == 83)
@@ -348,7 +348,7 @@ void loop()
 
       else if (int(instruction) == 65)
       {
-        sampleAccelerometer(sendSize);
+        sendSize = sampleAccelerometer(sendSize);
       } 
     }
 
