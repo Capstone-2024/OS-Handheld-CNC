@@ -60,7 +60,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 // diag pin pulsed HIGH when SG_RESULT falls below 2*STALL_VALUE
 // must be in StealthChop Mode for stallguard to work
 // Value of TCOOLTHRS must be greater than TSTEP & TPWMTHRS
-#define STALL_VALUE 40 // [0..255] // Need to calibrate
+#define STALL_VALUE 39 // [0..255] // Need to calibrate
 int stepTime = 400;    // Determines speed of stepper. 160Hz step frequency
 bool startup = false;  // set false after homing
 
@@ -234,8 +234,8 @@ void setup()
   driver.begin(); // SPI: Init CS pins and possible SW SPI pins
   driver.toff(4); // Enables driver in software, changed from 5
   driver.blank_time(24);
-  driver.rms_current(1600); // Set motor RMS current
-  driver.microsteps(16);    // Set microsteps to 1/16th
+  driver.rms_current(800); // Set motor RMS current
+  driver.microsteps(16);   // Set microsteps to 1/16th
 
   // driver.en_pwm_mode(true); // Toggle stealthChop on TMC2130/2160/5130/5160
   // driver.en_spreadCycle(false); // Toggle spreadCycle on TMC2208/2209/2224
@@ -253,8 +253,8 @@ void setup()
   driver2.begin(); // SPI: Init CS pins and possible SW SPI pins
   driver2.toff(4); // Enables driver in software, changed from 5
   driver2.blank_time(24);
-  driver2.rms_current(1600); // Set motor RMS current
-  driver2.microsteps(16);    // Set microsteps to 1/16th
+  driver2.rms_current(800); // Set motor RMS current
+  driver2.microsteps(16);   // Set microsteps to 1/16th
 
   // driver.en_pwm_mode(true); // Toggle stealthChop on TMC2130/2160/5130/5160
   // driver.en_spreadCycle(false); // Toggle spreadCycle on TMC2208/2209/2224
@@ -333,7 +333,7 @@ void loop()
 
       else if (int(instruction) == 72)
       {
-        sendSize = homingSequence(sendSize);
+        homingSequence();
       }
 
       else if (int(instruction) == 83)
@@ -348,12 +348,37 @@ void loop()
 
       else if (int(instruction) == 65)
       {
-        sendSize = sampleAccelerometer(sendSize);
-      } 
-    }
+        sampleAccelerometer();
+      }
+      else if ((int)instruction == 83)
+      {
+        int via = 20;
+        float poses[3][via][2] = {{{90, 60}, {89.9458, 60.3247}, {89.7891, 60.6142}, {89.5469, 60.8372}, {89.2455, 60.9694}, {88.9174, 60.9966}, {88.5983, 60.9158}, {88.3227, 60.7357}, {88.1205, 60.4579}, {88.0136, 60.1646}, {88.0136, 59.8354}, {88.1205, 59.5241}, {88.3227, 59.2643}, {88.5983, 59.0842}, {88.9174, 59.0034}, {89.2455, 59.0306}, {89.5469, 59.1628}, {89.7891, 59.3858}, {89.9458, 59.6753}, {90.0, 60.0}}, {{94, 60}, {93.9458, 60.3247}, {93.7891, 60.6142}, {93.5469, 60.8372}, {93.2455, 60.9694}, {92.9174, 60.9966}, {92.5983, 60.9158}, {92.3227, 60.7357}, {92.1205, 60.4759}, {92.0136, 60.1646}, {92.0136, 59.8354}, {92.1205, 59.5241}, {92.3227, 59.2643}, {92.5983, 59.0842}, {92.9174, 59.0034}, {93.2455, 59.0306}, {93.5469, 59.1628}, {93.7891, 59.3858}, {93.9458, 59.6753}, {94, 60}}, {{94.5355, 63.5355}, {94.2315, 63.8154}, {93.9054, 64.0692}, {93.5594, 64.2953}, {93.1960, 64.4920}, {92.8175, 64.6580}, {92.4267, 64.7921}, {92.0261, 64.8936}, {91.6185, 64.9616}, {91.2066, 64.9957}, {90.7934, 64.9957}, {90.3815, 64.9616}, {89.0739, 64.8936}, {89.5733, 64.7921}, {89.1825, 64.6580}, {88.08040, 64.4920}, {88.4406, 64.2953}, {88.0946, 64.0692}, {87.7685, 63.8154}, {87.4645, 63.5355}}};
 
-    // Send all the data
-    myTransfer.sendData(sendSize);
+        for (int j = 0; j < 3; j++)
+        {
+          zShaftVal = true;
+          motorVert(500, stepTime);
+          delay(1000);
+
+          for (int i = 0; i < via; i++)
+          {
+            float currTime = millis();
+            autoCorrection(poses[j][i][0], poses[j][i][1]);
+            float loopTime = millis() - currTime;
+            Serial.print("Loop Time: ");
+            Serial.println(loopTime);
+            if (i == 0)
+            {
+              zShaftVal = false;
+              motorVert(500, stepTime);
+              delay(1000);
+            }
+          }
+          Serial.println("Done one I");
+        }
+      }
+    }
 
     // Turn motor on again after shutting down
     digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
@@ -719,7 +744,7 @@ void startupSequence()
   buttonState = true;
 }
 
-uint16_t homingSequence(uint16_t sendSize)
+void homingSequence()
 {
   int flagLeft = 0;
   int flagRight = 0;
@@ -754,11 +779,12 @@ uint16_t homingSequence(uint16_t sendSize)
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
 
-  // uint16_t sendSize = 0;
+  uint16_t sendSize = 0;
   char data = 'G';
   sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
 
-  return sendSize;
+  return;
 }
 
 void motorLeft(int steps, int stepDelay)
@@ -816,7 +842,14 @@ void zHomingSequence()
       operation = false;
     }
   }
+
+  uint16_t sendSize = 0;
+  char data = 'O';
+  sendSize = myTransfer.txObj(data, sendSize);
+  myTransfer.sendData(sendSize);
+
   delay(500);
+
   // zRetract(400);
 }
 
@@ -828,9 +861,9 @@ void zRetract(int steps)
   motorVert(steps, 200);
 }
 
-uint16_t sampleAccelerometer(uint16_t sendSize)
+void sampleAccelerometer()
 {
-  // uint16_t sendSize = 0;
+  uint16_t sendSize = 0;
 
   sensors_event_t event;
 
@@ -842,5 +875,7 @@ uint16_t sampleAccelerometer(uint16_t sendSize)
   sendSize = myTransfer.txObj(z_accel, sendSize);
   sendSize = myTransfer.txObj(y_accel, sendSize);
 
-  return sendSize;
+  myTransfer.sendData(sendSize);
+
+  return;
 }
