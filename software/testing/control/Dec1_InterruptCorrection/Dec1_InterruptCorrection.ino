@@ -311,6 +311,9 @@ void loop()
     // If command is sent from Orange Pi
     if (myTransfer.available())
     {
+      // Re-enable motors
+      digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
+      digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
       // Determine State
       int state = int(myTransfer.packet.rxBuff[0]);
 
@@ -810,7 +813,8 @@ void homingSequence(uint16_t sendSize)
     }
   }
 
-  if (homedSent != true) {
+  if (homedSent != true)
+  {
     // uint16_t sendSize = 0;
     char data = 'G';
     sendSize = myTransfer.txObj(data, sendSize);
@@ -887,7 +891,8 @@ void zHomingSequence(uint16_t sendSize)
     }
   }
 
-  if (zHomedSent != true) {
+  if (zHomedSent != true)
+  {
     // uint16_t sendSize = 0;
     char data = 'O';
     sendSize = myTransfer.txObj(data, sendSize);
