@@ -316,7 +316,7 @@ void loop()
         if (zPos != 0)
         {
           // Move Down to drawing/cutting position
-          zShaftVal = false;
+          zShaftVal = true;
           motorVert(zPos, 500);
           zPos = 0; // Reset Z Pos to bottom pos
         }
@@ -873,7 +873,7 @@ void zHomingSequence(uint16_t sendSize)
 void zRetract(int steps)
 {
   digitalWrite(Z_ENABLE_PIN, LOW);
-  driver3.shaft(true);
+  driver3.shaft(false);
   motorVert(steps, 500);
 }
 
