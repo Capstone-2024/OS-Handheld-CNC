@@ -259,7 +259,8 @@ class FourthWin(QWidget, FourthUi):
 
         self.timer = QTimer(self)
         self.start_btn.clicked.connect(self.execute_video_thread)
-        self.stop_btn.clicked.connect(self.close)
+        self.stop_btn.clicked.connect(self.stop_video)
+        self.continue_btn.clicked.connect(self.continue_video)
         
         # 将 zoom_frame 控件设置为不可用状态
         self.zoom_frame.setEnabled(False)
@@ -365,6 +366,12 @@ class FourthWin(QWidget, FourthUi):
         self.video_thread.stop()
         self.video_thread.wait()
         event.accept()
+    
+    def stop_video(self):
+        self.video_thread.pause()
+
+    def continue_video(self):
+        self.video_thread.resume()
 
 
         
@@ -506,7 +513,12 @@ class VideoThread(QThread):
         if self.started:  # 检查标志
             self.vs.release()  # 释放摄像头资源
             super(VideoThread, self).stop()
-                    
+    
+    def pause(self):
+        self.started = False
+
+    def resume(self):
+        self.started = True
 
 
 # stitiching  UI
