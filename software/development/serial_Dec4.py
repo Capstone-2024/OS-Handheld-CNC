@@ -232,12 +232,27 @@ class ArduinoComms:
         self.link.send(send_size)
         print("SENT: {}".format(str_))
 
+    def gcode(self, cmd): 
+        send_size = 0
+        # Send 'S' to start transfer
+        str_ = "G"
+        str_size = self.link.tx_obj(str_, send_size) - send_size
+        send_size += str_size
+
+        # Add 
+        int_ = cmd[1]
+        int_size = self.link.tx_obj(int_, send_size) - send_size
+        send_size += int_size
+
+    
+        
+        print("SENT: {}".format(str_))
+
 
 if __name__ == "__main__":
-    state = input("Select Mode: \n-D: Gcode Mode \nN: Normal Operation")
-    arduino_communicator.send(state)
-
+    state = input("Select Mode: \n-G: Gcode Mode \nN: Normal Operation")
     arduino_communicator = ArduinoComms()
+    arduino_communicator.send(state)
 
     while True:
         x = round(random.uniform(0, 3), 2)

@@ -18,7 +18,6 @@ def vision_main(mode, shape):
     # marker_locations = access_map(data_dir)
 
     ''' SET UP '''
-    # Target Point vars
     point_i = 0 # index of target point 
 
     # Plot vars and config
@@ -78,7 +77,7 @@ def vision_main(mode, shape):
 
     # Kalman Settling Time (Calibration)
     settling_time = 5 # 5 Seconds for the filter to settle down
-    last_time = time.time()
+    start_time = time.time()
 
     # Main Loop
     while True:
@@ -114,10 +113,10 @@ def vision_main(mode, shape):
                 # print(f"Y: {kf_y.x}")
 
                 print("Calibrating...")
-
+                
                 # Calibrate for 5 seconds before running any tracking
-                if time.time() - last_time >= settling_time:    
-                    
+                if time.time() - start_time >= settling_time:
+
                     ''' Calculate Local Machine Error Vector and Send to Arduino '''
                     pos_diff = None
 
@@ -125,18 +124,20 @@ def vision_main(mode, shape):
                     if mode == 'P': 
                         test_point = [0, 0]
                         pos_diff = [test_point[0] - kf_x.x[0], test_point[1] - kf_y.x[0]]
+                    
                     # Line
                     elif mode == 'L':    
-                            rot_M = rotationMatrix2D([0, 0], z_rot) # Rotation Matrix about 0 
-                            global_diff = [shape[0][point_i] - kf_x.x[0][0], shape[1][point_i] - kf_y.x[0][0]]
-                            pos_diff = rot_M @ np.array([[global_diff[0]],[global_diff[1]],[0]]) # Apply rotation in the vector sent since the coordinate is relative to the local
-                            
-                            print(f'Local Vector: {pos_diff[0], pos_diff[1]}')
-                            
-                            # Go to the next point if the spindle comes within 0.5 of the target
-                            if abs(pos_diff[0]) < 0.5 and abs(pos_diff[1]) < 0.5: 
-                                point_i += 1
-                            print(f'Step: {point_i}')
+                        rot_M = rotationMatrix2D([0, 0], z_rot) # Rotation Matrix about 0 
+                        global_diff = [shape[0][point_i] - kf_x.x[0][0], shape[1][point_i] - kf_y.x[0][0]]
+                        pos_diff = rot_M @ np.array([[global_diff[0]],[global_diff[1]],[0]]) # Apply rotation in the vector sent since the coordinate is relative to the local
+                        
+                        print(f'Local Vector: {pos_diff[0], pos_diff[1]}')
+                        
+                        # Go to the next point if the spindle comes within 0.5 of the target
+                        if abs(pos_diff[0]) < 0.5 and abs(pos_diff[1]) < 0.5: 
+                            point_i += 1
+                        print(f'Step: {point_i}')
+                    
                     else: 
                         print("Invalid mode.")
                         break

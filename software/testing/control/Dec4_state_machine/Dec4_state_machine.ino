@@ -281,7 +281,6 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(RightbuttonPin), buttonInterrupt, CHANGE);
 }
 
-
 // User Selected State
 int state;
 bool stateSet = false;
@@ -289,51 +288,108 @@ bool stateSet = false;
 void loop()
 {
     // Wait for user to select type of operation
-    if (myTransfer.available() && !stateSet) { // Once first byte is received, determine the state
+    if (myTransfer.available() && !stateSet)
+    { // Once first byte is received, determine the state
         state = int(myTransfer.packet.rxBuff[0]);
-        stateSet = true; 
-    } 
-    // Once the state is set 
-    else { 
-        switch (state) {
-        // Gcode Mode
-        case 68: {
-            // We expect an G command with blah blah blah
-            if (myTransfer.available()) {
-                int command = int(myTransfer.packet.rxBuff[0]);
-                
-                int axis;
-                uint16_t recSize = 1; // Start after the command char
-                recSize = myTransfer.rxObj(axis, recSize);
-
-                float xPacket;
-                float yPacket;
-
-                uint16_t recSize = 2;
-
-                recSize = myTransfer.rxObj(xPacket, recSize);
-                recSize = myTransfer.rxObj(yPacket, recSize);
-
-                autoCorrection(xPacket, yPacket);
-                
-                // Send back "O" when command is finished to receive next line
-                uint16_t sendSize = 0;
-                char data = 'Y';
-                sendSize = myTransfer.txObj(data, sendSize);
-                myTransfer.sendData(sendSize);
+        stateSet = true;
+    }
+    // Once the state is set
+    else
+    {
+        if (buttonState)
+        {
+            // Move Down to drawing/cutting position
+            if (zPos != 0)
+            {
+                zShaftVal = false;
+                motorVert(zPos, 500);
+                zPos = 0; // Reset Z Pos to bottom pos
             }
 
-            break;
+            // Enter State Machine
+            switch (state)
+            {
+            // Gcode Mode
+            case 71:
+            {
+                // We expect a G command with blah blah blah
+                if (myTransfer.available())
+                {
+                    int command = int(myTransfer.packet.rxBuff[0]);
+
+                    int axis;
+                    uint16_t recSize = 1; // Start after the command char
+                    recSize = myTransfer.rxObj(axis, recSize);
+
+                    float xPacket;
+                    float yPacket;
+
+                    uint16_t recSize = 2;
+
+                    recSize = myTransfer.rxObj(xPacket, recSize);
+                    recSize = myTransfer.rxObj(yPacket, recSize);
+
+                    autoCorrection(xPacket, yPacket);
+
+                    // Send back "O" when command is finished to receive next line
+                    uint16_t sendSize = 0;
+                    char data = 'Y';
+                    sendSize = myTransfer.txObj(data, sendSize);
+                    myTransfer.sendData(sendSize);
+                }
+                break;
+            }
+
+            // Normal Mode "I"
+            case 78:
+            {
+                if (myTransfer.available())
+                {
+                    // Home
+                    homingSequence(0);
+                    zHomingSequence(0);
+                    zPos = 0;
+
+                    uint16_t recSize = 0; // Start after the character byte
+
+                    float xPacket;
+                    float yPacket;
+
+                    recSize = myTransfer.rxObj(xPacket, recSize);
+                    recSize = myTransfer.rxObj(yPacket, recSize);
+
+                    autoCorrection(xPacket, yPacket);
+                }
+                break;
+            }
+            }
         }
-        
-        // Normal Mode
-        case 78: {
-            
-            break;
+        else // If Button is not pressed
+        {
+            uint16_t sendSize = 0;
+            char data = 'N';
+            sendSize = myTransfer.txObj(data, sendSize);
+            myTransfer.sendData(sendSize);
+
+            // Shutdown motors after 1 min
+            if ((millis() - buttonChangeTime) >= 60000)
+            {
+                digitalWrite(EN_PIN, HIGH);
+                digitalWrite(Y_ENABLE_PIN, HIGH);
+                digitalWrite(Z_ENABLE_PIN, HIGH);
+            }
+
+            // Go up 1000 steps
+            if (zPos == 0)
+            {
+                zRetract(3000);
+                zPos = 3000;
+            }
+
+            delay(200);
         }
     }
-    }
-    
+
     // Check Button State
     if (buttonState)
     {
@@ -429,7 +485,6 @@ void loop()
             else if (state == 90)
             {
                 zHomingSequence(sendSize);
-                zPos = 0;
             }
 
             // Send Accel Data
@@ -443,30 +498,6 @@ void loop()
         digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
         digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
         digitalWrite(Z_ENABLE_PIN, LOW); // Enable driver in hardware
-    }
-    else // If Button is not pressed
-    {
-        uint16_t sendSize = 0;
-        char data = 'N';
-        sendSize = myTransfer.txObj(data, sendSize);
-        myTransfer.sendData(sendSize);
-
-        // Shutdown motors after 1 min
-        if ((millis() - buttonChangeTime) >= 60000)
-        {
-            digitalWrite(EN_PIN, HIGH);
-            digitalWrite(Y_ENABLE_PIN, HIGH);
-            digitalWrite(Z_ENABLE_PIN, HIGH);
-        }
-
-        // Go up 1000 steps
-        if (zPos == 0)
-        {
-            zRetract(3000);
-            zPos = 3000;
-        }
-
-        delay(200);
     }
 }
 
