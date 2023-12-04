@@ -99,8 +99,8 @@ def vision_main(mode, shape):
             # Make sure all data are available
             if (x_pos and y_pos and z_rot != None): 
                 # manual_offset = [marker_locations[17][0], marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
-                # manual_offset = [50, 200]
-                manual_offset = [200, 300] # Lower Resolution
+                manual_offset = [50, 200]
+                # manual_offset = [200, 300] # Lower Resolution
                 x_pos = x_pos + manual_offset[0]
                 y_pos = y_pos + manual_offset[1]
 
@@ -112,8 +112,6 @@ def vision_main(mode, shape):
                 kf_y.predict()
                 kf_y.update([y_pos, accel_y_mm])
                 # print(f"Y: {kf_y.x}")
-
-                print("Calibrating...")
                 
                 # Calibrate for 5 seconds before running any tracking
                 if time.time() - start_time >= settling_time:
@@ -167,15 +165,15 @@ def vision_main(mode, shape):
                     y_data.append(kf_y.x[0])
 
                     ''' Plot '''
-                    # if len(x_data) >= num_data_p:
-                    #     # print(record_data)
-                    #     # print(raw_x)
-                    #     plot_chart(
-                    #         [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
-                    #     )
-                    #     df = pd.DataFrame([x_data, y_data])
-                    #     df.to_excel("output.xlsx")
-                    #     break
+                    if len(x_data) >= num_data_p:
+                        # print(record_data)
+                        # print(raw_x)
+                        plot_chart(
+                            [i for i in range(0, num_data_p)], raw_x, raw_y, x_data, y_data
+                        )
+                        df = pd.DataFrame([x_data, y_data])
+                        df.to_excel("output.xlsx")
+                        break
 
                     ''' Calculate FPS and Display ''' 
                     # new_frame_time = time.time()
@@ -194,6 +192,9 @@ def vision_main(mode, shape):
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
                         break
+
+                else: 
+                    print("Calibrating...")
 
     cv2.destroyAllWindows()
     vs.stop()
