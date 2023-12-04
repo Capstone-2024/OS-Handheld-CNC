@@ -107,13 +107,6 @@ volatile int buttonChangeTime;
 
 int zPos = 1000;
 
-// void buttonInterruptLeft()
-// {
-//   // Update State
-//   buttonState = !(digitalRead(LeftbuttonPin) || digitalRead(RightbuttonPin));
-//   buttonChangeTime = millis();
-// }
-
 void buttonInterrupt()
 {
   // Update State
@@ -352,20 +345,16 @@ void loop()
         {
           zShaftVal = true;
           motorVert(500, stepTime);
-          delay(1000);
+          delay(500);
 
           for (int i = 0; i < via; i++)
           {
-            float currTime = millis();
             autoCorrection(poses[j][i][0], poses[j][i][1]);
-            // float loopTime = millis() - currTime;
-            // Serial.print("Loop Time: ");
-            // Serial.println(loopTime);
             if (i == 0)
             {
               zShaftVal = false;
               motorVert(500, stepTime);
-              delay(1000);
+              delay(500);
             }
           }
         }
