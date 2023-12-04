@@ -9,7 +9,7 @@ from sys import platform
 from serial_utils import ArduinoComms
 
 def vision_main(mode, shape):
-    if mode != 'L' or mode != 'P': 
+    if mode != 'L' and mode != 'P': 
         print("Invalid mode.")
         return
 
@@ -208,5 +208,4 @@ if __name__ == "__main__":
     shape = [np.zeros(100).tolist(), np.linspace(0, -100, 100)]
     print(f'Line: {shape}')
 
-    mode = input("Select between point or line (P or L): ")
-    vision_main(mode, shape)
+    vision_main(input("Select between point or line (P or L): "), shape)
