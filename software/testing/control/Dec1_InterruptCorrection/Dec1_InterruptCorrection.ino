@@ -333,7 +333,7 @@ void loop()
 
       else if (int(instruction) == 72)
       {
-        homingSequence();
+        homingSequence(sendSize);
       }
 
       else if (int(instruction) == 83)
@@ -343,12 +343,12 @@ void loop()
 
       else if (int(instruction) == 90)
       {
-        zHomingSequence();
+        zHomingSequence(sendSize);
       }
 
       else if (int(instruction) == 65)
       {
-        sampleAccelerometer();
+        sampleAccelerometer(sendSize);
       }
       else if ((int)instruction == 83)
       {
@@ -744,7 +744,7 @@ void startupSequence()
   buttonState = true;
 }
 
-void homingSequence()
+void homingSequence(uint16_t sendSize)
 {
   int flagLeft = 0;
   int flagRight = 0;
@@ -779,7 +779,7 @@ void homingSequence()
   currentTheta1 = homedTheta1;
   currentTheta4 = homedTheta4;
 
-  uint16_t sendSize = 0;
+  // uint16_t sendSize = 0;
   char data = 'G';
   sendSize = myTransfer.txObj(data, sendSize);
   myTransfer.sendData(sendSize);
@@ -826,7 +826,7 @@ void motorVert(int steps, int stepDelay)
   }
 }
 
-void zHomingSequence()
+void zHomingSequence(uint16_t sendSize)
 {
   digitalWrite(Z_ENABLE_PIN, LOW);
   zShaftVal = false;
@@ -843,7 +843,7 @@ void zHomingSequence()
     }
   }
 
-  uint16_t sendSize = 0;
+  // uint16_t sendSize = 0;
   char data = 'O';
   sendSize = myTransfer.txObj(data, sendSize);
   myTransfer.sendData(sendSize);
@@ -861,9 +861,9 @@ void zRetract(int steps)
   motorVert(steps, 200);
 }
 
-void sampleAccelerometer()
+void sampleAccelerometer(uint16_t sendSize)
 {
-  uint16_t sendSize = 0;
+  // uint16_t sendSize = 0;
 
   sensors_event_t event;
 
