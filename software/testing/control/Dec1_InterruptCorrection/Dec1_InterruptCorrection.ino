@@ -344,8 +344,8 @@ void loop()
         for (int j = 0; j < 3; j++)
         {
           zShaftVal = true;
-          motorVert(500, 500);
-          delay(500);
+          motorVert(500, 200);
+          delay(1000);
 
           for (int i = 0; i < via; i++)
           {
@@ -355,8 +355,8 @@ void loop()
             if (i == 0)
             {
               zShaftVal = false;
-              motorVert(500, 500);
-              delay(500);
+              motorVert(500, 200);
+              delay(1000);
             }
           }
         }
