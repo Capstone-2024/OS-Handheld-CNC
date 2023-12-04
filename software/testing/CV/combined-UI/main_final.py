@@ -244,10 +244,7 @@ class FourthWin(QWidget, FourthUi):
             'stop_btn': False,
         }
         
-        #定时器
-        # self.timer = QTimer(self)
-        # self.timer.timeout.connect(self.show_viedo)
-        # self.start_btn.clicked.connect(self.video_button)
+
 
         #摄像头
         self.cap_video=0
@@ -518,18 +515,18 @@ class VideoThread(QThread):
                         self.y_data.append(self.kf_y.x[0])
 
 
-                    ''' Plot '''
-                    if len(self.x_data) >= self.num_data_p:
-                        with QMutexLocker(self.data_lock):
-                            min_length = min(len(self.raw_x), len(self.raw_y), len(self.x_data), len(self.y_data))
-                        # print(record_data)
-                        # print(raw_x)
-                        
-                        plot_chart(
-                            [i for i in range(0, min_length)], self.raw_x[:min_length], self.raw_y[:min_length], self.x_data[:min_length], self.y_data[:min_length]
-                        )
-                        df = pd.DataFrame([self.x_data[:min_length], self.y_data[:min_length]])
-                        df.to_excel("output.xlsx")
+                    # ''' Plot '''
+                    # if len(self.x_data) >= self.num_data_p:
+                    #     with QMutexLocker(self.data_lock):
+                    #         min_length = min(len(self.raw_x), len(self.raw_y), len(self.x_data), len(self.y_data))
+                    #     # print(record_data)
+                    #     # print(raw_x)
+                    #     
+                    #     plot_chart(
+                    #         [i for i in range(0, min_length)], self.raw_x[:min_length], self.raw_y[:min_length], self.x_data[:min_length], self.y_data[:min_length]
+                    #     )
+                    #     df = pd.DataFrame([self.x_data[:min_length], self.y_data[:min_length]])
+                    #     df.to_excel("output.xlsx")
                 
                     ''' Calculate FPS and Display ''' 
                     self.new_frame_time = time.time()
