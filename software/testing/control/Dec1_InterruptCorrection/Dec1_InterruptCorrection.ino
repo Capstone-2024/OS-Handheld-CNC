@@ -319,6 +319,7 @@ void loop()
       {
         if (zPos != 0)
         {
+          digitalWrite(Z_ENABLE_PIN, LOW);
           // Move Down to drawing/cutting position
           zShaftVal = false;
           motorVert(zPos, 500);
@@ -343,6 +344,7 @@ void loop()
         // zHomingSequence(0);
         if (zPos != 0)
         {
+          digitalWrite(Z_ENABLE_PIN, LOW);
           // Move Down to drawing/cutting position
           zShaftVal = false;
           motorVert(zPos, 500);
@@ -354,6 +356,7 @@ void loop()
 
         for (int j = 0; j < 3; j++)
         {
+          digitalWrite(Z_ENABLE_PIN, LOW);
           zShaftVal = true;
           motorVert(500, 400);
           delay(1000);
