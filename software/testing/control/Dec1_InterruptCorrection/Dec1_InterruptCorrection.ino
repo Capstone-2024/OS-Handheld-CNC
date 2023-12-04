@@ -119,8 +119,14 @@ void buttonInterrupt()
   buttonChangeTime = millis();
   delayMicroseconds(20);
 
-  zShaftVal = true;
-  motorVert(1000, 200);
+  if (buttonState) {
+    zShaftVal = true;
+    motorVert(1000, 200);
+  } else {
+    zShaftVal = false;
+    motorVert(1000, 200);
+  }
+
 }
 
 void setup()
