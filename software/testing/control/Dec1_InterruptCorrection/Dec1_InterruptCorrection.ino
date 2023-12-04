@@ -60,7 +60,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 // diag pin pulsed HIGH when SG_RESULT falls below 2*STALL_VALUE
 // must be in StealthChop Mode for stallguard to work
 // Value of TCOOLTHRS must be greater than TSTEP & TPWMTHRS
-#define STALL_VALUE 45 // [0..255] // Need to calibrate
+#define STALL_VALUE 47 // [0..255] // Need to calibrate
 int stepTime = 400;    // Determines speed of stepper. 160Hz step frequency
 bool startup = false;  // set false after homing
 
