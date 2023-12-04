@@ -564,13 +564,13 @@ void InvKin(float desiredDeltaX, float desiredDeltaY, float currentPosX, float c
 
   if (isnan(theta1))
   {
-    theta1 = 0;
-    theta4 = 0;
+    theta1 = currentTheta1;
+    theta4 = currentTheta4;
   }
   if (isnan(theta4))
   {
-    theta1 = 0;
-    theta4 = 0;
+    theta1 = currentTheta1;
+    theta4 = currentTheta4;
   }
 
   // Serial.print("T1: ");
