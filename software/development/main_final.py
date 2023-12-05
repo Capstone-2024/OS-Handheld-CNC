@@ -698,7 +698,7 @@ class StichingWin(QWidget, StichingUi):
         self.vs.release()
         event.accept()
         
-class MapWin(QWidget, MapUi):
+class MapWin(QWidget, mapui):
     def __init__(self, parent=None):
         super(MapWin, self).__init__(parent)
         # 调用 first UI
