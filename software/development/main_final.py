@@ -348,7 +348,7 @@ class FourthWin(QWidget, FourthUi):
         # 当用户在 coordinates_edit 文本框中输入完坐标并按下回车键时，会触发 returnPressed 信号，连接到 zoom_to_coordinate
         # self.coordinates_edit.returnPressed.connect(self.zoom_to_coordinate)
         # 当用户点击 scan_btn 按钮时，会触发 clicked 信号，连接到 scan_to
-        self.scan_btn.clicked.connect(self.scan_to)
+        # self.scan_btn.clicked.connect(self.scan_to)
         # 当用户点击 confirm_btn 按钮时，会触发 clicked 信号，连接到 zoom_to_coordinate
         # self.confirm_btn.clicked.connect(self.zoom_to_coordinate)
         #  当用户点击 reset_zoom_btn 按钮时，会触发 clicked 信号，连接到 reset_zoom 
