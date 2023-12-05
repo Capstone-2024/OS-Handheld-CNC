@@ -35,7 +35,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('TkAgg')
 
 # BG_COLOR = '#7CA7AE'
 SETTING_MANAGE = SettingsConfig()
@@ -249,20 +249,20 @@ class FourthWin(QWidget, FourthUi):
 
 
         #摄像头
-        # self.cap_video=0
+        self.cap_video=0
         #记录定时器工作状态
-        # self.flag = 0
+        self.flag = 0
         #存放每一帧读取的图像
-        # self.img = []
+        self.img = []
         
         # Vision thread
-        # self.video_thread = VideoThread()
-        # self.video_thread.frame_signal.connect(self.update_frame)
+        self.video_thread = VideoThread()
+        self.video_thread.frame_signal.connect(self.update_frame)
 
-        # self.timer = QTimer(self)
-        # self.start_btn.clicked.connect(self.execute_video_thread)
-        # self.stop_btn.clicked.connect(self.stop_video)
-        # self.continue_btn.clicked.connect(self.continue_video)
+        self.timer = QTimer(self)
+        self.start_btn.clicked.connect(self.execute_video_thread)
+        self.stop_btn.clicked.connect(self.stop_video)
+        self.continue_btn.clicked.connect(self.continue_video)
         
         # 将 zoom_frame 控件设置为不可用状态
         self.zoom_frame.setEnabled(False)
@@ -391,6 +391,8 @@ class MapWin(QMainWindow, MapUi):
         super(MapWin, self).__init__(parent)
         # 调用 first UI
         self.setupUi(self)
+        
+        self.map_data = load_map("data")
         
         # Display the map data in the label
         self.display_map_data(map_data)
