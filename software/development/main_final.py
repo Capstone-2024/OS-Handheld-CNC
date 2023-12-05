@@ -626,6 +626,8 @@ class StichingWin(QWidget, StichingUi):
     def capture(self):
         # 此处0表示默认摄像头，1不是默认，准确判断需要尝试,比如1,2,3之类
         # 使用OpenCV库访问摄像头
+        self.vs.release()
+
         self.vs = cv2.VideoCapture(0)
         # 检查摄像头是否成功打开
         if not self.vs.isOpened():
