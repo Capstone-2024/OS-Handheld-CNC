@@ -593,6 +593,9 @@ class StichingWin(QWidget, StichingUi):
         self.take_btn.setEnabled(False)
         # 启动一个线程进行图片捕获操作
         tt_thread = threading.Thread(target=self.capture, args=())
+        
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.capture)
         tt_thread.start()
 
     def capture(self):
