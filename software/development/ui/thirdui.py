@@ -63,6 +63,7 @@ class Ui_Form(object):
         self.pushButton.setFont(font)
         self.pushButton.setObjectName("pushButton")
         self.verticalLayout.addWidget(self.pushButton)
+        self.pushButton.setMinimumSize(QtCore.QSize(150, 41))
         spacerItem = QtWidgets.QSpacerItem(20, 128, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout.addLayout(self.verticalLayout)
