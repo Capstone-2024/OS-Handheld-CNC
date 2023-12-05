@@ -239,6 +239,7 @@ class ThirdWin(QWidget, ThirdUi):
         self.back_btn.clicked.connect(self.back_second)
         # start_btn 按钮的点击信号连接到 go_fourth
         self.start_btn.clicked.connect(self.go_fourth)
+        self.pushButton.clicked.connect(self.scan_to)
 
     def back_second(self):
         # 创建 SecondWin
@@ -279,6 +280,30 @@ class ThirdWin(QWidget, ThirdUi):
         # self.fourth_win.show()
         self.fourth_win.showFullScreen()
         self.close()
+
+    def scan_to(self):
+        # 创建一个提示窗口
+        prompt_win = PromptWin()
+        # 显示提示窗口并等待用户响应
+        result = prompt_win.exec_()
+        # 创建一个贴合窗口
+        self.sticking_win = StichingWin()
+        # 根据用户响应采取相应的操作
+        if result == QMessageBox.Yes:
+            # 如果用户选择 Yes，则显示贴合窗口
+            self.sticking_win.show()
+        if result == QMessageBox.No:
+            # 如果用户选择 No，则创建一个带有定制信息的提示窗口
+            prompt_no_win = PromptWin(message='<p style="color:red;">Please place it down</p><p>Tool on WorkPiece ?</p>')
+            # 显示新的提示窗口并等待用户响应
+            dd_result = prompt_no_win.exec_()
+            # 在用户选择 No 的情况下，持续显示新的提示窗口，直到用户选择了其他选项
+            while dd_result == QMessageBox.No:
+                dd_result = prompt_no_win.exec_()
+            else:
+                # 如果用户选择了其他选项，则显示贴合窗口
+                self.sticking_win.show()
+
 
 # fourth UI
 class FourthWin(QWidget, FourthUi):
