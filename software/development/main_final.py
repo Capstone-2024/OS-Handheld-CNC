@@ -700,7 +700,7 @@ class StichingWin(QWidget, StichingUi):
         event.accept()
         
 class MapWin(QWidget, MapUi):
-    def __init__(self, parent=None):
+    def __init__(self, , map_data, parent=None):
         super(MapWin, self).__init__(parent)
         # 调用 first UI
         self.setupUi(self)
