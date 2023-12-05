@@ -41,28 +41,7 @@ border:1px solid #cccccc;
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
-        <item>
-         <widget class="QPushButton" name="scan_btn">
-          <property name="minimumSize">
-           <size>
-            <width>121</width>
-            <height>41</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Arial</family>
-            <pointsize>12</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Scan</string>
-          </property>
-         </widget>
-        </item>
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
         <item>
          <widget class="QPushButton" name="back_btn">
           <property name="minimumSize">
