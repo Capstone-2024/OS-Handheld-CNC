@@ -35,7 +35,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('TkAgg')
 
 # BG_COLOR = '#7CA7AE'
 SETTING_MANAGE = SettingsConfig()
