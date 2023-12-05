@@ -438,7 +438,7 @@ class FourthWin(QWidget, FourthUi):
     # 创建第三个窗口的实例并显示，然后关闭当前窗口
     def back_third(self):
         self.third_win = ThirdWin()
-        self.third_win.show()
+        self.third_win.showFullScreen()
         self.close()
         
     def show_viedo(self):
