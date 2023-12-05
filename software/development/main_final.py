@@ -427,7 +427,6 @@ class FourthWin(QWidget, FourthUi):
         if self.video_thread.isRunning():
             pass
         
-        
     def update_frame(self, frame):
         height, width, channel = frame.shape
         bytes_per_line = 3 * width

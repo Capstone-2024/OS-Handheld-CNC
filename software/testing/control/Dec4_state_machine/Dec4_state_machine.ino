@@ -388,6 +388,11 @@ void loop()
 
             delay(200);
         }
+
+        // Turn motor on again after shutting down
+        digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
+        digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
+        digitalWrite(Z_ENABLE_PIN, LOW); // Enable driver in hardware
     }
 
     // Check Button State
@@ -494,10 +499,7 @@ void loop()
             }
         }
 
-        // Turn motor on again after shutting down
-        digitalWrite(EN_PIN, LOW);       // Enable driver in hardware
-        digitalWrite(Y_ENABLE_PIN, LOW); // Enable driver in hardware
-        digitalWrite(Z_ENABLE_PIN, LOW); // Enable driver in hardware
+        
     }
 }
 
