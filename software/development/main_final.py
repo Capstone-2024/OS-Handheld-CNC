@@ -219,11 +219,13 @@ class SecondWin(QWidget, SecondUi):
             time.sleep(0.2)
             continue
         
-        for i in range(0, 1000): 
+        for i in range(0, 100): 
             print(arduino_communicator.regOperation())
             x = round(random.uniform(0, 3), 2)
             y = round(random.uniform(0, 3), 2)
             arduino_communicator.send_error(x, y)
+
+        arduino_communicator.link.close()
         
         # self.close()
     
