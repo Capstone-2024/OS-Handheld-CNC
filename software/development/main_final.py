@@ -632,6 +632,7 @@ class VideoThread(QThread):
         if self.started:  # 检查标志
             self.vs.release()  # 释放摄像头资源
             super(VideoThread, self).stop()
+            self.arduino.link.close()
     
     def pause(self):
         self.started = False
