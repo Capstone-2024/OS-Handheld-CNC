@@ -110,11 +110,11 @@ def pose_estimation(frame, marker_locations):
                 rotations[i] = (cv2.Rodrigues(-rot_M))[0][2] # Add the inverse of the rotation matrix
 
                 # Draw Axis
-                # cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
+                cv2.drawFrameAxes(frame, mtx, None, rvec, tvec, 4, 1)
                 # # cv2.drawFrameAxes(frame, matrix_coefficients, None, rvec, tvec, 4, 1)
                 
                 # # Draw Border and center
-                # aruco_display(corners, ids, rejected_img_points, frame)
+                aruco_display(corners, ids, rejected_img_points, frame)
 
         # Plot all transformation matrices camera pos
         # markers = global_pos_data.items() # sorted by key, return a list of tuples
@@ -149,7 +149,8 @@ def pose_estimation(frame, marker_locations):
         # plt.show()
 
         # Display Position on Screen
-        cv2.putText(frame, f"X: {round(pos[0], 2)}, Y:{round(pos[1], 2)}", (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA, False)
+        if pos != None: 
+            cv2.putText(frame, f"X: {round(pos[0], 2)}, Y:{round(pos[1], 2)}", (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA, False)
 
         return [pos[0], pos[1]], z_rot, frame
     
