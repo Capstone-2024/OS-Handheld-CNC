@@ -124,6 +124,7 @@ class FirstWin(QWidget, FirstUi):
         self.information_btn.clicked.connect(self.pop_information)
         # 连接 start_btn 到 go_second
         self.start_btn.clicked.connect(self.go_second)
+        self.pushButton.clicked.connect(self.quitApp)
 
     def go_second(self):
         # 创建 WarningWin
@@ -144,6 +145,10 @@ class FirstWin(QWidget, FirstUi):
         self.information_win = InformationWin()
         # 显示该窗口
         self.information_win.show()
+    
+    def quitApp(self):
+        # 在槽函数中调用QApplication的quit方法来退出应用程序
+        QApplication.quit()
 
 # second UI
 class SecondWin(QWidget, SecondUi):
