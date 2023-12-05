@@ -612,39 +612,30 @@ class StichingWin(QWidget, StichingUi):
         self.take_btn.clicked.connect(self.capture_thread)
         self.save_btn.clicked.connect(self.save_photo)
         self.done_btn.clicked.connect(self.close)
-
-    def capture_thread(self):
-        # 禁用“拍照”按钮，防止多次点击
-        self.take_btn.setEnabled(False)
-        # 启动一个线程进行图片捕获操作
-        tt_thread = threading.Thread(target=self.capture, args=())
         
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.capture)
-        tt_thread.start()
-
-    def capture(self):
-        # 此处0表示默认摄像头，1不是默认，准确判断需要尝试,比如1,2,3之类
         # 使用OpenCV库访问摄像头
-        self.vs.release()
-
         self.vs = cv2.VideoCapture(0)
+
         # 检查摄像头是否成功打开
         if not self.vs.isOpened():
             # 如果摄像头未成功打开，弹出错误提示框
-            t_box = QMessageBox(QMessageBox.Critical, 'Error', 'USB Camera not Found!', QMessageBox.Ok)
-            font = QFont()
-            font.setFamily("Arial")
-            font.setPointSize(12)
-            font.setBold(True)
-            font.setWeight(75)
-            t_box.setFont(font)
-            ok_btn = t_box.button(QMessageBox.Ok)
-            ok_btn.setFont(font)
-            t_box.exec_()
+            self.show_camera_error_message()
             return
-        # 从摄像头读取一帧图像
+        
+        # Start a timer to capture frames periodically
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.capture)
+        self.timer.start(50)
+
+    def capture_thread(self):
+        # Disable the "拍照" button to prevent multiple clicks
+        self.take_btn.setEnabled(False)
+        # Enable the "拍照" button after 3 seconds
+        QTimer.singleShot(3000, lambda: self.take_btn.setEnabled(True))
+
+    def capture(self):
         ret, frame = self.vs.read()
+
         # 如果成功读取到图像
         if ret:
             # 获取图像的高度、宽度和通道数
@@ -652,61 +643,50 @@ class StichingWin(QWidget, StichingUi):
             # 计算每行的字节数
             bytes_per_line = 3 * width
             # 将OpenCV图像转换为Qt图像
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert to RGB from BGR
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # convert to RGB from BGR
             q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
             # 将Qt图像转换为QPixmap
             self.show_pixmap = QPixmap.fromImage(q_image)
             # 在界面上显示图片
             self.show_label.setPixmap(self.show_pixmap)
-        # 启用“拍照”按钮
-        self.take_btn.setEnabled(True)
 
     def save_photo(self):
         # 检查是否有可保存的图片
         if self.show_pixmap is None:
-            t_box = QMessageBox(QMessageBox.Critical, 'Error', 'No Picture Can Be Saved!', QMessageBox.Ok)
-            font = QFont()
-            font.setFamily("Arial")
-            font.setPointSize(12)
-            font.setBold(True)
-            font.setWeight(75)
-            t_box.setFont(font)
-            ok_btn = t_box.button(QMessageBox.Ok)
-            ok_btn.setFont(font)
-            t_box.exec_()
+            self.show_error_message('No Picture Can Be Saved!')
             return
-        # 生成图片文件名（基于当前时间戳）
-        
-        # OS walk the data directory and add 1 to the latest image
 
+        # 生成图片文件名（基于当前时间戳）
         img_name = str(int(time.time())) + '.png'
         try:
             # 保存图片到指定路径
-            self.show_pixmap.save('TEST' + img_name) # change name to image_i.png
+            self.show_pixmap.save('TEST' + img_name)  # change name to image_i.png
         except Exception as e:
             # 如果保存出现异常，弹出错误提示框
-            t_box = QMessageBox(QMessageBox.Critical, 'Error', str(e), QMessageBox.Ok)
-            font = QFont()
-            font.setFamily("Arial")
-            font.setPointSize(12)
-            font.setBold(True)
-            font.setWeight(75)
-            t_box.setFont(font)
-            ok_btn = t_box.button(QMessageBox.Ok)
-            ok_btn.setFont(font)
-            t_box.exec_()
+            self.show_error_message(str(e))
         else:
             # 如果保存成功，弹出成功提示框
-            t_box = QMessageBox(QMessageBox.Information, 'CNC_UI', 'Save Success!', QMessageBox.Ok)
-            font = QFont()
-            font.setFamily("Arial")
-            font.setPointSize(12)
-            font.setBold(True)
-            font.setWeight(75)
-            t_box.setFont(font)
-            ok_btn = t_box.button(QMessageBox.Ok)
-            ok_btn.setFont(font)
-            t_box.exec_()
+            QMessageBox.information(self, 'CNC_UI', 'Save Success!', QMessageBox.Ok)
+
+    def show_error_message(self, message):
+        t_box = QMessageBox(QMessageBox.Critical, 'Error', message, QMessageBox.Ok)
+        font = QFont()
+        font.setFamily("Arial")
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        t_box.setFont(font)
+        ok_btn = t_box.button(QMessageBox.Ok)
+        ok_btn.setFont(font)
+        t_box.exec_()
+
+    def show_camera_error_message(self):
+        self.show_error_message('USB Camera not Found!')
+
+    def closeEvent(self, event):
+        self.timer.stop()
+        self.vs.release()
+        event.accept()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
