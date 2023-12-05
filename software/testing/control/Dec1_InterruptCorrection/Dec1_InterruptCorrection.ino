@@ -146,7 +146,7 @@ void setup()
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   for (int i = 0; i < NUMPIXELS; i++)
   {
-    pixels.setPixelColor(i, pixels.Color(50, 50, 50));
+    pixels.setPixelColor(i, pixels.Color(100, 100, 100));
   }
   pixels.show(); // Send the updated pixel colors to the hardware.
 
