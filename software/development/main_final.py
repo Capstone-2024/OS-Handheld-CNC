@@ -631,7 +631,7 @@ class StichingWin(QWidget, StichingUi):
         # Disable the "拍照" button to prevent multiple clicks
         self.take_btn.setEnabled(False)
         # Enable the "拍照" button after 3 seconds
-        QTimer.singleShot(3000, lambda: self.take_btn.setEnabled(True))
+        QTimer.singleShot(1000, lambda: self.take_btn.setEnabled(True))
 
     def capture(self):
         ret, frame = self.vs.read()
