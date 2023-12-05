@@ -25,7 +25,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from threading_utils import WebcamVideoStream
 from cv_utils import pose_estimation, plot_chart, manual_analyze_stitched, access_map
 import numpy as np
-from kalman_utils import PE_filter
+from kalman_utils_3d import PE_filter
 from sys import platform
 from serial_utils import ArduinoComms
 
@@ -434,131 +434,126 @@ class VideoThread(QThread):
     
     def __init__(self):
         super(VideoThread, self).__init__()
-                # Analyze Stitched Image, establishing global coordinate system
         self.vs = cv2.VideoCapture(0)
         self.started = False  # 添加标志
+        
+        # Analyze Stitched Image, establishing global coordinate system
         self.marker_locations = manual_analyze_stitched()
-
         # data_dir = os.path.abspath("./data")
-        # marker_locations = access_map(data_dir)
+        # self.marker_locations = access_map(data_dir)
 
         ''' SET UP '''
-        #   Target Point vars
-        self.point_i = 0 # index of target point 
+        # self.point_i = 0 # index of target point 
 
-        # Plot vars and config
-        self.x_data = []
-        self.y_data = []
-        self.raw_x = []
-        self.raw_y = []
-        self.num_data_p = 500
-        self.data_lock = QMutex()
-
-        # Start Camera Stream and FPS Counter
-
-        # FPS Counter
-        self.prev_frame_time = 0  # used to record the time when we processed last frame
-        self.new_frame_time = 0  # used to record the time at which we processed current frame
+        self.calibrate_settling_time = 5 # 5 Seconds for the filter to settle down
+        self.calibrate_start_time = time.time()
 
         # Kalman Filter
-        self.dt = 1 / 60  # 60 fps, i want to make this dynamic but idk if it works that way
+        self.dt = 1 / 20  # 60 fps, i want to make this dynamic but idk if it works that way
         # P
-        self.P_x = np.diag([1**2.0, 10**2])  # covariance matrix
-        self.P_y = np.diag([1**2.0, 10**2])
+        self.P_x = np.diag([1**2.0, 10**2, 10**2])  # covariance matrix
+        self.P_y = np.diag([1**2.0, 10**2, 10**2])
 
         # R
-        self.R_x = np.array([1**2])
-        self.R_y = np.array([1**2])
+        self.R_x = np.array([1**2, 20**2])
+        self.R_y = np.array([1**2, 20**2])
 
         # Q
-        self.Q = 10**2  # process variance
+        self.Q = 30**2  # process variance
 
-        self.x = np.array([0.0, 0.0])
+        self.x = np.array([0.0, 0.0, 0.0])
         self.kf_x = PE_filter(self.x, self.P_x, self.R_x, self.Q, self.dt)
         self.kf_y = PE_filter(self.x, self.P_y, self.R_y, self.Q, self.dt)
 
-    def run(self):
         # Initialize Communication with Arduino
-        # arduino = ArduinoComms()
+        self.arduino = ArduinoComms()
+
+        while self.arduino.homingOperation() != 'G': 
+            time.sleep(0.3)
+            continue
+
+        while self.arduino.zHoming() != 'O': 
+            time.sleep(0.3)
+            continue
+
+        num_accel_samples = 100
+        offsets_x = np.zeros(num_accel_samples)
+        offsets_y = np.zeros(num_accel_samples)
+        
+        # Accelerometer offsets
+        for i in range(0, num_accel_samples): 
+            _, x, y = self.arduino.regOperation()
+            offsets_x[i] = x
+            offsets_y[i] = y
+
+        self.accel_offset_x = np.average(offsets_x)
+        self.accel_offset_y = np.average(offsets_y)
+
+        self.data_lock = QMutex()
+
+    def run(self):
         # Main Loop
         self.started = True  # 设置标志
+
         while not self.isInterruptionRequested():
             ret, frame = self.vs.read()
             
             if ret:
-                ''' Calculate Position with Pose Estimation '''
-                (x_pos, y_pos), z_rot, output = pose_estimation(frame, self.marker_locations)
 
-                print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
-            
-                if x_pos or y_pos != None:
+                # Read low level status
+                status, accel_x, accel_y = self.arduino.regOperation()
 
-                    # Kalman Filter Predict and Update
-                    self.kf_x.predict()
-                    self.kf_x.update(x_pos)
-                    # print(f"X: {kf_x.x}")
+                # If button pressed
+                if status == "Y": 
+                    accel_x_mm = (accel_x - self.accel_offset_x)*1000
+                    accel_y_mm = (accel_y - self.accel_offset_y)*1000
+                    # accel_x_mm = 0 
+                    # accel_y_mm = 0 
 
-                    self.kf_y.predict()
-                    self.kf_y.update(y_pos)
-                    # print(f"Y: {kf_y.x}")
-
-                    ''' Calculate Local Machine Error Vector and Send to Arduino '''
-                    manual_offet = [0, 0] # Should only be in x or y
-                    # pos_diff = [shape[0][point_i] - x_pos + manual_offet[0], shape[1][point_i] - y_pos + manual_offet[1]]
-                    # pos_diff = [shape[0][point_i] - kf_x.x[0][0] + manual_offet[0], shape[1][point_i] - kf_y.x[0][0] + manual_offet[1]]
-                
-                    # Send to arduino 
-                    # arduino.start_transmit()
-                    # arduino.ardu_write(str(kf_x.x) + ',' + str(kf_y.x))
-
-                    ''' Testing '''
-                    # print(f'Gloabl distance to point {point_i} is X:{pos_diff[0]} and Y: {pos_diff[1]}')
-                    # print(f'Local distance to point {point_i} is X:{local[0]} and Y: {local[1]}')
-                    print(f'Current Global: {x_pos}, {y_pos} \n')
-                    print(f'Filtered Global: {self.kf_x.x}, {self.kf_y.x} \n')
-                
-                    # print(f'Target Global: {shape[0][point_i]},{shape[1][point_i]}')
-
-                    # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
-                    #     point_i += 1
-
-                    ''' Project Shape with points on to the frame '''
-                    # Use the RVEC from the pose estimation and the Z value to tranform the points to the image space
-
-
-
-                    ''' Testing Pose Estimation and Plotting for Kalman Filter '''
-                    ''' Collect Data for Plotting '''
-                    self.raw_x.append(float(x_pos))
-                    self.raw_y.append(float(y_pos))
-
-                    self.x_data.append(self.kf_x.x[0])
-                    self.y_data.append(self.kf_y.x[0])
+                    ''' Calculate Position with Pose Estimation '''
+                    (x_pos, y_pos), z_rot, output = pose_estimation(frame, self.marker_locations)
                     
-                    
-                    with QMutexLocker(self.data_lock):
-                        self.raw_x.append(float(x_pos))
-                        self.raw_y.append(float(y_pos))
-                        self.x_data.append(self.kf_x.x[0])
-                        self.y_data.append(self.kf_y.x[0])
-                
-                    ''' Calculate FPS and Display ''' 
-                    self.new_frame_time = time.time()
-                    fps = 1 / (self.new_frame_time - self.prev_frame_time)
-                    self.prev_frame_time = self.new_frame_time
-                    fps = int(fps)
-                    fps = str(fps)
-                    font = cv2.FONT_HERSHEY_PLAIN
-                
-                    print(f"FPS: {fps}")
-                
-                    ''' Only display if we are using PC '''
-                    # if platform != "linux":
-                        # cv2.putText(frame, fps, (7, 70), font, 1, (100, 255, 0), 3, cv2.LINE_AA)
-                        # cv2.imshow("Output Result", output)
+                    # Make sure all data are available
+                    if (x_pos and y_pos and z_rot != None): 
+                        # manual_offset = [marker_locations[17][0], marker_locations[17][1]] # Should only be in x or y, this is the position of the middle marker 
+                        manual_offset = [50, 200]
+                        # manual_offset = [200, 300] # Lower Resolution
+                        x_pos = x_pos + manual_offset[0]
+                        y_pos = y_pos + manual_offset[1]
 
-                    # key = cv2.waitKey(1) & 0xFF
-                    self.frame_signal.emit(output)
+                        # Kalman Filter Predict and Update
+                        self.kf_x.predict()
+                        self.kf_x.update([x_pos, accel_x_mm])
+                        self.kf_y.predict()
+                        self.kf_y.update([y_pos, accel_y_mm])
+                        
+                        # Calibrate for 5 seconds before running any tracking
+                        if time.time() - self.calibrate_start_time >= self.calibrate_settling_time:
+
+                            ''' Calculate Local Machine Error Vector and Send to Arduino '''
+                            pos_diff = None
+
+                            test_point = [0, 0]
+                            pos_diff = [test_point[0] - self.kf_x.x[0], test_point[1] - self.kf_y.x[0]]
+
+                            # print(f'Position Difference: {pos_diff[0], pos_diff[1]}')
+
+                            ''' Send to Arduino '''
+                            if abs(pos_diff[0]) <= 5 and abs(pos_diff[1]) <= 5: 
+                                print('Sending to Arduino...')
+                                print(f'Type: {pos_diff[0]}, Type: {pos_diff[0].item()}')
+                                self.arduino.send_error(-pos_diff[0].item(), -pos_diff[1].item())
+                                print(f'Data Sent: {pos_diff[0]}, {pos_diff[1]}')
+
+                            ''' Testing '''
+                            print(f'Current Global: {x_pos}, {y_pos}')
+                            print(f'Filtered Global: {self.kf_x.x[0]}, {self.kf_y.x[0]} \n')
+                            
+                            ''' Send Frame Back to UI '''
+                            small_frame = cv2.resize(output, (480, 270)) # Shrink Frame
+                            convert = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+                            self.frame_signal.emit(convert)
+
         self.vs.release()
     
     def stop(self):
