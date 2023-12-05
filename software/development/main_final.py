@@ -459,7 +459,7 @@ class FourthWin(QWidget, FourthUi):
         QApplication.quit()
 
     def accessMap(self):
-        data_dir = "your_data_directory_path"  # Replace with the actual data directory path
+        data_dir = "./data"  
         map_data = access_map(data_dir)
         
         # Create an instance of MapWin and pass the map data
@@ -707,8 +707,6 @@ class MapWin(QWidget, MapUi):
         
         # Display the map data in the label
         self.display_map_data(map_data)
-
-
         # 连接setting_btn 到 pop_setting 
         self.map_back.clicked.connect(self.go_fourth)
     
