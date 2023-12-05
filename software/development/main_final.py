@@ -99,14 +99,15 @@ class WarningWin(QDialog, WarningUi):
         # 关闭当前窗口
         self.close()
     
-    def goback(self, a0: QCloseEvent) -> None:
-        # 创建 Second UI 对象
+    def goback(self):
+        # 创建 FirstWin
         self.first_win = FirstWin()
-        # 显示 second UI
-        # self.second_win.show()
+        # show the first UI
+        # self.first_win.show()
         self.first_win.showFullScreen()
-        # 关闭当前窗口
+        # close UI
         self.close()
+
 
 # stitching 以后 检查tool on workpiece or not?
 # PromptWin(表示一个提示对话框)
