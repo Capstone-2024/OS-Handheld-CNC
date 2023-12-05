@@ -29,6 +29,7 @@ import numpy as np
 from kalman_utils_3d import PE_filter
 from sys import platform
 from serial_utils import ArduinoComms
+from PyQt5.QtWidgets import QMainWindow
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -699,7 +700,7 @@ class StichingWin(QWidget, StichingUi):
         self.vs.release()
         event.accept()
         
-class MapWin(QWidget, MapUi):
+class MapWin(QMainWindow, MapUi):
     def __init__(self, map_data, parent=None):
         super(MapWin, self).__init__(parent)
         # 调用 first UI
