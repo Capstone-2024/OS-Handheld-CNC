@@ -77,7 +77,9 @@ class WarningWin(QDialog, WarningUi):
         self.setWindowIcon(warning_icon)
         # 设定图标的大小
         self.headicon_label.setPixmap(warning_icon.pixmap(48, 48))
-
+        self.pushButton.clicked.connect(self.gonext)
+        self.pushButton_2.clicked.connect(self.goback)
+        
     # 关闭以后加载second UI
     def closeEvent(self, a0: QCloseEvent) -> None:
         # 创建 Second UI 对象
@@ -85,6 +87,24 @@ class WarningWin(QDialog, WarningUi):
         # 显示 second UI
         # self.second_win.show()
         self.second_win.showFullScreen()
+        # 关闭当前窗口
+        self.close()
+
+    def gonext(self, a0: QCloseEvent) -> None:
+        # 创建 Second UI 对象
+        self.second_win = SecondWin()
+        # 显示 second UI
+        # self.second_win.show()
+        self.second_win.showFullScreen()
+        # 关闭当前窗口
+        self.close()
+    
+    def goback(self, a0: QCloseEvent) -> None:
+        # 创建 Second UI 对象
+        self.first_win = FirstWin()
+        # 显示 second UI
+        # self.second_win.show()
+        self.first_win.showFullScreen()
         # 关闭当前窗口
         self.close()
 
