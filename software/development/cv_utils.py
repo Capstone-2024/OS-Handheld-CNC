@@ -148,10 +148,8 @@ def pose_estimation(frame, marker_locations):
         # plt.scatter(x, y)
         # plt.show()
 
-        # Display Position on Screen
-        if pos != None: 
-            cv2.putText(frame, f"X: {round(pos[0], 2)}, Y:{round(pos[1], 2)}", (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA, False)
-
+        # Display Position on Screen 
+           
         return [pos[0], pos[1]], z_rot, frame
     
     else: 

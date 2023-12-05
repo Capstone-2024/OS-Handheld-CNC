@@ -187,7 +187,9 @@ def vision_main(mode, shape):
                     
                     ''' Only display if we are using PC '''
                     # if platform != "linux":
+                    
                     small_frame = cv2.resize(output, (480, 270))
+                    cv2.putText(small_frame, f"dX: {round(pos_diff[0], 2)}, dY:{round(pos_diff[1], 2)}", (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA, False)
                     cv2.imshow("Output Result", small_frame)
 
                     key = cv2.waitKey(1) & 0xFF
