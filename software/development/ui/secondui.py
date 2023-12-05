@@ -62,5 +62,5 @@ class Ui_Form(object):
         Form.setWindowTitle(_translate("Form", "CNC_UI"))
         self.add_btn.setText(_translate("Form", "Choose"))
         self.back_btn.setText(_translate("Form", "Back"))
-        self.pushButton.setText(_translate("Form", "Point Tracking"))
+        self.pushButton.setText(_translate("Form", "Movement Demo"))
         self.pushButton_2.setText(_translate("Form", ":)"))
