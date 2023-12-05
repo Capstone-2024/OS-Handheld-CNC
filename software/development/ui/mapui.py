@@ -29,7 +29,7 @@ class Ui_Form(object):
         self.map_label = QtWidgets.QLabel(self.centralwidget)
         self.map_label.setGeometry(QtCore.QRect(190, 40, 561, 511))
         self.map_label.setObjectName("map_label")
-        Form.setCentralWidget(self.centralwidget)
+        Form.CentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(Form)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
         self.menubar.setObjectName("menubar")
