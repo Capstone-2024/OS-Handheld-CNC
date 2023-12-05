@@ -6,6 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 import math
+import random
 
 # Import PyQT Functions
 import qdarkstyle
@@ -207,8 +208,24 @@ class SecondWin(QWidget, SecondUi):
 
 
     def point_tracking(self):
+        arduino_communicator = ArduinoComms()
+
+        while arduino_communicator.homingOperation() != 'G': 
+            # print(arduino_communicator.link.rxBuff)
+            time.sleep(0.2)
+            continue
+
+        while arduino_communicator.zHoming() != 'O': 
+            time.sleep(0.2)
+            continue
         
-        self.close()
+        for i in range(0, 1000): 
+            print(arduino_communicator.regOperation())
+            x = round(random.uniform(0, 3), 2)
+            y = round(random.uniform(0, 3), 2)
+            arduino_communicator.send_error(x, y)
+        
+        # self.close()
     
     def smileface(self):
         arduino_communicator = ArduinoComms()
