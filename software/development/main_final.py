@@ -599,9 +599,9 @@ class StichingWin(QWidget, StichingUi):
     def capture(self):
         # 此处0表示默认摄像头，1不是默认，准确判断需要尝试,比如1,2,3之类
         # 使用OpenCV库访问摄像头
-        self.camera = cv2.VideoCapture(1)
+        self.vs = cv2.VideoCapture(0)
         # 检查摄像头是否成功打开
-        if not self.camera.isOpened():
+        if not self.vs.isOpened():
             # 如果摄像头未成功打开，弹出错误提示框
             t_box = QMessageBox(QMessageBox.Critical, 'Error', 'USB Camera not Found!', QMessageBox.Ok)
             font = QFont()
@@ -615,7 +615,7 @@ class StichingWin(QWidget, StichingUi):
             t_box.exec_()
             return
         # 从摄像头读取一帧图像
-        ret, frame = self.camera.read()
+        ret, frame = self.vs.read()
         # 如果成功读取到图像
         if ret:
             # 获取图像的高度、宽度和通道数
