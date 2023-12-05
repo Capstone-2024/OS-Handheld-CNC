@@ -460,22 +460,12 @@ class FourthWin(QWidget, FourthUi):
     def accessMap(self):
         data_dir = "your_data_directory_path"  # Replace with the actual data directory path
         map_data = access_map(data_dir)
+        
+        # Create an instance of MapWin and pass the map data
+        self.map_win = MapWin(map_data)
+        self.map_win.show()
+        self.close()
 
-        # Assuming you have a QLabel to display the map data, update it with the content
-        self.display_map_data(map_data)
-
-    def display_map_data(self, map_data):
-        # Assuming you have a QLabel named 'map_data_label' in your UI
-        map_data_label = self.map_data_label  # Replace with the actual name of your QLabel
-
-        # Clear any existing text in the label
-        map_data_label.clear()
-
-        # Convert the map_data dictionary to a string for display
-        map_data_str = "\n".join([f"{key}: {value}" for key, value in map_data.items()])
-
-        # Set the text in the QLabel to display the map data
-        map_data_label.setText(map_data_str)
         
         
 class VideoThread(QThread):
@@ -707,6 +697,41 @@ class StichingWin(QWidget, StichingUi):
         self.timer.stop()
         self.vs.release()
         event.accept()
+        
+class MapWin(QWidget, MapUi):
+    def __init__(self, parent=None):
+        super(MapWin, self).__init__(parent)
+        # 调用 first UI
+        self.setupUi(self)
+        
+        # Display the map data in the label
+        self.display_map_data(map_data)
+
+
+        # 连接setting_btn 到 pop_setting 
+        self.map_back.clicked.connect(self.go_fourth)
+    
+    def display_map_data(self, map_data):
+        map_label = self.map_label  
+
+        # Clear any existing text in the label
+        map_label.clear()
+
+        # Convert the map_data dictionary to a string for display
+        map_data_str = "\n".join([f"{key}: {value}" for key, value in map_data.items()])
+
+        # Set the text in the QLabel to display the map data
+        map_label.setText(map_data_str)
+
+
+    def go_fourth(self):
+        # 创建 WarningWin
+        self.fourth_win = FourthWin()
+        # 显示该窗口
+        self.fourth_win.show()
+        # 关闭窗口
+        self.close()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
