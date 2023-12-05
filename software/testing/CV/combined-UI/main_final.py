@@ -386,11 +386,12 @@ class FourthWin(QWidget, FourthUi):
         self.map_win = MapWin(map_data)
         self.map_win.show()
         self.close()
+        
 class MapWin(QMainWindow, MapUi):
     def __init__(self, map_data, parent=None):
         super(MapWin, self).__init__(parent)
         # 调用 first UI
-        self.setupUi(self)
+        # self.setupUi(self)
         
         self.map_data = load_map("data")
         
