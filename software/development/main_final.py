@@ -259,6 +259,7 @@ class ThirdWin(QWidget, ThirdUi):
         # start_btn 按钮的点击信号连接到 go_fourth
         self.start_btn.clicked.connect(self.go_fourth)
         self.pushButton.clicked.connect(self.scan_to)
+        self.pushButton_2.clicked.connect(self.accessMap)
 
     def back_second(self):
         # 创建 SecondWin
@@ -268,6 +269,16 @@ class ThirdWin(QWidget, ThirdUi):
         self.second_win.showFullScreen()
         # close UI
         self.close()
+    
+    def accessMap(self):
+        data_dir = "./data"  
+        map_data = access_map(data_dir)
+        
+        # Create an instance of MapWin and pass the map data
+        self.map_win = MapWin(map_data)
+        self.map_win.show()
+        self.close()
+
 
     def select_img(self):
         # 允许选择的图片文件类型列表
