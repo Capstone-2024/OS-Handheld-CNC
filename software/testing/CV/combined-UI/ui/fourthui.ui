@@ -43,13 +43,7 @@ border:1px solid #cccccc;
        </property>
        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
         <item>
-         <widget class="QPushButton" name="scan_btn">
-          <property name="minimumSize">
-           <size>
-            <width>121</width>
-            <height>41</height>
-           </size>
-          </property>
+         <widget class="QPushButton" name="pushButton">
           <property name="font">
            <font>
             <family>Arial</family>
@@ -59,7 +53,7 @@ border:1px solid #cccccc;
            </font>
           </property>
           <property name="text">
-           <string>Scan</string>
+           <string>Map</string>
           </property>
          </widget>
         </item>

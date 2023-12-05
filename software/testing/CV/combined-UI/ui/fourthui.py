@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'fourth.ui'
+# Form implementation generated from reading ui file 'fourthui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -38,16 +38,15 @@ class Ui_Form(object):
         self.frame.setObjectName("frame")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.frame)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.scan_btn = QtWidgets.QPushButton(self.frame)
-        self.scan_btn.setMinimumSize(QtCore.QSize(121, 41))
+        self.pushButton = QtWidgets.QPushButton(self.frame)
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
         font.setBold(True)
         font.setWeight(75)
-        self.scan_btn.setFont(font)
-        self.scan_btn.setObjectName("scan_btn")
-        self.verticalLayout.addWidget(self.scan_btn)
+        self.pushButton.setFont(font)
+        self.pushButton.setObjectName("pushButton")
+        self.verticalLayout.addWidget(self.pushButton)
         self.back_btn = QtWidgets.QPushButton(self.frame)
         self.back_btn.setMinimumSize(QtCore.QSize(121, 41))
         font = QtGui.QFont()
@@ -173,7 +172,7 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "CNC_UI"))
-        self.scan_btn.setText(_translate("Form", "Scan"))
+        self.pushButton.setText(_translate("Form", "Map"))
         self.back_btn.setText(_translate("Form", "Back"))
         self.start_btn.setText(_translate("Form", "Start"))
         self.stop_btn.setText(_translate("Form", "Stop"))

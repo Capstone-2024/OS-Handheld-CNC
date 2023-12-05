@@ -28,6 +28,8 @@ import numpy as np
 from kalman_utils import PE_filter
 from sys import platform
 from serial_utils import ArduinoComms
+from ui.mapui import Ui_Form as MapUi
+from PyQt5.QtWidgets import QMainWindow
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -247,20 +249,20 @@ class FourthWin(QWidget, FourthUi):
 
 
         #摄像头
-        self.cap_video=0
+        # self.cap_video=0
         #记录定时器工作状态
-        self.flag = 0
+        # self.flag = 0
         #存放每一帧读取的图像
-        self.img = []
+        # self.img = []
         
         # Vision thread
-        self.video_thread = VideoThread()
-        self.video_thread.frame_signal.connect(self.update_frame)
+        # self.video_thread = VideoThread()
+        # self.video_thread.frame_signal.connect(self.update_frame)
 
-        self.timer = QTimer(self)
-        self.start_btn.clicked.connect(self.execute_video_thread)
-        self.stop_btn.clicked.connect(self.stop_video)
-        self.continue_btn.clicked.connect(self.continue_video)
+        # self.timer = QTimer(self)
+        # self.start_btn.clicked.connect(self.execute_video_thread)
+        # self.stop_btn.clicked.connect(self.stop_video)
+        # self.continue_btn.clicked.connect(self.continue_video)
         
         # 将 zoom_frame 控件设置为不可用状态
         self.zoom_frame.setEnabled(False)
@@ -273,7 +275,7 @@ class FourthWin(QWidget, FourthUi):
         # 当用户在 coordinates_edit 文本框中输入完坐标并按下回车键时，会触发 returnPressed 信号，连接到 zoom_to_coordinate
         # self.coordinates_edit.returnPressed.connect(self.zoom_to_coordinate)
         # 当用户点击 scan_btn 按钮时，会触发 clicked 信号，连接到 scan_to
-        self.scan_btn.clicked.connect(self.scan_to)
+        # self.scan_btn.clicked.connect(self.scan_to)
         # 当用户点击 confirm_btn 按钮时，会触发 clicked 信号，连接到 zoom_to_coordinate
         # self.confirm_btn.clicked.connect(self.zoom_to_coordinate)
         #  当用户点击 reset_zoom_btn 按钮时，会触发 clicked 信号，连接到 reset_zoom 
@@ -282,6 +284,8 @@ class FourthWin(QWidget, FourthUi):
         self.start_btn.clicked.connect(self.enable_zoom)
         self.stop_btn.clicked.connect(self.enable_zoom)
         self.back_btn.clicked.connect(self.back_third)
+        self.pushButton.clicked.connect(self.accessMap)
+        
 
     def scan_to(self):
         # 创建一个提示窗口
@@ -361,18 +365,57 @@ class FourthWin(QWidget, FourthUi):
         self.label_3.setPixmap(pixmap)
         self.label_3.setScaledContents(True)  # Ensure the image scales to fit the label
 
-    def closeEvent(self, event):
-        self.timer.stop()
-        self.video_thread.stop()
-        self.video_thread.wait()
-        event.accept()
+    # def closeEvent(self, event):
+        # self.timer.stop()
+        # self.video_thread.stop()
+        # self.video_thread.wait()
+        # event.accept()
     
     def stop_video(self):
         self.video_thread.pause()
 
     def continue_video(self):
         self.video_thread.resume()
+    
+    def accessMap(self):
+        data_dir = "./data"  
+        map_data = access_map(data_dir)
+        
+        # Create an instance of MapWin and pass the map data
+        self.map_win = MapWin(map_data)
+        self.map_win.show()
+        self.close()
+class MapWin(QMainWindow, MapUi):
+    def __init__(self, map_data, parent=None):
+        super(MapWin, self).__init__(parent)
+        # 调用 first UI
+        self.setupUi(self)
+        
+        # Display the map data in the label
+        self.display_map_data(map_data)
+        # 连接setting_btn 到 pop_setting 
+        self.map_back.clicked.connect(self.go_fourth)
+    
+    def display_map_data(self, map_data):
+        map_label = self.label  
 
+        # Clear any existing text in the label
+        map_label.clear()
+
+        # Convert the map_data dictionary to a string for display
+        map_data_str = "\n".join([f"{key}: {value}" for key, value in map_data.items()])
+
+        # Set the text in the QLabel to display the map data
+        map_label.setText(map_data_str)
+
+
+    def go_fourth(self):
+        # 创建 WarningWin
+        self.fourth_win = FourthWin()
+        # 显示该窗口
+        self.fourth_win.show()
+        # 关闭窗口
+        self.close()
 
         
 class VideoThread(QThread):

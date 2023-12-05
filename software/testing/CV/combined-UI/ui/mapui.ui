@@ -13,40 +13,48 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="widget">
+  <widget class="QWidget" name="centralwidget">
    <widget class="QPushButton" name="map_back">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>40</y>
-      <width>151</width>
+      <x>40</x>
+      <y>60</y>
+      <width>131</width>
       <height>41</height>
      </rect>
     </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>11</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
     <property name="text">
-     <string>Back</string>
+     <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QLabel" name="map_label">
+   <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>40</y>
-      <width>551</width>
-      <height>501</height>
+      <x>200</x>
+      <y>10</y>
+      <width>571</width>
+      <height>531</height>
      </rect>
     </property>
-    <property name="text">
-     <string>TextLabel</string>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
     </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>300</y>
+       <width>54</width>
+       <height>12</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
