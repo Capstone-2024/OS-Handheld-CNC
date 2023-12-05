@@ -308,7 +308,7 @@ class FourthWin(QWidget, FourthUi):
 
         self.timer = QTimer(self)
         self.start_btn.clicked.connect(self.execute_video_thread)
-        self.stop_btn.clicked.connect(self.stop_video)
+        self.stop_btn.clicked.connect(self.stop_video_thread)
         self.continue_btn.clicked.connect(self.continue_video)
         
         # 将 zoom_frame 控件设置为不可用状态
@@ -422,6 +422,10 @@ class FourthWin(QWidget, FourthUi):
     def continue_video(self):
         self.video_thread.resume()
 
+    def stop_video_thread(self):
+        # Stop the video thread
+        self.video_thread.stop()
+        self.timer.stop()
 
         
 class VideoThread(QThread):
@@ -483,7 +487,7 @@ class VideoThread(QThread):
             
             if ret:
                 ''' Calculate Position with Pose Estimation '''
-                (x_pos, y_pos), output = pose_estimation(frame, self.marker_locations)
+                (x_pos, y_pos), z_rot, output = pose_estimation(frame, self.marker_locations)
 
                 print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
             
