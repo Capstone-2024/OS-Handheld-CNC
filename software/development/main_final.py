@@ -19,6 +19,7 @@ from ui.fourthui import Ui_Form as FourthUi
 from ui.stichingui import Ui_Form as StichingUi
 from ui.settingsui import Ui_Dialog as SettingsUi
 from ui.informationui import Ui_Dialog as InformationUi
+from ui.mapui import Ui_Form as MapUi
 from ui.warningui import Ui_Dialog as WarningUi
 from ui.settings import SettingsConfig
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -698,7 +699,7 @@ class StichingWin(QWidget, StichingUi):
         self.vs.release()
         event.accept()
         
-class MapWin(QWidget, mapui):
+class MapWin(QWidget, MapUi):
     def __init__(self, parent=None):
         super(MapWin, self).__init__(parent)
         # 调用 first UI
