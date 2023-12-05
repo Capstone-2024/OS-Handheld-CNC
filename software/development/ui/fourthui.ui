@@ -41,7 +41,22 @@ border:1px solid #cccccc;
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+        <item>
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="font">
+           <font>
+            <family>Arial</family>
+            <pointsize>11</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Show Map</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QPushButton" name="back_btn">
           <property name="minimumSize">

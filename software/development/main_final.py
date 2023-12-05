@@ -357,6 +357,7 @@ class FourthWin(QWidget, FourthUi):
         self.stop_btn.clicked.connect(self.enable_zoom)
         self.back_btn.clicked.connect(self.back_third)
         self.pushButton.clicked.connect(self.quitApp)
+        self.pushButton_2.clicked.connect(self.accessMap)
 
     def scan_to(self):
         # 创建一个提示窗口
@@ -457,6 +458,26 @@ class FourthWin(QWidget, FourthUi):
         # 在槽函数中调用QApplication的quit方法来退出应用程序
         QApplication.quit()
 
+    def accessMap(self):
+        data_dir = "your_data_directory_path"  # Replace with the actual data directory path
+        map_data = access_map(data_dir)
+
+        # Assuming you have a QLabel to display the map data, update it with the content
+        self.display_map_data(map_data)
+
+    def display_map_data(self, map_data):
+        # Assuming you have a QLabel named 'map_data_label' in your UI
+        map_data_label = self.map_data_label  # Replace with the actual name of your QLabel
+
+        # Clear any existing text in the label
+        map_data_label.clear()
+
+        # Convert the map_data dictionary to a string for display
+        map_data_str = "\n".join([f"{key}: {value}" for key, value in map_data.items()])
+
+        # Set the text in the QLabel to display the map data
+        map_data_label.setText(map_data_str)
+        
         
 class VideoThread(QThread):
     
