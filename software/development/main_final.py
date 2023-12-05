@@ -660,7 +660,7 @@ class StichingWin(QWidget, StichingUi):
         img_name = str(int(time.time())) + '.png'
         try:
             # 保存图片到指定路径
-            self.show_pixmap.save('./data' + img_name)  # change name to image_i.png
+            self.show_pixmap.save('./data/' + img_name)  # change name to image_i.png
         except Exception as e:
             # 如果保存出现异常，弹出错误提示框
             self.show_error_message(str(e))
