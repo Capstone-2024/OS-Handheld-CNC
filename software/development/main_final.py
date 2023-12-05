@@ -483,11 +483,11 @@ class VideoThread(QThread):
             
             if ret:
                 ''' Calculate Position with Pose Estimation '''
-                (x_pos, y_pos), output = pose_estimation(frame, self.marker_locations)
+                (x_pos, y_pos), z_rot, output = pose_estimation(frame, self.marker_locations)
 
                 print(f'Frame Size: {frame.shape[0], frame.shape[1]}')
             
-                if x_pos or y_pos != None: 
+                if x_pos or y_pos != None:
 
                     # Kalman Filter Predict and Update
                     self.kf_x.predict()
@@ -517,7 +517,6 @@ class VideoThread(QThread):
 
                     # if abs(pos_diff[0]) < 5 and abs(pos_diff[1]) < 5: 
                     #     point_i += 1
-
 
                     ''' Project Shape with points on to the frame '''
                     # Use the RVEC from the pose estimation and the Z value to tranform the points to the image space
