@@ -11,7 +11,7 @@ class Ui_Form(object):
         # create the button setting button
         self.setting_btn = QtWidgets.QPushButton(Form)
         # button size
-        self.setting_btn.setGeometry(QtCore.QRect(850, 220, 250, 80))
+        self.setting_btn.setGeometry(QtCore.QRect(400, 100, 250, 80))
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -21,7 +21,7 @@ class Ui_Form(object):
         self.setting_btn.setObjectName("setting_btn")
         # create the button information button
         self.information_btn = QtWidgets.QPushButton(Form)
-        self.information_btn.setGeometry(QtCore.QRect(850, 380, 250, 80))
+        self.information_btn.setGeometry(QtCore.QRect(400, 180, 250, 80))
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
@@ -31,7 +31,7 @@ class Ui_Form(object):
         self.information_btn.setObjectName("information_btn")
         # create the button start button
         self.start_btn = QtWidgets.QPushButton(Form)
-        self.start_btn.setGeometry(QtCore.QRect(850, 540, 250, 80))
+        self.start_btn.setGeometry(QtCore.QRect(400, 260, 250, 80))
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
