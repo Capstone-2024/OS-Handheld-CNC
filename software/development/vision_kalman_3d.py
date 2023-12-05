@@ -154,8 +154,8 @@ def vision_main(mode, shape):
                     print(f'Current Global: {x_pos}, {y_pos}')
                     print(f'Filtered Global: {kf_x.x[0]}, {kf_y.x[0]} \n')
 
-                
-
+            
+            
                     ''' Testing Pose Estimation and Plotting for Kalman Filter '''
                     ''' Collect Data for Plotting '''
                     raw_x.append(float(x_pos))
@@ -187,8 +187,8 @@ def vision_main(mode, shape):
                     
                     ''' Only display if we are using PC '''
                     # if platform != "linux":
-                    # small_frame = cv2.resize(output, (480, 270))
-                    # cv2.imshow("Output Result", small_frame)
+                    small_frame = cv2.resize(output, (480, 270))
+                    cv2.imshow("Output Result", small_frame)
 
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
