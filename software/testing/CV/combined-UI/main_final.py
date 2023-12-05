@@ -286,6 +286,7 @@ class FourthWin(QWidget, FourthUi):
         self.back_btn.clicked.connect(self.back_third)
         self.pushButton.clicked.connect(self.accessMap)
         
+        
 
     def scan_to(self):
         # 创建一个提示窗口
@@ -394,6 +395,7 @@ class MapWin(QMainWindow, MapUi):
         # Display the map data in the label
         self.display_map_data(map_data)
         # 连接setting_btn 到 pop_setting 
+
         self.map_back.clicked.connect(self.go_fourth)
     
     def display_map_data(self, map_data):

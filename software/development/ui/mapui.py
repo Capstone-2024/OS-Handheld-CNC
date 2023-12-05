@@ -25,6 +25,7 @@ class Ui_Form(object):
         font.setBold(True)
         font.setWeight(75)
         self.map_back.setFont(font)
+        self.map_back.setMinimumSize(80, 30)  # Adjust the size as needed
         self.map_back.setObjectName("map_back")
         self.frame = QtWidgets.QFrame(self.widget)
         self.frame.setGeometry(QtCore.QRect(200, 40, 591, 521))

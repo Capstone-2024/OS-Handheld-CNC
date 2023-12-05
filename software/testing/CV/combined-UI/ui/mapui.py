@@ -24,10 +24,12 @@ class Ui_Form(object):
         self.frame.setGeometry(QtCore.QRect(200, 10, 571, 531))
         self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.map_back.setMinimumSize(80, 30)  # Adjust the size as needed
         self.frame.setObjectName("frame")
         self.label = QtWidgets.QLabel(self.frame)
         self.label.setGeometry(QtCore.QRect(120, 300, 54, 12))
         self.label.setObjectName("label")
+        Form.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(Form)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
         self.menubar.setObjectName("menubar")
