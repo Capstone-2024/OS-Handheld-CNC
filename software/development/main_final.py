@@ -331,6 +331,7 @@ class FourthWin(QWidget, FourthUi):
         self.start_btn.clicked.connect(self.enable_zoom)
         self.stop_btn.clicked.connect(self.enable_zoom)
         self.back_btn.clicked.connect(self.back_third)
+        self.pushButton.clicked.connect(self.quitApp)
 
     def scan_to(self):
         # 创建一个提示窗口
@@ -426,6 +427,10 @@ class FourthWin(QWidget, FourthUi):
         # Stop the video thread
         self.video_thread.stop()
         self.timer.stop()
+
+    def quitApp(self):
+        # 在槽函数中调用QApplication的quit方法来退出应用程序
+        QApplication.quit()
 
         
 class VideoThread(QThread):

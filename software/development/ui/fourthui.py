@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'fourth.ui'
+# Form implementation generated from reading ui file 'fourthui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -58,6 +58,16 @@ class Ui_Form(object):
         self.back_btn.setFont(font)
         self.back_btn.setObjectName("back_btn")
         self.verticalLayout.addWidget(self.back_btn)
+        self.pushButton = QtWidgets.QPushButton(self.frame)
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.pushButton.setFont(font)
+        self.pushButton.setObjectName("pushButton")
+        self.pushButton.setMinimumSize(QtCore.QSize(121, 41))
+        self.verticalLayout.addWidget(self.pushButton)
         self.verticalLayout_5.addWidget(self.frame)
         self.frame_2 = QtWidgets.QFrame(Form)
         self.frame_2.setStyleSheet("")
@@ -175,6 +185,7 @@ class Ui_Form(object):
         Form.setWindowTitle(_translate("Form", "CNC_UI"))
         self.scan_btn.setText(_translate("Form", "Scan"))
         self.back_btn.setText(_translate("Form", "Back"))
+        self.pushButton.setText(_translate("Form", "Exit"))
         self.start_btn.setText(_translate("Form", "Start"))
         self.stop_btn.setText(_translate("Form", "Stop"))
         self.continue_btn.setText(_translate("Form", "Continue"))
