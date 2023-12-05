@@ -704,24 +704,26 @@ class MapWin(QMainWindow, MapUi):
     def __init__(self, map_data, parent=None):
         super(MapWin, self).__init__(parent)
         # 调用 first UI
-        self.setupUi(self)
+        # self.setupUi(self)
         
         # Display the map data in the label
+        self.map_data = load_map("data")
         self.display_map_data(map_data)
         # 连接setting_btn 到 pop_setting 
         self.map_back.clicked.connect(self.go_fourth)
     
     def display_map_data(self, map_data):
-        map_label = self.map_label  
-
-        # Clear any existing text in the label
-        map_label.clear()
-
+        map_label = QLabel(self.centralwidget)
+        
         # Convert the map_data dictionary to a string for display
         map_data_str = "\n".join([f"{key}: {value}" for key, value in map_data.items()])
 
         # Set the text in the QLabel to display the map data
         map_label.setText(map_data_str)
+
+        # Add QLabel to a layout
+        layout = QVBoxLayout(self.centralwidget)
+        layout.addWidget(map_label)
 
 
     def go_fourth(self):
