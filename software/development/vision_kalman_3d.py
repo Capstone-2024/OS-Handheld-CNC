@@ -94,7 +94,7 @@ def vision_main(mode, shape):
 
     # Main Loop
     while True:
-        frame = vs.read()
+        ret, frame = vs.read()
 
         # Read low level status
         status, accel_x, accel_y = arduino.regOperation()
