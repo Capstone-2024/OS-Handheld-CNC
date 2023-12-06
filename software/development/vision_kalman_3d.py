@@ -7,6 +7,7 @@ import pandas as pd
 from kalman_utils_3d import PE_filter
 from sys import platform
 from serial_utils import ArduinoComms
+import subprocess
 
 def vision_main(mode, shape):
     if mode != 'L' and mode != 'P': 
@@ -32,7 +33,15 @@ def vision_main(mode, shape):
     num_data_p = 1000
 
     # Start Camera Stream and FPS Counter
-    vs = WebcamVideoStream(src=0).start()
+    # vs = WebcamVideoStream(src=0).start()
+    vs = cv2.VideoCapture(0)
+    cam_props = {'focus_auto': 0, 'focus_absolute': 197}
+            
+    for key in cam_props:
+        subprocess.call(['v4l2-ctl -d /dev/video0 -c {}={}'.format(key, str(cam_props[key]))],
+                    shell=True)
+    vs.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    vs.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
     # FPS Counter
     prev_frame_time = 0  # used to record the time when we processed last frame
@@ -200,7 +209,7 @@ def vision_main(mode, shape):
                     print("Calibrating...")
 
     cv2.destroyAllWindows()
-    vs.stop()
+    vs.release()
 
 
 if __name__ == "__main__":
